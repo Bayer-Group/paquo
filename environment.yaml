@@ -1,0 +1,19 @@
+# Development environment for paquo
+name: paquo
+
+channels:
+  - conda-forge
+  - sdvillal
+  - defaults
+
+dependencies:
+  - python=3.8
+  - pip
+  - pytest
+  - qupath
+  - python-openslide
+  - shapely
+  - pytest
+  - pip:
+    - https://github.com/jpype-project/jpype/archive/96e2daf69fc2b93209133f513a6d742a90fe2b9f.zip
+    - "-e ."
