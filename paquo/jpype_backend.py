@@ -15,3 +15,10 @@ def start_jpype():
         if JAVA_VENDORED_PATH.is_dir():
             jpype.addClassPath(str(JAVA_VENDORED_PATH / '*'))
         jpype.startJVM(str(jvm_path), convertStrings=False)
+
+
+if __name__ == '__main__':
+    start_jpype()
+    BuildInfo = jpype.JClass('qupath.lib.gui.BuildInfo')
+    # now this can be made easy with qupath
+    print(BuildInfo.getInstance().getVersion())
