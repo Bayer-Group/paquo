@@ -1,7 +1,7 @@
 from pathlib import Path
 import jpype
 
-from paquo.qupath import find_qupath
+from paquo.qupath.util import find_qupath
 
 
 def start_jpype():
