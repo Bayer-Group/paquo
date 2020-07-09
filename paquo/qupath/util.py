@@ -34,7 +34,7 @@ def find_qupath() -> Tuple[Path, Path, Path, List[str]]:
         qupath_dir = conda_prefix / 'bin' / 'QuPath.app'
         app_dir = qupath_dir / 'Contents' / 'app'
         runtime_dir = qupath_dir / 'Contents' / 'runtime' / 'Contents' / 'Home'
-        jvm_path = runtime_dir / 'lib' / 'server' / 'libjvm.dylib'
+        jvm_path = qupath_dir / 'Contents' / 'runtime' / 'Contents' / 'MacOS' / 'libjli.dylib'
         jvm_options = [
             f'-Djava.library.path={app_dir}:{qupath_dir}/Contents/MacOS',
             f'-Djava.launcher.path={qupath_dir}/Contents/MacOS',
