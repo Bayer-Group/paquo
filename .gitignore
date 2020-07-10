@@ -132,3 +132,6 @@ dmypy.json
 
 # paquo
 paquo/_version.py
+
+# paquo test files
+*.svs
