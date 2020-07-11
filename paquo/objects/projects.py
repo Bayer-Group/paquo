@@ -155,8 +155,7 @@ class QuPathProject:
             self.images.add(image)
 
     def __len__(self):
-        # return len(self.images)
-        return 0  # TODO
+        return len(self.images)
 
     @property
     def image_id(self):
@@ -164,14 +163,14 @@ class QuPathProject:
 
     @property
     def uri(self):
-        return self._project.getURI().toString()
+        return str(self._project.getURI().toString())
 
     @property
     def uri_previous(self):
         uri = self._project.getPreviousURI()
         if uri is None:
             return None
-        return uri.toString()
+        return str(uri.toString())
 
     @property
     def path_classes(self):
@@ -217,4 +216,4 @@ class QuPathProject:
 
     @property
     def version(self):
-        return self._project.getVersion()
+        return str(self._project.getVersion())
