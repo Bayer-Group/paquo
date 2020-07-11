@@ -11,7 +11,7 @@ def jvm_running():
         app_dir, runtime_dir, jvm_path, jvm_options = find_qupath()
         # This is not really needed, but beware we might need SL4J classes (see warning)
         jpype.addClassPath(str(app_dir / '*'))
-        jpype.startJVM(str(jvm_path), convertStrings=False)
+        jpype.startJVM(str(jvm_path), *jvm_options, convertStrings=False)
     yield
 
 
