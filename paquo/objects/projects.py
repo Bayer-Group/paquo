@@ -15,7 +15,7 @@ with jvm_running():
     _String = java_import('java.lang.String')
     _DefaultProjectImageEntry = java_import('qupath.lib.projects.DefaultProject.DefaultProjectImageEntry')
     _ImageServerProvider = java_import('qupath.lib.images.servers.ImageServerProvider')
-
+    _ServerTools = java_import('qupath.lib.images.servers.ServerTools')
 
 class _QuPathImageEntryMetadata(MutableMapping):
 
@@ -79,6 +79,14 @@ class QuPathProjectImageEntry:
     def thumbnail(self):
         return self._entry.getThumbnail()
 
+    @thumbnail.setter
+    def thumbnail(self, value):
+        if isinstance(value, _BufferedImage):
+            pass
+        else:
+            raise TypeError('fixme: support pil')
+        return self._entry.setThumbnail(value)
+
     @property
     def metadata(self):
         return self._metadata
@@ -94,7 +102,11 @@ class _QuPathProjectImageEntriesProxy(MutableSet):
     def discard(self, x: QuPathProjectImageEntry) -> None:
         pass
 
-    def add(self, filename) -> None:
+    # TODO:
+    #   set.add returns None normally.
+    #   need to think about the interface because the conversion from
+    #   file to entry happens in qupath in a project.
+    def add(self, filename) -> QuPathProjectImageEntry:
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
         support = _ImageServerProvider.getPreferredUriImageSupport(_BufferedImage, _String(str(img_path)))
@@ -104,7 +116,16 @@ class _QuPathProjectImageEntriesProxy(MutableSet):
         if not server_builders:
             raise Exception("unsupported file")
         server_builder = server_builders[0]
-        self._project.addImage(server_builder)
+        entry = self._project.addImage(server_builder)
+
+        # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
+        server = server_builder.build()
+        entry.setImageName(_ServerTools.getDisplayableImageName(server))
+        # basically getThumbnailRGB(server, None) without the resize...
+        thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
+        entry.setThumbnail(thumbnail)
+
+        return QuPathProjectImageEntry(entry)
 
     def __init__(self, project):
         if not isinstance(project, _DefaultProject):
