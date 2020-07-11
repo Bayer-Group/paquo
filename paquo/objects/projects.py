@@ -98,6 +98,8 @@ class _QuPathProjectImageEntriesProxy(MutableSet):
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
         support = _ImageServerProvider.getPreferredUriImageSupport(_BufferedImage, _String(str(img_path)))
+        if not support:
+            raise Exception("unsupported file")
         server_builders = list(support.getBuilders())
         if not server_builders:
             raise Exception("unsupported file")
