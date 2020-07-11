@@ -1,6 +1,6 @@
 import pathlib
-from collections.abc import MutableSet
-from typing import Union
+from collections.abc import MutableSet, MutableMapping
+from typing import Union, Iterator
 
 from paquo.qupath.jpype_backend import java_import, jvm_running
 
@@ -17,12 +17,42 @@ with jvm_running():
     _ImageServerProvider = java_import('qupath.lib.images.servers.ImageServerProvider')
 
 
+class _QuPathImageEntryMetadata(MutableMapping):
+
+    def __init__(self, entry):
+        self._entry = entry
+
+    def __setitem__(self, k: str, v: str) -> None:
+        self._entry.putMetadataValue(_String(k), _String(v))
+
+    def __delitem__(self, k: str) -> None:
+        self._entry.removeMetadataValue(_String(k))
+
+    def __getitem__(self, k: str) -> str:
+        v = self._entry.getMetadataValue(_String(k))
+        return str(v)
+
+    def __len__(self) -> int:
+        # ... not really nice
+        return sum(1 for _ in self._entry.getMetadataKeys())
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(map(str, self._entry.getMetadataKeys()))
+
+    def __contains__(self, item):
+        return bool(self._entry.containsMetadata(_String(item)))
+
+    def clear(self) -> None:
+        self._entry.clearMetadata()
+
+
 class QuPathProjectImageEntry:
 
     def __init__(self, entry):
         if not isinstance(entry, _DefaultProjectImageEntry):
             raise TypeError("don't instantiate QuPathProjectImageEntry yourself")
         self._entry = entry
+        self._metadata = _QuPathImageEntryMetadata(entry)
 
     @property
     def id(self):
@@ -48,6 +78,15 @@ class QuPathProjectImageEntry:
     @property
     def thumbnail(self):
         return self._entry.getThumbnail()
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value):
+        self._metadata.clear()
+        self._metadata.update(value)
 
 
 class _QuPathProjectImageEntriesProxy(MutableSet):
