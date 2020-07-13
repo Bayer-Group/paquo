@@ -42,6 +42,15 @@ def svs_small():
 
 
 @pytest.fixture(scope='function')
+def small_project(svs_small):
+    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+        qp = QuPathProject(tmpdir)
+        qp.images.add(svs_small)
+        qp.save()
+        yield qp
+
+
+@pytest.fixture(scope='function')
 def new_project():
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
         yield QuPathProject(tmpdir)
@@ -67,3 +76,9 @@ def test_create_project(svs_small):
         qp = QuPathProject(tmpdir)
         qp.images.add(svs_small)
         qp.save()
+
+
+def test_load_annotations(small_project):
+    image, = small_project.images
+    geojson = image.hierarchy.to_geojson()
+    assert geojson == []
