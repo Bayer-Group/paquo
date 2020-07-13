@@ -31,6 +31,9 @@ jobs:
         activate-environment: paquo
         use-only-tar-bz2: true
         auto-activate-base: false
-    - name: Test with pytest
+    - shell: bash -l {0}
+      name: Test with pytest
       run: |
+        conda info
+        conda list
         pytest
