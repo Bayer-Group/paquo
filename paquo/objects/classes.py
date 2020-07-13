@@ -26,13 +26,14 @@ class PathClass:
                 raise TypeError("parent must be a PathClass")
             _parent_class = parent._path_class
 
-        path_class_str = _PathClass.derivedClassToString(_parent_class, name)
         if not exist_ok:
+            # FIXME: derivedClassToString is not public...
+            path_class_str = _PathClass.derivedClassToString(_parent_class, name)
             if bool(_PathClassFactory.classExists(path_class_str)):
                 raise Exception("path_class already created")
 
         _color = _ColorTools.makeRGB(int(color[0]), int(color[1]), int(color[2]))
-        path_class = _PathClassFactory.getDerivedPathClass(parent._path_class, name, _color)
+        path_class = _PathClassFactory.getDerivedPathClass(_parent_class, name, _color)
         return cls(path_class)
 
     @property
