@@ -3,7 +3,7 @@ from collections.abc import MutableSet
 from typing import Union
 
 from paquo.objects.classes import PathClass
-from paquo.objects.images import QuPathProjectImageEntry
+from paquo.objects.images import ProjectImageEntry
 from paquo.qupath.jpype_backend import java_import, jvm_running
 
 # import java classes
@@ -25,14 +25,14 @@ with jvm_running():
 
 class _QuPathProjectImageEntriesProxy(MutableSet):
 
-    def discard(self, x: QuPathProjectImageEntry) -> None:
+    def discard(self, x: ProjectImageEntry) -> None:
         pass
 
     # TODO:
     #   set.add returns None normally.
     #   need to think about the interface because the conversion from
     #   file to entry happens in qupath in a project.
-    def add(self, filename) -> QuPathProjectImageEntry:
+    def add(self, filename) -> ProjectImageEntry:
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
         support = _ImageServerProvider.getPreferredUriImageSupport(_BufferedImage, _String(str(img_path)))
@@ -51,7 +51,7 @@ class _QuPathProjectImageEntriesProxy(MutableSet):
         thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
         entry.setThumbnail(thumbnail)
 
-        return QuPathProjectImageEntry(entry)
+        return ProjectImageEntry(entry)
 
     def __init__(self, project):
         if not isinstance(project, _DefaultProject):
@@ -73,7 +73,7 @@ class _QuPathProjectImageEntriesProxy(MutableSet):
 
     def __next__(self):
         image_entry = next(self._it)
-        return QuPathProjectImageEntry(image_entry)
+        return ProjectImageEntry(image_entry)
 
 
 class QuPathProject:
@@ -95,8 +95,8 @@ class QuPathProject:
     def images(self, images):
         _images = []
         for image in images:
-            if not isinstance(image, QuPathProjectImageEntry):
-                raise TypeError("images needs to be iterable of instances of QuPathProjectImageEntry")
+            if not isinstance(image, ProjectImageEntry):
+                raise TypeError("images needs to be iterable of instances of ProjectImageEntry")
         self.images.clear()
         for image in _images:
             self.images.add(image)

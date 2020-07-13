@@ -12,7 +12,7 @@ with jvm_running():
     _DefaultProjectImageEntry = java_import('qupath.lib.projects.DefaultProject.DefaultProjectImageEntry')
 
 
-class _QuPathImageEntryMetadata(MutableMapping):
+class _ProjectImageEntryMetadata(MutableMapping):
 
     def __init__(self, entry):
         self._entry = entry
@@ -41,13 +41,13 @@ class _QuPathImageEntryMetadata(MutableMapping):
         self._entry.clearMetadata()
 
 
-class QuPathProjectImageEntry:
+class ProjectImageEntry:
 
     def __init__(self, entry):
         if not isinstance(entry, _DefaultProjectImageEntry):
-            raise TypeError("don't instantiate QuPathProjectImageEntry yourself")
+            raise TypeError("don't instantiate ProjectImageEntry yourself")
         self._entry = entry
-        self._metadata = _QuPathImageEntryMetadata(entry)
+        self._metadata = _ProjectImageEntryMetadata(entry)
 
     @property
     def id(self):
