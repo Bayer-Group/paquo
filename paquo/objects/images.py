@@ -48,6 +48,7 @@ class ProjectImageEntry:
             raise TypeError("don't instantiate ProjectImageEntry yourself")
         self._entry = entry
         self._metadata = _ProjectImageEntryMetadata(entry)
+        self._hierarchy = None
 
     @property
     def id(self):
@@ -93,4 +94,6 @@ class ProjectImageEntry:
 
     @property
     def hierarchy(self):
-        return PathObjectHierarchy(self._entry.readHierarchy())
+        if self._hierarchy is None:
+            self._hierarchy = PathObjectHierarchy(self._entry.readHierarchy())
+        return self._hierarchy
