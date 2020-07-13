@@ -82,3 +82,37 @@ def test_load_annotations(small_project):
     image, = small_project.images
     geojson = image.hierarchy.to_geojson()
     assert geojson == []
+
+
+TEST_ANNOTATION_POLYGON = [{
+    'type': 'Feature',
+    'id': 'PathAnnotationObject',
+    'geometry': {
+        'type': 'Polygon',
+        'coordinates': [[
+            [1000, 1300],
+            [1011, 1420],
+            [1120, 1430],
+            [1060, 1380],
+            [1000, 1300]
+        ]]
+    },
+    'properties': {
+        'classification': {
+            'name': 'Tumor',
+            'colorRGB': -16711936  # fixme: colors need fixing
+        },
+        'isLocked': False,
+        'measurements': []
+    }
+}]
+
+
+def test_input_and_output_annotations(small_project):
+    image, = small_project.images
+    assert image.hierarchy.from_geojson(TEST_ANNOTATION_POLYGON)
+
+    output = image.hierarchy.to_geojson()
+
+    # fixme: this test needs to be more thorough and is just a poc right now
+    assert output == TEST_ANNOTATION_POLYGON
