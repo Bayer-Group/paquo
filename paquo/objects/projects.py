@@ -10,20 +10,16 @@ from paquo.qupath.jpype_backend import java_import, jvm_running
 with jvm_running():
     _BufferedImage = java_import('java.awt.image.BufferedImage')
     _DefaultProject = java_import('qupath.lib.projects.DefaultProject')
-    # _Project = java_import('qupath.lib.projects.Project')
-    _Projects = java_import('qupath.lib.projects.Projects')
-    _ProjectIO = java_import('qupath.lib.projects.ProjectIO')
-    _File = java_import('java.io.File')
-    _String = java_import('java.lang.String')
     _DefaultProjectImageEntry = java_import('qupath.lib.projects.DefaultProject.DefaultProjectImageEntry')
+    _File = java_import('java.io.File')
     _ImageServerProvider = java_import('qupath.lib.images.servers.ImageServerProvider')
+    _ProjectIO = java_import('qupath.lib.projects.ProjectIO')
+    _Projects = java_import('qupath.lib.projects.Projects')
     _ServerTools = java_import('qupath.lib.images.servers.ServerTools')
-    _ColorTools = java_import('qupath.lib.common.ColorTools')
-    _PathClass = java_import('qupath.lib.objects.classes.PathClass')
-    _PathClassFactory = java_import('qupath.lib.objects.classes.PathClassFactory')
+    _String = java_import('java.lang.String')
 
 
-class _QuPathProjectImageEntriesProxy(MutableSet):
+class _ProjectImageEntriesProxy(MutableSet):
 
     def discard(self, x: ProjectImageEntry) -> None:
         pass
@@ -85,7 +81,7 @@ class QuPathProject:
         else:
             self._project = _Projects.createProject(_File(str(path)), _BufferedImage)
 
-        self._image_entries_proxy = _QuPathProjectImageEntriesProxy(self._project)
+        self._image_entries_proxy = _ProjectImageEntriesProxy(self._project)
 
     @property
     def images(self):
