@@ -30,6 +30,7 @@ jobs:
         auto-update-conda: true
         activate-environment: paquo
         use-only-tar-bz2: true
+        auto-activate-base: false
     - name: Test with pytest
       run: |
         pytest
