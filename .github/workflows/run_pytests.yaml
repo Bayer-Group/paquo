@@ -1,0 +1,35 @@
+name: run pytests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: paquo pytests on ${{ matrix.os }}::py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        # for now just test on macos and py3.8, more to come...
+        os: ["macos-latest"]
+        python-version: [3.8]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Cache conda
+      uses: actions/cache@v1
+      env:
+        # Increase this value to reset cache if etc/example-environment.yml has not changed
+        CACHE_NUMBER: 0
+      with:
+        path: ~/conda_pkgs_dir
+        key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('environment.yaml') }}
+    - name: Setup conda
+      uses: goanpeca/setup-miniconda@v1
+      with:
+        environment-file: environment.yaml
+        python-version: ${{ matrix.python-version }}
+        auto-update-conda: true
+        activate-environment: paquo
+        use-only-tar-bz2: true
+    - name: Test with pytest
+      run: |
+        pytest
