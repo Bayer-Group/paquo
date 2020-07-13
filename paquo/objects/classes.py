@@ -8,11 +8,11 @@ with jvm_running():
     _PathClassFactory = java_import('qupath.lib.objects.classes.PathClassFactory')
 
 
-class QuPathPathClass:
+class PathClass:
 
     def __init__(self, path_class=None):
         if not isinstance(path_class, _PathClass):
-            raise ValueError("use QuPathPathClass.create() to instantiate")
+            raise ValueError("use PathClass.create() to instantiate")
         self._path_class = path_class
 
     @classmethod
@@ -22,8 +22,8 @@ class QuPathPathClass:
 
         _parent_class = None
         if parent is not None:
-            if not isinstance(parent, QuPathPathClass):
-                raise TypeError("parent must be a QuPathPathClass")
+            if not isinstance(parent, PathClass):
+                raise TypeError("parent must be a PathClass")
             _parent_class = parent._path_class
 
         path_class_str = _PathClass.derivedClassToString(_parent_class, name)
@@ -51,7 +51,7 @@ class QuPathPathClass:
         path_class = self._path_class.getParentClass()
         if path_class is None:
             return None
-        return QuPathPathClass(path_class)
+        return PathClass(path_class)
 
     @property
     def origin(self):
