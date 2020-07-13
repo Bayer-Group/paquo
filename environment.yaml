@@ -11,7 +11,7 @@ dependencies:
   - pip
   - pytest
   - qupath
-  - python-openslide
+  # - python-openslide
   - shapely
   - pytest
   - pip:
