@@ -32,6 +32,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
             the name of your path class
         color:
             a color (r,g,b) or (r,g,b,a) with 0 < x < 255 or a QuPathColor
+            if color is None, a color calculated from the name is used
         parent:
             the parent of the class
 
