@@ -2,25 +2,25 @@ import pathlib
 from collections.abc import MutableSet
 from typing import Union
 
-from paquo.java import JImageServerProvider, JBufferedImage, JDefaultProjectImageEntry, \
-    JProjectIO, JFile, JProjects, JString, JServerTools, JDefaultProject
-from paquo.objects.classes import PathClass
-from paquo.objects.images import ProjectImageEntry
+from paquo.java import ImageServerProvider, BufferedImage, DefaultProjectImageEntry, \
+    ProjectIO, File, Projects, String, ServerTools, DefaultProject
+from paquo.objects.classes import QuPathPathClass
+from paquo.objects.images import QuPathProjectImageEntry
 
 
 class _ProjectImageEntriesProxy(MutableSet):
 
-    def discard(self, x: ProjectImageEntry) -> None:
+    def discard(self, x: QuPathProjectImageEntry) -> None:
         pass
 
     # TODO:
     #   set.add returns None normally.
     #   need to think about the interface because the conversion from
     #   file to entry happens in qupath in a project.
-    def add(self, filename) -> ProjectImageEntry:
+    def add(self, filename) -> QuPathProjectImageEntry:
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
-        support = JImageServerProvider.getPreferredUriImageSupport(JBufferedImage, JString(str(img_path)))
+        support = ImageServerProvider.getPreferredUriImageSupport(BufferedImage, String(str(img_path)))
         if not support:
             raise Exception("unsupported file")
         server_builders = list(support.getBuilders())
@@ -31,15 +31,15 @@ class _ProjectImageEntriesProxy(MutableSet):
 
         # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
         server = server_builder.build()
-        entry.setImageName(JServerTools.getDisplayableImageName(server))
+        entry.setImageName(ServerTools.getDisplayableImageName(server))
         # basically getThumbnailRGB(server, None) without the resize...
         thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
         entry.setThumbnail(thumbnail)
 
-        return ProjectImageEntry(entry)
+        return QuPathProjectImageEntry(entry)
 
     def __init__(self, project):
-        if not isinstance(project, JDefaultProject):
+        if not isinstance(project, DefaultProject):
             raise TypeError('requires _DefaultProject instance')
         self._project = project
         self._it = iter(())
@@ -48,7 +48,7 @@ class _ProjectImageEntriesProxy(MutableSet):
         return self._project.size()
 
     def __contains__(self, __x: object) -> bool:
-        if not isinstance(__x, JDefaultProjectImageEntry):
+        if not isinstance(__x, DefaultProjectImageEntry):
             return False
         return False  # FIXME
 
@@ -58,7 +58,7 @@ class _ProjectImageEntriesProxy(MutableSet):
 
     def __next__(self):
         image_entry = next(self._it)
-        return ProjectImageEntry(image_entry)
+        return QuPathProjectImageEntry(image_entry)
 
 
 class QuPathProject:
@@ -66,9 +66,9 @@ class QuPathProject:
     def __init__(self, path: Union[str, pathlib.Path]):
         path = pathlib.Path(path)
         if path.is_file():
-            self._project = JProjectIO.loadProject(JFile(str(path)), JBufferedImage)
+            self._project = ProjectIO.loadProject(File(str(path)), BufferedImage)
         else:
-            self._project = JProjects.createProject(JFile(str(path)), JBufferedImage)
+            self._project = Projects.createProject(File(str(path)), BufferedImage)
 
         self._image_entries_proxy = _ProjectImageEntriesProxy(self._project)
 
@@ -80,7 +80,7 @@ class QuPathProject:
     def images(self, images):
         _images = []
         for image in images:
-            if not isinstance(image, ProjectImageEntry):
+            if not isinstance(image, QuPathProjectImageEntry):
                 raise TypeError("images needs to be iterable of instances of ProjectImageEntry")
         self.images.clear()
         for image in _images:
@@ -106,7 +106,7 @@ class QuPathProject:
 
     @property
     def path_classes(self):
-        return tuple(map(PathClass, self._project.getPathClasses()))
+        return tuple(map(QuPathPathClass, self._project.getPathClasses()))
 
     @path_classes.setter
     def path_classes(self, path_classes):

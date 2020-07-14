@@ -1,11 +1,11 @@
 import json
 from typing import List
 
-from paquo.java import JString, JGsonTools, JColorTools, JArrayList, JPoint2, JROIs, JPathObjects
-from paquo.objects.classes import PathClass
+from paquo.java import String, GsonTools, ColorTools, ArrayList, Point2, ROIs, PathObjects
+from paquo.objects.classes import QuPathPathClass
 
 
-class PathObjectHierarchy:
+class QuPathPathObjectHierarchy:
 
     def __init__(self, hierarchy):
         self._hierarchy = hierarchy
@@ -25,7 +25,7 @@ class PathObjectHierarchy:
         return PathObject(root)
 
     def to_geojson(self):
-        gson = JGsonTools.getInstance()
+        gson = GsonTools.getInstance()
         geojson = gson.toJson(self._hierarchy.getAnnotationObjects())
         return json.loads(str(geojson))
 
@@ -109,42 +109,42 @@ class PathObject:
 
     @name.setter
     def name(self, name):
-        self._path_object.setName(JString(name))
+        self._path_object.setName(String(name))
 
     @property
     def color(self):
         argb = self._path_object.getColor()
-        r = int(JColorTools.red(argb))
-        g = int(JColorTools.green(argb))
-        b = int(JColorTools.blue(argb))
+        r = int(ColorTools.red(argb))
+        g = int(ColorTools.green(argb))
+        b = int(ColorTools.blue(argb))
         return r, g, b
 
     @color.setter
     def color(self, rgb):
         r, g, b = map(int, rgb)
         a = int(255 * self.alpha)
-        argb = JColorTools.makeRGB(r, g, b, a)
+        argb = ColorTools.makeRGB(r, g, b, a)
         self._path_object.setColor(argb)
 
     @property
     def alpha(self):
         argb = self._path_object.getColor()
-        a = int(JColorTools.alpha(argb))
+        a = int(ColorTools.alpha(argb))
         return a / 255.0
 
     @alpha.setter
     def alpha(self, alpha):
         r, g, b = self.color
         a = int(255 * alpha)
-        argb = JColorTools.makeRGBA(r, g, b, a)
+        argb = ColorTools.makeRGBA(r, g, b, a)
         self._path_object.setColor(argb)
 
     @property
     def path_class(self):
-        return PathClass(self._path_object.getPathClass())
+        return QuPathPathClass(self._path_object.getPathClass())
 
     @path_class.setter
-    def path_class(self, pc: PathClass):
+    def path_class(self, pc: QuPathPathClass):
         self._path_object.setPathClass(pc._path_class)
 
     @property
@@ -159,20 +159,20 @@ class PathObject:
 class PathAnnotationObject(PathObject):
 
     @classmethod
-    def from_vertices(cls, vertices: List[List[List[float]]], path_class: PathClass = None):
+    def from_vertices(cls, vertices: List[List[List[float]]], path_class: QuPathPathClass = None):
         # fixme: quick and dirty poc
         assert len(vertices) == 1
-        points = JArrayList()
+        points = ArrayList()
         for x, y in vertices[0]:
-            points.add(JPoint2(x, y))
-        roi = JROIs.createPolygonROI(points, None)
-        ao = JPathObjects.createAnnotationObject(roi, path_class._path_class, None)
+            points.add(Point2(x, y))
+        roi = ROIs.createPolygonROI(points, None)
+        ao = PathObjects.createAnnotationObject(roi, path_class._path_class, None)
         return cls(ao)
 
     @classmethod
     def from_geojson(cls, geojson):
         assert geojson['geometry']['type'] == 'Polygon'
-        path_class = PathClass.create(
+        path_class = QuPathPathClass.create(
             name=geojson['properties']['classification']['name'],
             color=(0, 255, 0)
         )

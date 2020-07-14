@@ -2,8 +2,8 @@ import pathlib
 from collections.abc import MutableMapping
 from typing import Iterator
 
-from paquo.java import JString, JDefaultProjectImageEntry, JBufferedImage
-from paquo.objects.hierarchy import PathObjectHierarchy
+from paquo.java import String, DefaultProjectImageEntry, BufferedImage
+from paquo.objects.hierarchy import QuPathPathObjectHierarchy
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
@@ -12,13 +12,13 @@ class _ProjectImageEntryMetadata(MutableMapping):
         self._entry = entry
 
     def __setitem__(self, k: str, v: str) -> None:
-        self._entry.putMetadataValue(JString(k), JString(v))
+        self._entry.putMetadataValue(String(k), String(v))
 
     def __delitem__(self, k: str) -> None:
-        self._entry.removeMetadataValue(JString(k))
+        self._entry.removeMetadataValue(String(k))
 
     def __getitem__(self, k: str) -> str:
-        v = self._entry.getMetadataValue(JString(k))
+        v = self._entry.getMetadataValue(String(k))
         return str(v)
 
     def __len__(self) -> int:
@@ -29,16 +29,16 @@ class _ProjectImageEntryMetadata(MutableMapping):
         return iter(map(str, self._entry.getMetadataKeys()))
 
     def __contains__(self, item):
-        return bool(self._entry.containsMetadata(JString(item)))
+        return bool(self._entry.containsMetadata(String(item)))
 
     def clear(self) -> None:
         self._entry.clearMetadata()
 
 
-class ProjectImageEntry:
+class QuPathProjectImageEntry:
 
     def __init__(self, entry):
-        if not isinstance(entry, JDefaultProjectImageEntry):
+        if not isinstance(entry, DefaultProjectImageEntry):
             raise TypeError("don't instantiate ProjectImageEntry yourself")
         self._entry = entry
         self._metadata = _ProjectImageEntryMetadata(entry)
@@ -54,7 +54,7 @@ class ProjectImageEntry:
 
     @image_name.setter
     def image_name(self, name):
-        self._entry.setImageName(JString(name))
+        self._entry.setImageName(String(name))
 
     @property
     def image_name_original(self):
@@ -71,7 +71,7 @@ class ProjectImageEntry:
 
     @thumbnail.setter
     def thumbnail(self, value):
-        if isinstance(value, JBufferedImage):
+        if isinstance(value, BufferedImage):
             pass
         else:
             raise TypeError('fixme: support pil')
@@ -89,5 +89,5 @@ class ProjectImageEntry:
     @property
     def hierarchy(self):
         if self._hierarchy is None:
-            self._hierarchy = PathObjectHierarchy(self._entry.readHierarchy())
+            self._hierarchy = QuPathPathObjectHierarchy(self._entry.readHierarchy())
         return self._hierarchy
