@@ -3,7 +3,7 @@ from typing import Optional
 
 from paquo._base import QuPathBase
 from paquo.colors import QuPathColor, ColorType
-from paquo.java import PathClass, PathClassFactory, ColorTools
+from paquo.java import PathClass, PathClassFactory, ColorTools, String
 
 
 class QuPathPathClass(QuPathBase[PathClass]):
@@ -46,6 +46,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
             #   will have to consider if we expose this here.
             if parent is not None:
                 raise ValueError("cannot create derived QuPathPathClass with name=None")
+        name = String(name)
 
         # get the parent class if requested
         java_parent = None
@@ -57,7 +58,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
         # set the color if requested
         java_color = None
         if color is not None:
-            java_color = QuPathColor.from_any(color).to_java_rgb()  # use rgba?
+            java_color = QuPathColor.from_any(color).to_java_rgba()  # use rgba?
 
         path_class = PathClassFactory.getDerivedPathClass(java_parent, name, java_color)
         return cls(path_class)
