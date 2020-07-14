@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Tuple, Union
 
-from paquo.java import ColorTools
+from paquo.java import ColorTools, Integer
 
 ColorTypeRGB = Tuple[int, int, int]
 ColorTypeRGBA = Tuple[int, int, int, int]
@@ -33,8 +33,8 @@ class QuPathColor:
         r, g, b, a = self.to_rgba()
         return r / 255.0, g / 255.0, b / 255.0, a / 255.0
 
-    def to_java_rgb(self) -> int:
-        return int(ColorTools.makeRGB(*self.to_rgb()))
+    def to_java_rgb(self) -> Integer:
+        return ColorTools.makeRGB(*self.to_rgb())
 
     @classmethod
     def from_java_rgb(cls, java_rgb: int) -> QuPathColor:
@@ -44,8 +44,8 @@ class QuPathColor:
         b = int(ColorTools.blue(java_rgb))
         return cls(r, g, b)
 
-    def to_java_rgba(self) -> int:
-        return int(ColorTools.makeRGBA(*self.to_rgba()))
+    def to_java_rgba(self) -> Integer:
+        return ColorTools.makeRGBA(*self.to_rgba())
 
     @classmethod
     def from_java_rgba(cls, java_rgba: int) -> QuPathColor:
