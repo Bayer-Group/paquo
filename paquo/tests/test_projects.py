@@ -100,7 +100,7 @@ TEST_ANNOTATION_POLYGON = [{
     'properties': {
         'classification': {
             'name': 'Tumor',
-            'colorRGB': -16711936  # fixme: colors need fixing
+            'colorRGB': -3670016
         },
         'isLocked': False,
         'measurements': []

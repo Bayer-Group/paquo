@@ -1,6 +1,7 @@
 import json
 from typing import List
 
+from paquo.colors import QuPathColor
 from paquo.classes import QuPathPathClass
 from paquo.java import String, GsonTools, ColorTools, ArrayList, Point2, ROIs, PathObjects
 
@@ -145,7 +146,7 @@ class PathObject:
 
     @path_class.setter
     def path_class(self, pc: QuPathPathClass):
-        self._path_object.setPathClass(pc._path_class)
+        self._path_object.setPathClass(pc.java_object)
 
     @property
     def path_class_probability(self):
@@ -166,7 +167,7 @@ class PathAnnotationObject(PathObject):
         for x, y in vertices[0]:
             points.add(Point2(x, y))
         roi = ROIs.createPolygonROI(points, None)
-        ao = PathObjects.createAnnotationObject(roi, path_class._path_class, None)
+        ao = PathObjects.createAnnotationObject(roi, path_class.java_object, None)
         return cls(ao)
 
     @classmethod
@@ -174,7 +175,9 @@ class PathAnnotationObject(PathObject):
         assert geojson['geometry']['type'] == 'Polygon'
         path_class = QuPathPathClass.create(
             name=geojson['properties']['classification']['name'],
-            color=(0, 255, 0)
+            color=QuPathColor.from_java_rgba(
+                geojson['properties']['classification']['colorRGB']
+            ).to_rgba()
         )
         polygon = geojson['geometry']['coordinates']
         return cls.from_vertices(polygon, path_class)
