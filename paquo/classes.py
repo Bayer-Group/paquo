@@ -78,7 +78,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
         # check if path classes are identical
         if not isinstance(other, QuPathPathClass):
             return False
-        return self.java_object.compareTo(other.java_object)
+        return self.java_object.compareTo(other.java_object) == 0
 
     @property
     def parent(self) -> Optional[QuPathPathClass]:
@@ -107,14 +107,14 @@ class QuPathPathClass(QuPathBase[PathClass]):
     @property
     def color(self) -> QuPathColor:
         """return the path color"""
-        argb = self.java_object.getColor()
-        return QuPathColor.from_java_rgba(argb)
+        rgb = self.java_object.getColor()
+        return QuPathColor.from_java_rgb(rgb)
 
     @color.setter
     def color(self, rgb: ColorType) -> None:
         """set the path color"""
-        argb = ColorTools.from_any(rgb).to_java_argb()  # maybe use argb?
-        self.java_object.setColor(argb)
+        rgb = ColorTools.from_any(rgb).to_java_rgb()  # maybe use argb?
+        self.java_object.setColor(rgb)
 
     @property
     def is_valid(self) -> bool:
