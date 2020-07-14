@@ -1,17 +1,8 @@
 import json
 from typing import List
 
+from paquo.java import JString, JGsonTools, JColorTools, JArrayList, JPoint2, JROIs, JPathObjects
 from paquo.objects.classes import PathClass
-from paquo.qupath.jpype_backend import jvm_running, java_import
-
-with jvm_running():
-    _String = java_import('java.lang.String')
-    _ColorTools = java_import('qupath.lib.common.ColorTools')
-    _GsonTools = java_import('qupath.lib.io.GsonTools')
-    _Point2 = java_import("qupath.lib.geom.Point2")
-    _ROIs = java_import("qupath.lib.roi.ROIs")
-    _PathObjects = java_import("qupath.lib.objects.PathObjects")
-    _ArrayList = java_import("java.util.ArrayList")
 
 
 class PathObjectHierarchy:
@@ -34,7 +25,7 @@ class PathObjectHierarchy:
         return PathObject(root)
 
     def to_geojson(self):
-        gson = _GsonTools.getInstance()
+        gson = JGsonTools.getInstance()
         geojson = gson.toJson(self._hierarchy.getAnnotationObjects())
         return json.loads(str(geojson))
 
@@ -118,34 +109,34 @@ class PathObject:
 
     @name.setter
     def name(self, name):
-        self._path_object.setName(_String(name))
+        self._path_object.setName(JString(name))
 
     @property
     def color(self):
         argb = self._path_object.getColor()
-        r = int(_ColorTools.red(argb))
-        g = int(_ColorTools.green(argb))
-        b = int(_ColorTools.blue(argb))
+        r = int(JColorTools.red(argb))
+        g = int(JColorTools.green(argb))
+        b = int(JColorTools.blue(argb))
         return r, g, b
 
     @color.setter
     def color(self, rgb):
         r, g, b = map(int, rgb)
         a = int(255 * self.alpha)
-        argb = _ColorTools.makeRGB(r, g, b, a)
+        argb = JColorTools.makeRGB(r, g, b, a)
         self._path_object.setColor(argb)
 
     @property
     def alpha(self):
         argb = self._path_object.getColor()
-        a = int(_ColorTools.alpha(argb))
+        a = int(JColorTools.alpha(argb))
         return a / 255.0
 
     @alpha.setter
     def alpha(self, alpha):
         r, g, b = self.color
         a = int(255 * alpha)
-        argb = _ColorTools.makeRGBA(r, g, b, a)
+        argb = JColorTools.makeRGBA(r, g, b, a)
         self._path_object.setColor(argb)
 
     @property
@@ -171,11 +162,11 @@ class PathAnnotationObject(PathObject):
     def from_vertices(cls, vertices: List[List[List[float]]], path_class: PathClass = None):
         # fixme: quick and dirty poc
         assert len(vertices) == 1
-        points = _ArrayList()
+        points = JArrayList()
         for x, y in vertices[0]:
-            points.add(_Point2(x, y))
-        roi = _ROIs.createPolygonROI(points, None)
-        ao = _PathObjects.createAnnotationObject(roi, path_class._path_class, None)
+            points.add(JPoint2(x, y))
+        roi = JROIs.createPolygonROI(points, None)
+        ao = JPathObjects.createAnnotationObject(roi, path_class._path_class, None)
         return cls(ao)
 
     @classmethod

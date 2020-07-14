@@ -1,17 +1,10 @@
-
-from paquo.qupath.jpype_backend import java_import, jvm_running
-
-# import java classes
-with jvm_running():
-    _ColorTools = java_import('qupath.lib.common.ColorTools')
-    _PathClass = java_import('qupath.lib.objects.classes.PathClass')
-    _PathClassFactory = java_import('qupath.lib.objects.classes.PathClassFactory')
+from paquo.java import JPathClass, JPathClassFactory, JColorTools
 
 
 class PathClass:
 
     def __init__(self, path_class=None):
-        if not isinstance(path_class, _PathClass):
+        if not isinstance(path_class, JPathClass):
             raise ValueError("use PathClass.create() to instantiate")
         self._path_class = path_class
 
@@ -28,12 +21,12 @@ class PathClass:
 
         if not exist_ok:
             # FIXME: derivedClassToString is not public...
-            path_class_str = _PathClass.derivedClassToString(_parent_class, name)
-            if bool(_PathClassFactory.classExists(path_class_str)):
+            path_class_str = JPathClass.derivedClassToString(_parent_class, name)
+            if bool(JPathClassFactory.classExists(path_class_str)):
                 raise Exception("path_class already created")
 
-        _color = _ColorTools.makeRGB(int(color[0]), int(color[1]), int(color[2]))
-        path_class = _PathClassFactory.getDerivedPathClass(_parent_class, name, _color)
+        _color = JColorTools.makeRGB(int(color[0]), int(color[1]), int(color[2]))
+        path_class = JPathClassFactory.getDerivedPathClass(_parent_class, name, _color)
         return cls(path_class)
 
     @property
@@ -70,29 +63,29 @@ class PathClass:
     @property
     def color(self):
         argb = self._path_class.getColor()
-        r = int(_ColorTools.red(argb))
-        g = int(_ColorTools.green(argb))
-        b = int(_ColorTools.blue(argb))
+        r = int(JColorTools.red(argb))
+        g = int(JColorTools.green(argb))
+        b = int(JColorTools.blue(argb))
         return r, g, b
 
     @color.setter
     def color(self, rgb):
         r, g, b = map(int, rgb)
         a = int(255 * self.alpha)
-        argb = _ColorTools.makeRGBA(r, g, b, a)
+        argb = JColorTools.makeRGBA(r, g, b, a)
         self._path_class.setColor(argb)
 
     @property
     def alpha(self):
         argb = self._path_class.getColor()
-        a = int(_ColorTools.alpha(argb))
+        a = int(JColorTools.alpha(argb))
         return a / 255.0
 
     @alpha.setter
     def alpha(self, alpha):
         r, g, b = self.color
         a = int(255 * alpha)
-        argb = _ColorTools.makeRGBA(r, g, b, a)
+        argb = JColorTools.makeRGBA(r, g, b, a)
         self._path_class.setColor(argb)
 
     @property

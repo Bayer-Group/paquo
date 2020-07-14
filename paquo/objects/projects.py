@@ -2,21 +2,10 @@ import pathlib
 from collections.abc import MutableSet
 from typing import Union
 
+from paquo.java import JImageServerProvider, JBufferedImage, JDefaultProjectImageEntry, \
+    JProjectIO, JFile, JProjects, JString, JServerTools, JDefaultProject
 from paquo.objects.classes import PathClass
 from paquo.objects.images import ProjectImageEntry
-from paquo.qupath.jpype_backend import java_import, jvm_running
-
-# import java classes
-with jvm_running():
-    _BufferedImage = java_import('java.awt.image.BufferedImage')
-    _DefaultProject = java_import('qupath.lib.projects.DefaultProject')
-    _DefaultProjectImageEntry = java_import('qupath.lib.projects.DefaultProject.DefaultProjectImageEntry')
-    _File = java_import('java.io.File')
-    _ImageServerProvider = java_import('qupath.lib.images.servers.ImageServerProvider')
-    _ProjectIO = java_import('qupath.lib.projects.ProjectIO')
-    _Projects = java_import('qupath.lib.projects.Projects')
-    _ServerTools = java_import('qupath.lib.images.servers.ServerTools')
-    _String = java_import('java.lang.String')
 
 
 class _ProjectImageEntriesProxy(MutableSet):
@@ -31,7 +20,7 @@ class _ProjectImageEntriesProxy(MutableSet):
     def add(self, filename) -> ProjectImageEntry:
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
-        support = _ImageServerProvider.getPreferredUriImageSupport(_BufferedImage, _String(str(img_path)))
+        support = JImageServerProvider.getPreferredUriImageSupport(JBufferedImage, JString(str(img_path)))
         if not support:
             raise Exception("unsupported file")
         server_builders = list(support.getBuilders())
@@ -42,7 +31,7 @@ class _ProjectImageEntriesProxy(MutableSet):
 
         # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
         server = server_builder.build()
-        entry.setImageName(_ServerTools.getDisplayableImageName(server))
+        entry.setImageName(JServerTools.getDisplayableImageName(server))
         # basically getThumbnailRGB(server, None) without the resize...
         thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
         entry.setThumbnail(thumbnail)
@@ -50,7 +39,7 @@ class _ProjectImageEntriesProxy(MutableSet):
         return ProjectImageEntry(entry)
 
     def __init__(self, project):
-        if not isinstance(project, _DefaultProject):
+        if not isinstance(project, JDefaultProject):
             raise TypeError('requires _DefaultProject instance')
         self._project = project
         self._it = iter(())
@@ -59,7 +48,7 @@ class _ProjectImageEntriesProxy(MutableSet):
         return self._project.size()
 
     def __contains__(self, __x: object) -> bool:
-        if not isinstance(__x, _DefaultProjectImageEntry):
+        if not isinstance(__x, JDefaultProjectImageEntry):
             return False
         return False  # FIXME
 
@@ -77,9 +66,9 @@ class QuPathProject:
     def __init__(self, path: Union[str, pathlib.Path]):
         path = pathlib.Path(path)
         if path.is_file():
-            self._project = _ProjectIO.loadProject(_File(str(path)), _BufferedImage)
+            self._project = JProjectIO.loadProject(JFile(str(path)), JBufferedImage)
         else:
-            self._project = _Projects.createProject(_File(str(path)), _BufferedImage)
+            self._project = JProjects.createProject(JFile(str(path)), JBufferedImage)
 
         self._image_entries_proxy = _ProjectImageEntriesProxy(self._project)
 

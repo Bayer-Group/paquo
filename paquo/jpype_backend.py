@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 from typing import Tuple, List
 
+import jpype
+
 
 def find_qupath() -> Tuple[Path, Path, Path, List[str]]:
     """find current qupath installation and jvm paths/options
@@ -53,3 +55,15 @@ def find_qupath() -> Tuple[Path, Path, Path, List[str]]:
         raise FileNotFoundError('qupath installation is incompatible')
 
     return app_dir, runtime_dir, jvm_path, jvm_options
+
+
+def start_jvm(finder=None):
+    if finder is None:
+        finder = find_qupath
+
+    if not jpype.isJVMStarted():
+        # For the time being, we assume qupath is our JVM of choice
+        app_dir, runtime_dir, jvm_path, jvm_options = finder()
+        # This is not really needed, but beware we might need SL4J classes (see warning)
+        jpype.addClassPath(str(app_dir / '*'))
+        jpype.startJVM(str(jvm_path), *jvm_options, convertStrings=False)

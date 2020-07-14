@@ -2,14 +2,8 @@ import pathlib
 from collections.abc import MutableMapping
 from typing import Iterator
 
+from paquo.java import JString, JDefaultProjectImageEntry, JBufferedImage
 from paquo.objects.hierarchy import PathObjectHierarchy
-from paquo.qupath.jpype_backend import java_import, jvm_running
-
-# import java classes
-with jvm_running():
-    _BufferedImage = java_import('java.awt.image.BufferedImage')
-    _String = java_import('java.lang.String')
-    _DefaultProjectImageEntry = java_import('qupath.lib.projects.DefaultProject.DefaultProjectImageEntry')
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
@@ -18,13 +12,13 @@ class _ProjectImageEntryMetadata(MutableMapping):
         self._entry = entry
 
     def __setitem__(self, k: str, v: str) -> None:
-        self._entry.putMetadataValue(_String(k), _String(v))
+        self._entry.putMetadataValue(JString(k), JString(v))
 
     def __delitem__(self, k: str) -> None:
-        self._entry.removeMetadataValue(_String(k))
+        self._entry.removeMetadataValue(JString(k))
 
     def __getitem__(self, k: str) -> str:
-        v = self._entry.getMetadataValue(_String(k))
+        v = self._entry.getMetadataValue(JString(k))
         return str(v)
 
     def __len__(self) -> int:
@@ -35,7 +29,7 @@ class _ProjectImageEntryMetadata(MutableMapping):
         return iter(map(str, self._entry.getMetadataKeys()))
 
     def __contains__(self, item):
-        return bool(self._entry.containsMetadata(_String(item)))
+        return bool(self._entry.containsMetadata(JString(item)))
 
     def clear(self) -> None:
         self._entry.clearMetadata()
@@ -44,7 +38,7 @@ class _ProjectImageEntryMetadata(MutableMapping):
 class ProjectImageEntry:
 
     def __init__(self, entry):
-        if not isinstance(entry, _DefaultProjectImageEntry):
+        if not isinstance(entry, JDefaultProjectImageEntry):
             raise TypeError("don't instantiate ProjectImageEntry yourself")
         self._entry = entry
         self._metadata = _ProjectImageEntryMetadata(entry)
@@ -60,7 +54,7 @@ class ProjectImageEntry:
 
     @image_name.setter
     def image_name(self, name):
-        self._entry.setImageName(_String(name))
+        self._entry.setImageName(JString(name))
 
     @property
     def image_name_original(self):
@@ -77,7 +71,7 @@ class ProjectImageEntry:
 
     @thumbnail.setter
     def thumbnail(self, value):
-        if isinstance(value, _BufferedImage):
+        if isinstance(value, JBufferedImage):
             pass
         else:
             raise TypeError('fixme: support pil')
