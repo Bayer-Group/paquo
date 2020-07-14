@@ -1,4 +1,5 @@
 from jpype import JClass
+
 from paquo.jpype_backend import start_jvm
 
 # ensure the jvm is running

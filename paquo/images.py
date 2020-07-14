@@ -2,8 +2,8 @@ import pathlib
 from collections.abc import MutableMapping
 from typing import Iterator
 
+from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.java import String, DefaultProjectImageEntry, BufferedImage
-from paquo.objects.hierarchy import QuPathPathObjectHierarchy
 
 
 class _ProjectImageEntryMetadata(MutableMapping):

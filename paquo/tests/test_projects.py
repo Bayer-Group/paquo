@@ -6,7 +6,7 @@ import urllib.request
 
 # noinspection PyPackageRequirements
 import pytest
-from paquo.objects.projects import QuPathProject
+from paquo.projects import QuPathProject
 
 OPENSLIDE_APERIO_TEST_IMAGES_URL = "http://openslide.cs.cmu.edu/download/openslide-testdata/Aperio/"
 

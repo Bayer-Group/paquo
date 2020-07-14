@@ -2,10 +2,10 @@ import pathlib
 from collections.abc import MutableSet
 from typing import Union
 
+from paquo.classes import QuPathPathClass
+from paquo.images import QuPathProjectImageEntry
 from paquo.java import ImageServerProvider, BufferedImage, DefaultProjectImageEntry, \
     ProjectIO, File, Projects, String, ServerTools, DefaultProject
-from paquo.objects.classes import QuPathPathClass
-from paquo.objects.images import QuPathProjectImageEntry
 
 
 class _ProjectImageEntriesProxy(MutableSet):

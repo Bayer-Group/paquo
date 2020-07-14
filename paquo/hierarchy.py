@@ -1,8 +1,8 @@
 import json
 from typing import List
 
+from paquo.classes import QuPathPathClass
 from paquo.java import String, GsonTools, ColorTools, ArrayList, Point2, ROIs, PathObjects
-from paquo.objects.classes import QuPathPathClass
 
 
 class QuPathPathObjectHierarchy:
