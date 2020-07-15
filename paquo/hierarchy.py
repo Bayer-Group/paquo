@@ -1,14 +1,17 @@
 import json
-from typing import List
+from typing import List, Optional
 
 from paquo.colors import QuPathColor
 from paquo.classes import QuPathPathClass
-from paquo.java import String, GsonTools, ColorTools, ArrayList, Point2, ROIs, PathObjects
+from paquo.java import String, GsonTools, ColorTools, ArrayList, Point2, ROIs, \
+    PathObjects, PathObjectHierarchy
 
 
 class QuPathPathObjectHierarchy:
 
-    def __init__(self, hierarchy):
+    def __init__(self, hierarchy: Optional[PathObjectHierarchy] = None) -> None:
+        if hierarchy is None:
+            hierarchy = PathObjectHierarchy()
         self._hierarchy = hierarchy
 
     def __len__(self):
