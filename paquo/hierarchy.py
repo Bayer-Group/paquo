@@ -1,186 +1,98 @@
+import collections.abc as collections_abc
 import json
-from typing import List, Optional
+from typing import Optional, Iterator, MutableSet
 
-from paquo.colors import QuPathColor
-from paquo.classes import QuPathPathClass
-from paquo.java import String, GsonTools, ColorTools, ArrayList, Point2, ROIs, \
-    PathObjects, PathObjectHierarchy
+from paquo._base import QuPathBase
+from paquo.java import GsonTools, PathObjectHierarchy
+from paquo.pathobjects import QuPathPathAnnotationObject
 
 
-class QuPathPathObjectHierarchy:
+class _AnnotationsListProxy(MutableSet[QuPathPathAnnotationObject]):
+    """provides a python set interface for annotations"""
 
-    def __init__(self, hierarchy: Optional[PathObjectHierarchy] = None) -> None:
-        if hierarchy is None:
-            hierarchy = PathObjectHierarchy()
+    def __init__(self, hierarchy: PathObjectHierarchy):
         self._hierarchy = hierarchy
 
-    def __len__(self):
-        return int(self._hierarchy.nObjects())
+    def add(self, x: QuPathPathAnnotationObject) -> None:
+        self._hierarchy.addPathObject(x.java_object)
+
+    def discard(self, x: QuPathPathAnnotationObject) -> None:
+        self._hierarchy.removeObject(x.java_object, True)
+
+    def __contains__(self, x: QuPathPathAnnotationObject) -> bool:
+        # ... inHierarchy is private
+        # return bool(self._hierarchy.inHierarchy(x.java_object))
+        while x.parent is not None:
+            x = x.parent
+        return x.java_object == self._hierarchy.getRootObject()
+
+    def __len__(self) -> int:
+        return int(self._hierarchy.getAnnotationObjects().size())
+
+    def __iter__(self) -> Iterator[QuPathPathAnnotationObject]:
+        return map(QuPathPathAnnotationObject, self._hierarchy.getAnnotationObjects())
+
+    # provide update
+    update = collections_abc.MutableSet.__ior__
+
+
+class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
+
+    def __init__(self, hierarchy: Optional[PathObjectHierarchy] = None) -> None:
+        """qupath hierarchy stores all annotation objects
+
+        Parameters
+        ----------
+        hierarchy:
+            a PathObjectHierarchy instance (optional)
+            Usually accessed directly via the Image Container.
+        """
+        if hierarchy is None:
+            hierarchy = PathObjectHierarchy()
+        super().__init__(hierarchy)
+        self._annotations = _AnnotationsListProxy(hierarchy)
+
+    def __len__(self) -> int:
+        """Number of objects in hierarchy (all types)"""
+        return int(self.java_object.nObjects())
 
     @property
-    def is_empty(self):
-        return bool(self._hierarchy.isEmpty())
+    def is_empty(self) -> bool:
+        """a hierarchy is empty if it only contains the root object"""
+        return bool(self.java_object.isEmpty())
 
     @property
-    def root(self):
-        root = self._hierarchy.getRootObject()
-        if root is None:
-            return None
-        return PathObject(root)
+    def root(self) -> QuPathPathAnnotationObject:
+        """the hierarchy root node
 
-    def to_geojson(self):
+        This object has no roi and cannot be assigned another class.
+        All other objects are descendants of this object if they are
+        attached to this hierarchy.
+        """
+        root = self.java_object.getRootObject()
+        return QuPathPathAnnotationObject(root)  # todo: specialize...
+
+    @property
+    def annotations(self) -> _AnnotationsListProxy:
+        """all annotations provided as a flattened set-like proxy"""
+        return self._annotations
+
+    def to_geojson(self) -> list:
+        """return all annotations as a list of geojson features"""
         gson = GsonTools.getInstance()
-        geojson = gson.toJson(self._hierarchy.getAnnotationObjects())
+        geojson = gson.toJson(self.java_object.getAnnotationObjects())
         return json.loads(str(geojson))
 
-    def from_geojson(self, geojson):
-        # fixme: implement nicely...
-        """
-        def annotations = []
-        for (annotation in tumorAnnotations) {
-            def name = annotation['name']
-            def vertices = annotation['vertices']
-            def points = vertices.collect {new Point2(it[0], it[1])}
-            def polygon = new PolygonROI(points)
-            def pathAnnotation = new PathAnnotationObject(polygon)
-            pathAnnotation.setName(name)
-            annotations << pathAnnotation
-        }
+    def load_geojson(self, geojson: list) -> bool:
+        """load annotations into this hierarchy from a geojson list
 
-        // Add to current hierarchy
-        QPEx.addObjects(annotations)
-
-        [{
-            'type': 'Feature',
-            'id': 'PathAnnotationObject',
-            'geometry': {
-                'type': 'Polygon',
-                'coordinates': [[
-                    [1058, 1379],
-                    [1054, 1380],
-                    [1058, 1379]
-                ]]
-            },
-            'properties': {
-                'classification': {
-                    'name': 'Tumor',
-                    'colorRGB': -3670016
-                },
-                'isLocked': False,
-                'measurements': []
-            }
-        }]
+        returns True if new objects were added, False otherwise.
         """
-        assert isinstance(geojson, list)
+        # todo: use geojson module for type checking?
+        if not isinstance(geojson, list):
+            raise TypeError("requires a geojson list")
         changed = False
         for annotation in geojson:
-            ao = PathAnnotationObject.from_geojson(annotation)
-            changed |= self._hierarchy.insertPathObject(ao._path_object, True)
+            ao = QuPathPathAnnotationObject.from_geojson(annotation)
+            changed |= self.java_object.insertPathObject(ao.java_object, True)
         return changed
-
-
-class PathObject:
-
-    def __init__(self, path_object):
-        self._path_object = path_object
-
-    @property
-    def parent(self):
-        po = self._path_object.getParent()
-        if not po:
-            return None
-        return PathObject(self._path_object.getParent())
-
-    @property
-    def locked(self):
-        return bool(self._path_object.isLocked())
-
-    @locked.setter
-    def locked(self, value):
-        self._path_object.setLocked(value)
-
-    @property
-    def level(self):
-        return int(self._path_object.getLevel())
-
-    @property
-    def is_root(self):
-        return bool(self._path_object.isRootObject())
-
-    @property
-    def name(self):
-        return str(self._path_object.getName())
-
-    @name.setter
-    def name(self, name):
-        self._path_object.setName(String(name))
-
-    @property
-    def color(self):
-        argb = self._path_object.getColor()
-        r = int(ColorTools.red(argb))
-        g = int(ColorTools.green(argb))
-        b = int(ColorTools.blue(argb))
-        return r, g, b
-
-    @color.setter
-    def color(self, rgb):
-        r, g, b = map(int, rgb)
-        a = int(255 * self.alpha)
-        argb = ColorTools.makeRGB(r, g, b, a)
-        self._path_object.setColor(argb)
-
-    @property
-    def alpha(self):
-        argb = self._path_object.getColor()
-        a = int(ColorTools.alpha(argb))
-        return a / 255.0
-
-    @alpha.setter
-    def alpha(self, alpha):
-        r, g, b = self.color
-        a = int(255 * alpha)
-        argb = ColorTools.makeRGBA(r, g, b, a)
-        self._path_object.setColor(argb)
-
-    @property
-    def path_class(self):
-        return QuPathPathClass(self._path_object.getPathClass())
-
-    @path_class.setter
-    def path_class(self, pc: QuPathPathClass):
-        self._path_object.setPathClass(pc.java_object)
-
-    @property
-    def path_class_probability(self):
-        return float(self._path_object.getClassProbability())
-
-    # ... todo: needs more pythonic interface
-    # def set_path_class(self, pc: PathClass, probability: float = float("nan")):
-    #     self._path_object.setPathClass(pc._path_class, probability)
-
-
-class PathAnnotationObject(PathObject):
-
-    @classmethod
-    def from_vertices(cls, vertices: List[List[List[float]]], path_class: QuPathPathClass = None):
-        # fixme: quick and dirty poc
-        assert len(vertices) == 1
-        points = ArrayList()
-        for x, y in vertices[0]:
-            points.add(Point2(x, y))
-        roi = ROIs.createPolygonROI(points, None)
-        ao = PathObjects.createAnnotationObject(roi, path_class.java_object, None)
-        return cls(ao)
-
-    @classmethod
-    def from_geojson(cls, geojson):
-        assert geojson['geometry']['type'] == 'Polygon'
-        path_class = QuPathPathClass.create(
-            name=geojson['properties']['classification']['name'],
-            color=QuPathColor.from_java_rgba(
-                geojson['properties']['classification']['colorRGB']
-            ).to_rgba()
-        )
-        polygon = geojson['geometry']['coordinates']
-        return cls.from_vertices(polygon, path_class)
