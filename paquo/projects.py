@@ -1,6 +1,6 @@
 import pathlib
-from collections.abc import MutableSet
-from typing import Union
+import collections.abc as collections_abc
+from typing import Union, Iterable, Tuple, Optional, Iterator, Collection
 
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry
@@ -8,19 +8,63 @@ from paquo.java import ImageServerProvider, BufferedImage, DefaultProjectImageEn
     ProjectIO, File, Projects, String, ServerTools, DefaultProject
 
 
-class _ProjectImageEntriesProxy(MutableSet):
+class _ProjectImageEntriesProxy(collections_abc.Collection):
+    """iterable container holding image entries"""
+    # todo: decide if this should be a mapping or not...
+    #   maybe with key id? to simplify re-association
 
-    def discard(self, x: QuPathProjectImageEntry) -> None:
-        pass
+    def __init__(self, project: DefaultProject):
+        if not isinstance(project, DefaultProject):
+            raise TypeError('requires DefaultProject instance')
+        self._project = project
 
-    # TODO:
-    #   set.add returns None normally.
-    #   need to think about the interface because the conversion from
-    #   file to entry happens in qupath in a project.
-    def add(self, filename) -> QuPathProjectImageEntry:
+    def __len__(self) -> int:
+        return int(self._project.size())
+
+    def __iter__(self) -> Iterator[QuPathProjectImageEntry]:
+        return iter(map(QuPathProjectImageEntry, self._project.getImageList()))
+
+    def __contains__(self, __x: object) -> bool:
+        if not isinstance(__x, DefaultProjectImageEntry):
+            return False
+        # this would need to compare via unique image ids as in
+        # Project.getEntry
+        raise NotImplementedError("todo")
+
+
+class QuPathProject:
+
+    def __init__(self, path: Union[str, pathlib.Path]):
+        """load or create a new qupath project"""
+        path = pathlib.Path(path)
+        if path.is_file():
+            self._project = ProjectIO.loadProject(File(str(path)), BufferedImage)
+        else:
+            self._project = Projects.createProject(File(str(path)), BufferedImage)
+
+        self._image_entries_proxy = _ProjectImageEntriesProxy(self._project)
+
+    @property
+    def images(self) -> Collection[QuPathProjectImageEntry]:
+        """project images"""
+        return self._image_entries_proxy
+
+    def add_image(self, filename: str) -> QuPathProjectImageEntry:
+        """add an image to the project
+
+        Parameters
+        ----------
+        filename:
+            filename pointing to the image file
+
+        todo: expose copying/moving/re-association etc...
+        """
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
-        support = ImageServerProvider.getPreferredUriImageSupport(BufferedImage, String(str(img_path)))
+        support = ImageServerProvider.getPreferredUriImageSupport(
+            BufferedImage,
+            String(str(img_path))
+        )
         if not support:
             raise Exception("unsupported file")
         server_builders = list(support.getBuilders())
@@ -38,112 +82,64 @@ class _ProjectImageEntriesProxy(MutableSet):
 
         return QuPathProjectImageEntry(entry)
 
-    def __init__(self, project):
-        if not isinstance(project, DefaultProject):
-            raise TypeError('requires _DefaultProject instance')
-        self._project = project
-        self._it = iter(())
-
-    def __len__(self):
-        return self._project.size()
-
-    def __contains__(self, __x: object) -> bool:
-        if not isinstance(__x, DefaultProjectImageEntry):
-            return False
-        return False  # FIXME
-
-    def __iter__(self):
-        self._it = iter(self._project.getImageList())
-        return self
-
-    def __next__(self):
-        image_entry = next(self._it)
-        return QuPathProjectImageEntry(image_entry)
-
-
-class QuPathProject:
-
-    def __init__(self, path: Union[str, pathlib.Path]):
-        path = pathlib.Path(path)
-        if path.is_file():
-            self._project = ProjectIO.loadProject(File(str(path)), BufferedImage)
-        else:
-            self._project = Projects.createProject(File(str(path)), BufferedImage)
-
-        self._image_entries_proxy = _ProjectImageEntriesProxy(self._project)
-
     @property
-    def images(self):
-        return self._image_entries_proxy
-
-    @images.setter
-    def images(self, images):
-        _images = []
-        for image in images:
-            if not isinstance(image, QuPathProjectImageEntry):
-                raise TypeError("images needs to be iterable of instances of ProjectImageEntry")
-        self.images.clear()
-        for image in _images:
-            self.images.add(image)
-
-    def __len__(self):
-        return len(self.images)
-
-    @property
-    def image_id(self):
-        return self._project.IMAGE_ID
-
-    @property
-    def uri(self):
+    def uri(self) -> str:
+        """the uri identifying the project location"""
         return str(self._project.getURI().toString())
 
     @property
-    def uri_previous(self):
+    def uri_previous(self) -> Optional[str]:
+        """previous uri. potentially useful for re-associating"""
         uri = self._project.getPreviousURI()
         if uri is None:
             return None
         return str(uri.toString())
 
     @property
-    def path_classes(self):
+    def path_classes(self) -> Tuple[QuPathPathClass]:
+        """return path_classes stored in the project"""
         return tuple(map(QuPathPathClass, self._project.getPathClasses()))
 
     @path_classes.setter
-    def path_classes(self, path_classes):
-        pcs = [pc._path_class for pc in path_classes]
+    def path_classes(self, path_classes: Iterable[QuPathPathClass]):
+        """to add path_classes reassign all path_classes here"""
+        pcs = [pc.java_object for pc in path_classes]
         self._project.setPathClasses(pcs)
 
     @property
-    def path(self):
-        return self._project.getPath()
+    def path(self) -> pathlib.Path:
+        """the path to the project root"""
+        return pathlib.Path(str(self._project.getPath()))
 
-    def save(self):
+    def save(self) -> None:
+        """flush changes in the project to disk
+
+        (writes path_classes and project data)
+        """
         self._project.syncChanges()
 
     @property
-    def mask_image_names(self):
-        return bool(self._project.getMaskImageNames())
-
-    @mask_image_names.setter
-    def mask_image_names(self, value: bool):
-        self._project.setMaskImageNames(value)
-
-    @property
-    def name(self):
+    def name(self) -> str:
+        """project name"""
         return self._project.getName()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self._project.getNameFromURI(self._project.getURI())
-        return f'<QuPathProject {name}>'
+        return f'<QuPathProject "{name}">'
 
     @property
-    def timestamp_creation(self):
-        return self._project.getCreationTimestamp()
+    def timestamp_creation(self) -> int:
+        """system time at creation in milliseconds"""
+        return int(self._project.getCreationTimestamp())
 
     @property
-    def timestamp_modification(self):
-        return self._project.getModificationTimestamp()
+    def timestamp_modification(self) -> int:
+        """system time at modification in milliseconds"""
+        return int(self._project.getModificationTimestamp())
 
     @property
-    def version(self):
+    def version(self) -> str:
+        """the project version. should be identical to the qupath version"""
+        # note: only available when building project while the gui
+        #   is active? ...
         return str(self._project.getVersion())
