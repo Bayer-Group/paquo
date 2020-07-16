@@ -52,12 +52,13 @@ class QuPathProject:
     def add_image(self, filename: str) -> QuPathProjectImageEntry:
         """add an image to the project
 
+        todo: expose copying/moving/re-association etc...
+
         Parameters
         ----------
         filename:
             filename pointing to the image file
 
-        todo: expose copying/moving/re-association etc...
         """
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
