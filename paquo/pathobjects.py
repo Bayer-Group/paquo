@@ -47,7 +47,9 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
 
     @classmethod
     def from_geojson(cls, geojson) -> QuPathPathAnnotationObject:
-        raise NotImplementedError("todo")
+        gson = GsonTools.getInstance()
+        ao = gson.fromJson(String(json.dumps(geojson)), PathAnnotationObject)
+        return cls(ao)
 
     def to_geojson(self):
         gson = GsonTools.getInstance()
