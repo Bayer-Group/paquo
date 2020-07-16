@@ -44,7 +44,7 @@ def test_attach_annotations(empty_hierarchy):
     assert len(h) == len(annotations) - 1
 
 
-def test_geojson_roundtrip(empty_hierarchy):
+def test_geojson_roundtrip_via_geojson(empty_hierarchy):
     h = empty_hierarchy
     annotations = _make_polygon_annotations(10)
 
@@ -57,3 +57,34 @@ def test_geojson_roundtrip(empty_hierarchy):
 
     h.load_geojson(geojson)
     assert len(h) == 10
+
+
+TEST_ANNOTATION_POLYGON = [{
+    'type': 'Feature',
+    'id': 'PathAnnotationObject',
+    'geometry': {
+        'type': 'Polygon',
+        'coordinates': [[
+            [1000, 1300],
+            [1011, 1420],
+            [1120, 1430],
+            [1060, 1380],
+            [1000, 1300]
+        ]]
+    },
+    'properties': {
+        'classification': {
+            'name': 'Tumor',
+            'colorRGB': -3670016
+        },
+        'isLocked': False,
+        'measurements': []
+    }
+}]
+
+
+def test_geojson_roundtrip_via_annotations(empty_hierarchy):
+    h = empty_hierarchy
+    assert h.load_geojson(TEST_ANNOTATION_POLYGON)
+    output = h.to_geojson()
+    assert output == TEST_ANNOTATION_POLYGON
