@@ -6,15 +6,6 @@ from paquo.projects import QuPathProject
 
 
 @pytest.fixture(scope='function')
-def small_project(svs_small):
-    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir)
-        qp.add_image(svs_small)
-        qp.save()
-        yield qp
-
-
-@pytest.fixture(scope='function')
 def new_project():
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
         yield QuPathProject(tmpdir)
