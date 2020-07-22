@@ -21,8 +21,8 @@ def _shapely_geometry_to_qupath_roi(geometry: BaseGeometry, image_plane=None) ->
     todo: expose image plane settings and provide pythonic interface to it
     """
     wkb_bytes = shapely_wkb_dumps(geometry)
-    jts_geomerty = WKBReader().read(wkb_bytes)
-    return GeometryTools.geometryToROI(jts_geomerty, image_plane)
+    jts_geometry = WKBReader().read(wkb_bytes)
+    return GeometryTools.geometryToROI(jts_geometry, image_plane)
 
 
 def _qupath_roi_to_shapely_geometry(roi) -> BaseGeometry:
@@ -95,7 +95,7 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
 
     @property
     def path_class_probability(self) -> float:
-        """the annotation path class probablity"""
+        """the annotation path class probability"""
         return float(self.java_object.getClassProbability())
 
     def update_path_class(self, pc: QuPathPathClass, probability: float = math.nan) -> None:
@@ -143,7 +143,7 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
     def color(self) -> QuPathColor:
         """the path annotation object color
 
-        todo: ? is this seperate from the class color ?
+        todo: ? is this separate from the class color ?
         """
         argb = self.java_object.getColor()
         return QuPathColor.from_java_rgba(argb)
