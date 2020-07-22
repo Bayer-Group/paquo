@@ -1,6 +1,17 @@
-from jpype import JClass
+from distutils.util import strtobool
+import os
 
-from paquo.jpype_backend import start_jvm
+from paquo.jpype_backend import start_jvm, JClass
+
+RUNNING_ON_RTD = strtobool(os.environ.get('READTHEDOCS', 'false'))
+if RUNNING_ON_RTD:
+    def start_jvm(*args, **kwargs):
+        pass
+
+    class JClass:
+        def __init__(self, *args, **kwargs):
+            pass
+
 
 # ensure the jvm is running
 start_jvm()
