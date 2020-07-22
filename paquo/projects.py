@@ -2,6 +2,7 @@ import pathlib
 import collections.abc as collections_abc
 from typing import Union, Iterable, Tuple, Optional, Iterator, Collection
 
+from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry
 from paquo.java import ImageServerProvider, BufferedImage, DefaultProjectImageEntry, \
@@ -32,17 +33,18 @@ class _ProjectImageEntriesProxy(collections_abc.Collection):
         raise NotImplementedError("todo")
 
 
-class QuPathProject:
+class QuPathProject(QuPathBase):
 
     def __init__(self, path: Union[str, pathlib.Path]):
         """load or create a new qupath project"""
         path = pathlib.Path(path)
         if path.is_file():
-            self._project = ProjectIO.loadProject(File(str(path)), BufferedImage)
+            project = ProjectIO.loadProject(File(str(path)), BufferedImage)
         else:
-            self._project = Projects.createProject(File(str(path)), BufferedImage)
+            project = Projects.createProject(File(str(path)), BufferedImage)
 
-        self._image_entries_proxy = _ProjectImageEntriesProxy(self._project)
+        super().__init__(project)
+        self._image_entries_proxy = _ProjectImageEntriesProxy(project)
 
     @property
     def images(self) -> Collection[QuPathProjectImageEntry]:
@@ -72,7 +74,7 @@ class QuPathProject:
         if not server_builders:
             raise Exception("unsupported file")
         server_builder = server_builders[0]
-        entry = self._project.addImage(server_builder)
+        entry = self.java_object.addImage(server_builder)
 
         # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
         server = server_builder.build()
@@ -86,12 +88,12 @@ class QuPathProject:
     @property
     def uri(self) -> str:
         """the uri identifying the project location"""
-        return str(self._project.getURI().toString())
+        return str(self.java_object.getURI().toString())
 
     @property
     def uri_previous(self) -> Optional[str]:
         """previous uri. potentially useful for re-associating"""
-        uri = self._project.getPreviousURI()
+        uri = self.java_object.getPreviousURI()
         if uri is None:
             return None
         return str(uri.toString())
@@ -99,48 +101,48 @@ class QuPathProject:
     @property
     def path_classes(self) -> Tuple[QuPathPathClass]:
         """return path_classes stored in the project"""
-        return tuple(map(QuPathPathClass, self._project.getPathClasses()))
+        return tuple(map(QuPathPathClass, self.java_object.getPathClasses()))
 
     @path_classes.setter
     def path_classes(self, path_classes: Iterable[QuPathPathClass]):
         """to add path_classes reassign all path_classes here"""
         pcs = [pc.java_object for pc in path_classes]
-        self._project.setPathClasses(pcs)
+        self.java_object.setPathClasses(pcs)
 
     @property
     def path(self) -> pathlib.Path:
         """the path to the project root"""
-        return pathlib.Path(str(self._project.getPath()))
+        return pathlib.Path(str(self.java_object.getPath()))
 
     def save(self) -> None:
         """flush changes in the project to disk
 
         (writes path_classes and project data)
         """
-        self._project.syncChanges()
+        self.java_object.syncChanges()
 
     @property
     def name(self) -> str:
         """project name"""
-        return self._project.getName()
+        return self.java_object.getName()
 
     def __repr__(self) -> str:
-        name = self._project.getNameFromURI(self._project.getURI())
+        name = self.java_object.getNameFromURI(self.java_object.getURI())
         return f'<QuPathProject "{name}">'
 
     @property
     def timestamp_creation(self) -> int:
         """system time at creation in milliseconds"""
-        return int(self._project.getCreationTimestamp())
+        return int(self.java_object.getCreationTimestamp())
 
     @property
     def timestamp_modification(self) -> int:
         """system time at modification in milliseconds"""
-        return int(self._project.getModificationTimestamp())
+        return int(self.java_object.getModificationTimestamp())
 
     @property
     def version(self) -> str:
         """the project version. should be identical to the qupath version"""
         # note: only available when building project while the gui
         #   is active? ...
-        return str(self._project.getVersion())
+        return str(self.java_object.getVersion())
