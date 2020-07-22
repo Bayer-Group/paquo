@@ -17,6 +17,7 @@ JClass = jpype.JClass
 
 def find_qupath(search_dirs: Union[PathOrFunc, List[PathOrFunc]] = None,
                 *,
+                search_default_locations: bool = True,
                 prefer_conda_qupath: Optional[bool] = True) -> QuPathJVMInfo:
     """find current qupath installation and jvm paths/options
 
@@ -29,10 +30,13 @@ def find_qupath(search_dirs: Union[PathOrFunc, List[PathOrFunc]] = None,
         a tuple (app_dir, runtime_dir, jvm_path, jvm_options)
     """
     if search_dirs is None:
-        search_dirs = [_default_qupath_dirs]
+        search_dirs = []
 
     elif isinstance(search_dirs, Path):
         search_dirs = [search_dirs]
+
+    if search_default_locations:
+        search_dirs.append(_default_qupath_dirs)
 
     if prefer_conda_qupath is not None:
         loc = 0 if prefer_conda_qupath else len(search_dirs)
@@ -48,7 +52,10 @@ def find_qupath(search_dirs: Union[PathOrFunc, List[PathOrFunc]] = None,
 
 
 def _iter_nested_paths(paths: Union[PathOrFunc, List[PathOrFunc]]) -> Iterable[Path]:
-    """helper for iterating through paths and callables that return paths"""
+    """iterate lists of paths and callables that return paths or lists of paths
+
+    this helper returns a flat iterator of pathlib.Paths
+    """
     if callable(paths):
         paths = paths()
     if isinstance(paths, str):
@@ -66,6 +73,7 @@ def _iter_nested_paths(paths: Union[PathOrFunc, List[PathOrFunc]]) -> Iterable[P
 
 def _default_qupath_dirs() -> Iterable[Path]:
     """return default search paths for QuPath"""
+    # todo: this needs to be configurable via config files (dynaconf?)
     system = platform.system()
     if system == "Linux":
         locations = ["/opt", "/usr/local", Path.home()]
