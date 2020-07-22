@@ -35,6 +35,9 @@ class _ProjectImageEntryMetadata(MutableMapping):
     def clear(self) -> None:
         self._entry.clearMetadata()
 
+    def __repr__(self):
+        return f"<Metadata({repr(dict(self))})>"
+
 
 class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 

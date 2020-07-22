@@ -32,6 +32,9 @@ class _ProjectImageEntriesProxy(collections_abc.Collection):
         # Project.getEntry
         raise NotImplementedError("todo")
 
+    def __repr__(self):
+        return f"<ImageEntries({repr([entry.image_name for entry in self])})>"
+
 
 class QuPathProject(QuPathBase):
 

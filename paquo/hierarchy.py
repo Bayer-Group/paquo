@@ -32,6 +32,9 @@ class _AnnotationsListProxy(MutableSet[QuPathPathAnnotationObject]):
     def __iter__(self) -> Iterator[QuPathPathAnnotationObject]:
         return map(QuPathPathAnnotationObject, self._hierarchy.getAnnotationObjects())
 
+    def __repr__(self):
+        return f"<AnnotationSet(n={len(self)})>"
+
     # provide update
     update = collections_abc.MutableSet.__ior__
 
