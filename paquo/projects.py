@@ -1,6 +1,6 @@
 import pathlib
 import collections.abc as collections_abc
-from typing import Union, Iterable, Tuple, Optional, Iterator, Collection
+from typing import Union, Iterable, Tuple, Optional, Iterator, Collection, List, Dict
 
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
@@ -149,3 +149,39 @@ class QuPathProject(QuPathBase):
         # note: only available when building project while the gui
         #   is active? ...
         return str(self.java_object.getVersion())
+
+    @classmethod
+    def from_settings(
+            cls,
+            project_path: pathlib.Path,
+            image_paths: List[pathlib.Path],
+            path_classes: Optional[List[Dict]] = None,
+            image_metadata: Optional[Dict] = None,
+            *,
+            save: bool = True
+    ):
+        """create a project from settings"""
+        if project_path.exists():
+            raise ValueError("project_path exists already")
+        project_path.mkdir(parents=True)
+
+        # create empty project
+        proj = QuPathProject(project_path)
+
+        # set required path classes
+        if path_classes:
+            proj.path_classes = [
+                QuPathPathClass.create(**class_dict) for class_dict in path_classes
+            ]
+
+        # append images from paths
+        for image in image_paths:
+            entry = proj.add_image(image)
+            if image_metadata:
+                entry.metadata.update(image_metadata)
+
+        if save:
+            # store the project
+            proj.save()
+
+        return proj
