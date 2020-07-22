@@ -54,7 +54,7 @@ class QuPathProject(QuPathBase):
         """project images"""
         return self._image_entries_proxy
 
-    def add_image(self, filename: str) -> QuPathProjectImageEntry:
+    def add_image(self, filename: Union[str, pathlib.Path]) -> QuPathProjectImageEntry:
         """add an image to the project
 
         todo: expose copying/moving/re-association etc...
