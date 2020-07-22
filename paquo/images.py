@@ -21,7 +21,10 @@ class _ProjectImageEntryMetadata(MutableMapping):
         self._entry.removeMetadataValue(String(str(k)))
 
     def __getitem__(self, k: str) -> str:
-        return str(self._entry.getMetadataValue(String(str(k))))
+        v = self._entry.getMetadataValue(String(str(k)))
+        if v is None:
+            raise KeyError(f"'{k}' not in metadata")
+        return str(v)
 
     def __len__(self) -> int:
         return int(self._entry.getMetadataKeys().size())
