@@ -7,7 +7,7 @@ channels:
   - defaults
 
 dependencies:
-  - python=3.8,!=3.8.4
+  - python=3.8
   - pip
   - pytest
   - qupath
