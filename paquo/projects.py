@@ -206,22 +206,22 @@ class QuPathProject(QuPathBase):
         project_path.mkdir(parents=True)
 
         # create empty project
-        proj = QuPathProject(project_path)
+        project = QuPathProject(project_path)
 
         # set required path classes
         if path_classes:
-            proj.path_classes = [
+            project.path_classes = [
                 QuPathPathClass.create(**class_dict) for class_dict in path_classes
             ]
 
         # append images from paths
         for image in image_paths:
-            entry = proj.add_image(image)
+            entry = project.add_image(image)
             if image_metadata:
                 entry.metadata.update(image_metadata)
 
         if save:
             # store the project
-            proj.save()
+            project.save()
 
-        return proj
+        return project
