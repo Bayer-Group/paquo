@@ -50,3 +50,9 @@ def test_metadata_non_str_keys(image_entry):
 
     with pytest.raises(ValueError):
         image_entry.metadata["1"] = 123
+
+
+def test_description(image_entry):
+    assert image_entry.description == ""
+    image_entry.description = "abc"
+    assert image_entry.description == "abc"

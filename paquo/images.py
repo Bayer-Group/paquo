@@ -82,6 +82,18 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         return str(org_name) if org_name else None
 
     @property
+    def description(self) -> str:
+        """free text describing the image"""
+        text = self.java_object.getDescription()
+        if text is None:
+            return ""
+        return str(text)
+
+    @description.setter
+    def description(self, text: str) -> None:
+        self.java_object.setDescription(text)
+
+    @property
     def entry_path(self) -> pathlib.Path:
         """path to the image directory"""
         return pathlib.Path(str(self.java_object.getEntryPath().toString()))
