@@ -36,6 +36,17 @@ def test_metadata_interface(image_entry):
     assert image_entry.metadata["test_key"] == "test_value"
 
     image_entry.metadata.update({
-        "123": "123", 1: "abc"
+        "123": "123", "1": "abc"
     })
     assert len(image_entry.metadata) == 3
+    assert "1" in image_entry.metadata
+    assert "not-found" not in image_entry.metadata
+
+
+def test_metadata_non_str_keys(image_entry):
+
+    with pytest.raises(ValueError):
+        image_entry.metadata[1] = "abc"
+
+    with pytest.raises(ValueError):
+        image_entry.metadata["1"] = 123
