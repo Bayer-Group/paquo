@@ -3,6 +3,7 @@ from collections.abc import MutableMapping
 from enum import Enum
 from functools import cached_property
 from typing import Iterator, Optional, Any
+from urllib.parse import urlparse
 
 from paquo._base import QuPathBase
 from paquo.hierarchy import QuPathPathObjectHierarchy
@@ -216,6 +217,23 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     def __repr__(self):
         return f"<ImageEntry('{self.image_name}')>"
+
+    @property
+    def uri(self):
+        """the image entry uri"""
+        uris = self.java_object.getServerURIs()
+        if len(uris) == 0:
+            raise RuntimeError("no server")
+        elif len(uris) > 1:
+            raise NotImplementedError("unsupported in paquo as of now")
+        return str(uris[0].toString())
+
+    def check_image_path(self):
+        """check if the image file is reachable"""
+        uri = urlparse(self.uri)
+        if not uri.scheme == "file":
+            raise NotImplementedError("unsupported in paquo as of now")
+        return pathlib.Path(uri.path).is_file()
 
     def save(self):
         """save image entry"""
