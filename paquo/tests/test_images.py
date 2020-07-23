@@ -2,6 +2,7 @@ import tempfile
 
 import pytest
 from paquo.hierarchy import QuPathPathObjectHierarchy
+from paquo.images import QuPathImageType
 from paquo.projects import QuPathProject
 
 
@@ -56,3 +57,14 @@ def test_description(image_entry):
     assert image_entry.description == ""
     image_entry.description = "abc"
     assert image_entry.description == "abc"
+
+
+def test_image_type(image_entry):
+    # initially unset
+    assert image_entry.image_type == QuPathImageType.UNSET
+
+    with pytest.raises(TypeError):
+        image_entry.image_type = 123
+
+    image_entry.image_type = QuPathImageType.BRIGHTFIELD_H_E
+    assert image_entry.image_type == QuPathImageType.BRIGHTFIELD_H_E
