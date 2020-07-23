@@ -10,10 +10,8 @@ dependencies:
   - python=3.8
   - pip
   - jpype1>=1.0.1
-  - pytest
-  - qupath
-  # - python-openslide
   - shapely
+  - qupath
   - pytest
   - pip:
     - "-e ."
