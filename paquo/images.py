@@ -57,6 +57,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
         this is normally not instantiated by the user
         """
+        if not isinstance(entry, DefaultProjectImageEntry):
+            raise ValueError("don't instantiate directly. use `QuPathProject.add_image`")
         super().__init__(entry)
         self._metadata = _ProjectImageEntryMetadata(entry)
         self._image_data = None
