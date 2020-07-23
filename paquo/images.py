@@ -118,6 +118,9 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
             raise RuntimeError("no image server")
         return QuPathPathObjectHierarchy(self._image_data.getHierarchy())
 
+    def __repr__(self):
+        return f"<ImageEntry('{self.image_name}')>"
+
     def save(self):
         """save image entry"""
         if self._image_data is not None and bool(self._image_data.isChanged()):
