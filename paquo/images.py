@@ -51,6 +51,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         """
         super().__init__(entry)
         self._metadata = _ProjectImageEntryMetadata(entry)
+        self._image_data = None
 
     @property
     def id(self) -> str:
@@ -90,4 +91,12 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     @cached_property
     def hierarchy(self) -> QuPathPathObjectHierarchy:
         """the image entry hierarchy. it contains all annotations"""
-        return QuPathPathObjectHierarchy(self.java_object.readHierarchy())
+        self._image_data = self.java_object.readImageData()
+        if self._image_data is None:
+            raise RuntimeError("no image server")
+        return QuPathPathObjectHierarchy(self._image_data.getHierarchy())
+
+    def save(self):
+        """save image entry"""
+        if self._image_data is not None and bool(self._image_data.isChanged()):
+            self.java_object.saveImageData(self._image_data)
