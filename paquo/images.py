@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 from paquo._base import QuPathBase
 from paquo.hierarchy import QuPathPathObjectHierarchy
-from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData
+from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
@@ -137,10 +137,17 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
             raise ValueError("don't instantiate directly. use `QuPathProject.add_image`")
         super().__init__(entry)
         self._metadata = _ProjectImageEntryMetadata(entry)
-        self._image_data = self.java_object.readImageData()
-        if self._image_data is None:
-            raise RuntimeError("no image server")
-        self._properties = _ImageDataProperties(self._image_data)
+
+    @cached_property
+    def _image_data(self):
+        try:
+            return self.java_object.readImageData()
+        except IOException:
+            raise IOError("can't build server")
+
+    @cached_property
+    def _properties(self):
+        return _ImageDataProperties(self._image_data)
 
     @property
     def id(self) -> str:

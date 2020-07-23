@@ -1,7 +1,7 @@
 import pathlib
 import collections.abc as collections_abc
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
-    List, Dict, overload, Sequence
+    List, Dict, overload, Sequence, Literal
 
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
@@ -24,15 +24,17 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
             for entry in self._project.getImageList()
         }
 
-    @staticmethod
-    def _key_func(entry):
+    def _key_func(self, entry):
         """retrieve the fullProjectID from an ImageEntry
 
         note: this is only valid for the current project instance
         """
-        return str(entry.readImageData().getProperty(
-            DefaultProject.IMAGE_ID
-        ))
+        # basically `DefaultProjectImageEntry.getFullProjectEntryID()`
+        # but don't go via image_data
+        return (
+            str(self._project.getPath().toAbsolutePath().toString()),
+            str(entry.getID()),
+        )
 
     def refresh(self):
         removed = set(self._images.keys())
@@ -125,6 +127,31 @@ class QuPathProject(QuPathBase):
         self._image_entries_proxy.refresh()
 
         return self._image_entries_proxy[-1]
+
+    @overload
+    def check_image_paths(self, collapse: Literal[False]) -> Dict[str, bool]:
+        ...
+
+    @overload
+    def check_image_paths(self, collapse: Literal[True]) -> bool:
+        ...
+
+    def check_image_paths(self, collapse: bool = False):
+        """verify if images are reachable
+
+        Parameters
+        ----------
+        collapse :
+            if True, return bool indicating if all images are reachable
+            if False (default) return dictionary with all images
+
+        """
+        img_paths = {
+            img.image_name: img.check_image_path() for img in self.images
+        }
+        if collapse:
+            return all(img_paths.values())
+        return img_paths
 
     @property
     def uri(self) -> str:

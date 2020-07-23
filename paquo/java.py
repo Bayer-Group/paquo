@@ -44,3 +44,5 @@ ServerTools = JClass('qupath.lib.images.servers.ServerTools')
 
 WKBWriter = JClass("org.locationtech.jts.io.WKBWriter")
 WKBReader = JClass("org.locationtech.jts.io.WKBReader")
+
+IOException = JClass("java.io.IOException")
