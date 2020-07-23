@@ -1,15 +1,16 @@
 import pathlib
 import collections.abc as collections_abc
-from typing import Union, Iterable, Tuple, Optional, Iterator, Collection, List, Dict
+from typing import Union, Iterable, Tuple, Optional, Iterator, \
+    List, Dict, overload, Sequence
 
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry
-from paquo.java import ImageServerProvider, BufferedImage, DefaultProjectImageEntry, \
+from paquo.java import ImageServerProvider, BufferedImage, \
     ProjectIO, File, Projects, String, ServerTools, DefaultProject
 
 
-class _ProjectImageEntriesProxy(collections_abc.Collection):
+class _ProjectImageEntriesProxy(collections_abc.Sequence):
     """iterable container holding image entries"""
     # todo: decide if this should be a mapping or not...
     #   maybe with key id? to simplify re-association
@@ -18,22 +19,56 @@ class _ProjectImageEntriesProxy(collections_abc.Collection):
         if not isinstance(project, DefaultProject):
             raise TypeError('requires DefaultProject instance')
         self._project = project
+        self._images = {
+            self._key_func(entry): QuPathProjectImageEntry(entry)
+            for entry in self._project.getImageList()
+        }
 
-    def __len__(self) -> int:
-        return int(self._project.size())
+    @staticmethod
+    def _key_func(entry):
+        """retrieve the fullProjectID from an ImageEntry
+
+        note: this is only valid for the current project instance
+        """
+        return str(entry.readImageData().getProperty(
+            DefaultProject.IMAGE_ID
+        ))
+
+    def refresh(self):
+        removed = set(self._images.keys())
+        for entry in self._project.getImageList():
+            key = self._key_func(entry)
+            if key not in self._images:
+                self._images[key] = QuPathProjectImageEntry(entry)
+            else:
+                removed.discard(key)  # existing entry
+        if removed:
+            for key in removed:
+                _ = self._images.pop(key)
+                raise NotImplementedError("removal not yet implemented")
 
     def __iter__(self) -> Iterator[QuPathProjectImageEntry]:
-        return iter(map(QuPathProjectImageEntry, self._project.getImageList()))
+        return iter(self._images.values())
 
-    def __contains__(self, __x: object) -> bool:
-        if not isinstance(__x, DefaultProjectImageEntry):
+    def __contains__(self, entry: object) -> bool:
+        if not isinstance(entry, QuPathProjectImageEntry):
             return False
-        # this would need to compare via unique image ids as in
-        # Project.getEntry
-        raise NotImplementedError("todo")
+        return entry.java_object.getFullProjectEntryID() in self._images
+
+    def __len__(self) -> int:
+        return len(self._images)
 
     def __repr__(self):
         return f"<ImageEntries({repr([entry.image_name for entry in self])})>"
+
+    @overload
+    def __getitem__(self, s: slice) -> Sequence[QuPathProjectImageEntry]:
+        # n images is very likely to be small
+        return list(self._images.values())[s]
+
+    def __getitem__(self, i: int) -> QuPathProjectImageEntry:
+        # n images is very likely to be small
+        return list(self._images.values())[i]
 
 
 class QuPathProject(QuPathBase):
@@ -50,7 +85,7 @@ class QuPathProject(QuPathBase):
         self._image_entries_proxy = _ProjectImageEntriesProxy(project)
 
     @property
-    def images(self) -> Collection[QuPathProjectImageEntry]:
+    def images(self) -> Sequence[QuPathProjectImageEntry]:
         """project images"""
         return self._image_entries_proxy
 
@@ -86,7 +121,10 @@ class QuPathProject(QuPathBase):
         thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
         entry.setThumbnail(thumbnail)
 
-        return QuPathProjectImageEntry(entry)
+        # update the proxy
+        self._image_entries_proxy.refresh()
+
+        return self._image_entries_proxy[-1]
 
     @property
     def uri(self) -> str:
@@ -122,6 +160,8 @@ class QuPathProject(QuPathBase):
 
         (writes path_classes and project data)
         """
+        for entry in self.images:
+            entry.save()
         self.java_object.syncChanges()
 
     @property
