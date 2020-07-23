@@ -1,6 +1,9 @@
 import tempfile
 
 # noinspection PyPackageRequirements
+from pathlib import Path
+
+# noinspection PyPackageRequirements
 import pytest
 from paquo.projects import QuPathProject
 
@@ -15,6 +18,14 @@ def test_project_instance():
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
         q = QuPathProject(tmpdir)
         repr(q)
+        q.save()
+
+
+def test_project_create_no_dir():
+    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+        project_path = Path(tmpdir) / "new_project"
+        q = QuPathProject(project_path)
+        q.save()
 
 
 def test_project_uri(new_project):
@@ -56,9 +67,19 @@ def test_timestamps(new_project):
     assert new_project.timestamp_modification > 0
 
 
-def test_create_project(svs_small):
-    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir)
-        qp.add_image(svs_small)
-        qp.save()
+def test_project_add_image(new_project, svs_small):
+    entry = new_project.add_image(svs_small)
+    assert (Path(entry.entry_path) / "thumbnail.jpg").is_file()
 
+
+def test_project_save_image_data(new_project, svs_small):
+    from paquo.pathobjects import QuPathPathAnnotationObject
+    from shapely.geometry import Point
+    entry = new_project.add_image(svs_small)
+    entry.hierarchy.annotations.add(
+        QuPathPathAnnotationObject.from_shapely(
+            Point(1, 2)
+        )
+    )
+    new_project.save()
+    assert (entry.entry_path / "data.qpdata").is_file()
