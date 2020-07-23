@@ -44,6 +44,7 @@ def test_metadata_interface(image_entry):
     assert "not-found" not in image_entry.metadata
 
 
+# noinspection PyTypeChecker
 def test_metadata_non_str_keys(image_entry):
 
     with pytest.raises(ValueError):
