@@ -244,5 +244,9 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     def save(self):
         """save image entry"""
-        if bool(self._image_data.isChanged()):
+        try:
+            changed = bool(self._image_data.isChanged())
+        except IOError:
+            return
+        if changed:
             self.java_object.saveImageData(self._image_data)
