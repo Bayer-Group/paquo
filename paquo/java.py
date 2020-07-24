@@ -21,6 +21,7 @@ BufferedImage = JClass('java.awt.image.BufferedImage')
 File = JClass('java.io.File')
 Integer = JClass('java.lang.Integer')
 String = JClass('java.lang.String')
+URI = JClass('java.net.URI')
 
 ColorTools = JClass('qupath.lib.common.ColorTools')
 DefaultProject = JClass('qupath.lib.projects.DefaultProject')

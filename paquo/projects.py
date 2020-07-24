@@ -7,7 +7,7 @@ from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry
 from paquo.java import ImageServerProvider, BufferedImage, \
-    ProjectIO, File, Projects, String, ServerTools, DefaultProject
+    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI
 
 
 class _ProjectImageEntriesProxy(collections_abc.Sequence):
@@ -152,6 +152,19 @@ class QuPathProject(QuPathBase):
         if collapse:
             return all(img_paths.values())
         return img_paths
+
+    def update_image_paths(self, name_path_map: Dict[str, str]):
+        """update image path uris if image files moved"""
+        for image in self.images:
+            if image.image_name not in name_path_map:
+                continue
+            # update uri
+            new_path = pathlib.Path(name_path_map[image.image_name])
+            new_path = new_path.absolute()
+            uri2uri = {
+                URI(image.uri): File(str(new_path)).toURI()
+            }
+            image.java_object.updateServerURIs(uri2uri)
 
     @property
     def uri(self) -> str:
