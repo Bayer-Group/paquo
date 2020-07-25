@@ -64,9 +64,8 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         return f"<ImageEntries({repr([entry.image_name for entry in self])})>"
 
     @overload
-    def __getitem__(self, s: slice) -> Sequence[QuPathProjectImageEntry]:
-        # n images is very likely to be small
-        return list(self._images.values())[s]
+    def __getitem__(self, i: slice) -> Sequence[QuPathProjectImageEntry]:
+        ...
 
     def __getitem__(self, i: int) -> QuPathProjectImageEntry:
         # n images is very likely to be small
