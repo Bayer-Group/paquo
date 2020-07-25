@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import MutableMapping
 import json
 import math
-from typing import Optional, Union
+from functools import cached_property
+from typing import Optional, Union, Iterator
 
 from shapely.geometry.base import BaseGeometry
 from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
@@ -37,6 +39,42 @@ def _qupath_roi_to_shapely_geometry(roi) -> BaseGeometry:
     return shapely_wkb_loads(bytes(wkb_bytearray))
 
 
+class _MeasurementList(MutableMapping):
+
+    def __init__(self, measurement_list):
+        self._measurement_list = measurement_list
+
+    def __setitem__(self, k: str, v: float) -> None:
+        self._measurement_list.putMeasurement(k, v)
+
+    def __delitem__(self, v: str) -> None:
+        if v not in self:
+            raise KeyError(v)
+        self._measurement_list.removeMeasurements(v)
+
+    def __getitem__(self, k: Union[str, int]) -> float:
+        if not isinstance(k, (int, str)):
+            raise KeyError(f"unsupported key of type {type(k)}")
+        return float(self._measurement_list.getMeasurementValue(k))
+
+    def __contains__(self, item: str):
+        if not isinstance(item, str):
+            return False
+        return bool(self._measurement_list.containsNamedMeasurement(item))
+
+    def __len__(self) -> int:
+        return int(self._measurement_list.size())
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(map(str, self._measurement_list.getMeasurementNames()))
+
+    def clear(self) -> None:
+        self._measurement_list.clear()
+
+    def __repr__(self):
+        return f"<Measurements({repr(dict(self))})>"
+
+
 class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
 
     @classmethod
@@ -55,7 +93,7 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
         path_class:
             a paquo QuPathPathClass to mark the annotation type
         measurements:
-            todo --- not yet implemented (holds static measurements)
+            dict holding static measurements for annotation object
         path_class_probability:
             keyword only argument defining the probability of the class
             (default NaN)
@@ -63,14 +101,16 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
         """
         qupath_roi = _shapely_geometry_to_qupath_roi(roi)
         qupath_path_class = path_class.java_object if path_class is not None else None
+        # fixme: should create measurements here and pass instead of None
         ao = PathObjects.createAnnotationObject(
-            qupath_roi, qupath_path_class, measurements
+            qupath_roi, qupath_path_class, None
         )
-        if measurements is not None:
-            raise NotImplementedError("wrap and cast to paquo Measurements")
         if not math.isnan(path_class_probability):
             ao.setPathClass(ao.getPathClass(), path_class_probability)
-        return cls(ao)
+        obj = cls(ao)
+        if measurements is not None:
+            obj.measurements.update(measurements)
+        return obj
 
     @classmethod
     def from_geojson(cls, geojson) -> QuPathPathAnnotationObject:
@@ -172,6 +212,6 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
         roi = _shapely_geometry_to_qupath_roi(geometry)
         self.java_object.setROI(roi)
 
-    @property
+    @cached_property
     def measurements(self):
-        raise NotImplementedError("todo: provide via a dict proxy")
+        return _MeasurementList(self.java_object.getMeasurementList())
