@@ -1,8 +1,12 @@
 import collections.abc as collections_abc
 import json
+import math
 from typing import Optional, Iterator, MutableSet
 
+from shapely.geometry.base import BaseGeometry
+
 from paquo._base import QuPathBase
+from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools, PathObjectHierarchy
 from paquo.pathobjects import QuPathPathAnnotationObject
 
@@ -79,6 +83,20 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
     def annotations(self) -> _AnnotationsListProxy:
         """all annotations provided as a flattened set-like proxy"""
         return self._annotations
+
+    def add_annotation(self,
+                       roi: BaseGeometry,
+                       path_class: Optional[QuPathPathClass] = None,
+                       measurements: Optional[dict] = None,
+                       *,
+                       path_class_probability: float = math.nan):
+        """convenience method for adding annotations"""
+        ao = QuPathPathAnnotationObject.from_shapely(
+            roi, path_class, measurements,
+            path_class_probability=path_class_probability
+        )
+        self._annotations.add(ao)
+        return ao
 
     def to_geojson(self) -> list:
         """return all annotations as a list of geojson features"""
