@@ -117,3 +117,6 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
             ao = QuPathPathAnnotationObject.from_geojson(annotation)
             changed |= self.java_object.insertPathObject(ao.java_object, True)
         return changed
+
+    def __repr__(self):
+        return f"<Hierarchy(n_annotations={len(self._annotations)})>"
