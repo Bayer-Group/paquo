@@ -128,30 +128,12 @@ class QuPathProject(QuPathBase):
 
         return self._image_entries_proxy[-1]
 
-    @overload
-    def check_image_paths(self, collapse: Literal[False]) -> Dict[str, bool]:
-        ...
-
-    @overload
-    def check_image_paths(self, collapse: Literal[True]) -> bool:
-        ...
-
-    def check_image_paths(self, collapse: bool = False):
-        """verify if images are reachable
-
-        Parameters
-        ----------
-        collapse :
-            if True, return bool indicating if all images are reachable
-            if False (default) return dictionary with all images
-
-        """
-        img_paths = {
-            img.image_name: img.check_image_path() for img in self.images
+    def is_readable(self, ) -> Dict[str, bool]:
+        """verify if images are reachable"""
+        # todo: image_name is definitely not a good unique key...
+        return {
+            img.image_name: img.is_readable() for img in self.images
         }
-        if collapse:
-            return all(img_paths.values())
-        return img_paths
 
     def update_image_paths(self, name_path_map: Dict[str, str]):
         """update image path uris if image files moved"""

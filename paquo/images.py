@@ -142,8 +142,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def _image_data(self):
         try:
             return self.java_object.readImageData()
-        except IOException:
-            raise IOError("can't build server")
+        except IOException:  # from java land
+            raise IOError("can't load image data")
 
     @cached_property
     def _properties(self):
@@ -235,18 +235,26 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
             raise NotImplementedError("unsupported in paquo as of now")
         return str(uris[0].toString())
 
-    def check_image_path(self):
-        """check if the image file is reachable"""
+    def is_readable(self) -> bool:
+        """check if the image file is readable"""
+        # note: alternatively try reading image_data to check if readable
         uri = urlparse(self.uri)
         if not uri.scheme == "file":
             raise NotImplementedError("unsupported in paquo as of now")
         return pathlib.Path(uri.path).is_file()
 
+    def is_changed(self) -> bool:
+        """check if image_data is changed
+
+        Raises
+        ------
+        IOError
+            if image_data can't be read
+
+        """
+        return bool(self._image_data.isChanged())
+
     def save(self):
         """save image entry"""
-        try:
-            changed = bool(self._image_data.isChanged())
-        except IOError:
-            return
-        if changed:
+        if self.is_readable() and self.is_changed():
             self.java_object.saveImageData(self._image_data)
