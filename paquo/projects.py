@@ -74,13 +74,38 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
 
 class QuPathProject(QuPathBase):
 
-    def __init__(self, path: Union[str, pathlib.Path]):
-        """load or create a new qupath project"""
-        path = pathlib.Path(path)
-        if path.is_file():
-            project = ProjectIO.loadProject(File(str(path)), BufferedImage)
-        else:
-            project = Projects.createProject(File(str(path)), BufferedImage)
+    def __init__(self,
+                 path: Union[str, pathlib.Path],
+                 create: bool = True):
+        """load or create a new qupath project
+
+        Parameters
+        ----------
+        path:
+            path to `project.quproj` file, or its parent directory
+        create:
+            if create is False raise FileNotFoundError if project doesn't exist
+
+        """
+        p = pathlib.Path(path).expanduser().absolute()
+        # guarantee p points to quproj file (allow directory)
+        if not p.suffix:
+            p /= 'project.quproj'
+        elif p.suffix != "quproj":
+            raise ValueError("project file requires '.quproj' suffix")
+
+        if p.is_file():  # existing project
+            project = ProjectIO.loadProject(File(str(p)), BufferedImage)
+
+        elif not create:
+            raise FileNotFoundError(path)
+
+        else:  # create new
+            p_dir = p.parent
+            p_dir.mkdir(parents=True, exist_ok=True)
+            if any(p_dir.iterdir()):
+                raise ValueError("will only create projects in empty directories")
+            project = Projects.createProject(File(str(p_dir)), BufferedImage)
 
         super().__init__(project)
         self._image_entries_proxy = _ProjectImageEntriesProxy(project)
