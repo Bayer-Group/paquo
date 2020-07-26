@@ -173,18 +173,21 @@ class QuPathProject(QuPathBase):
 
     def update_image_paths(self, **rebase_kwargs):
         """update image path uris if image files moved"""
+        # allow rebasing all image uris in a single call to rebase
+        old_uris = [image.uri for image in self.images]
+        new_uris = self._image_provider.rebase(*old_uris, **rebase_kwargs)
+
+        # build the java URI to URI mapping
+        uri2uri = {}
+        for old_uri, new_uri in zip(old_uris, new_uris):
+            if new_uri is None:
+                continue
+            elif ImageProvider.compare_uris(new_uri, old_uri):
+                continue
+            uri2uri[URI(old_uri)] = URI(new_uri)
+
+        # update uris if possible
         for image in self.images:
-            old_image_uri = image.uri
-            new_image_uri = self._image_provider.rebase(old_image_uri, **rebase_kwargs)
-
-            if new_image_uri is None:
-                continue
-            elif new_image_uri == image.uri:
-                continue
-
-            uri2uri = {
-                URI(old_image_uri): URI(new_image_uri)
-            }
             image.java_object.updateServerURIs(uri2uri)
 
     @property

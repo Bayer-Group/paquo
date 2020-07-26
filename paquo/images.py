@@ -5,7 +5,7 @@ from collections.abc import MutableMapping, Hashable
 from enum import Enum
 from functools import cached_property
 from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
-from typing import Iterator, Optional, Any
+from typing import Iterator, Optional, Any, List
 
 from paquo._base import QuPathBase
 from paquo.hierarchy import QuPathPathObjectHierarchy
@@ -30,9 +30,9 @@ class ImageProvider(ABC):
         return ImageProvider.path_from_uri(uri).name
 
     @abstractmethod
-    def rebase(self, uri: str, **kwargs):
-        """Allows rebasing """
-        return self.uri(self.id(uri))
+    def rebase(self, *uris: str, **kwargs) -> List[Optional[str]]:
+        """Allows rebasing"""
+        return [self.uri(self.id(uri)) for uri in uris]
 
     @staticmethod
     def path_from_uri(uri: str) -> PurePath:
@@ -65,7 +65,7 @@ class ImageProvider(ABC):
         return str(URI(path.as_uri()).toString())
 
     @staticmethod
-    def compare_uris(a: str, b: str):
+    def compare_uris(a: str, b: str) -> bool:
         # ... comma encoding is problematic
         # python url encodes commas, but java doesn't
         # need to add more tests
@@ -99,9 +99,9 @@ class SimpleURIImageProvider:
     def id(self, uri: str) -> str:
         return uri
 
-    def rebase(self, uri: str, **kwargs):
+    def rebase(self, *uris: str, **kwargs) -> List[Optional[str]]:
         uri2uri = kwargs.pop('uri2uri', {})
-        return uri2uri.get(uri, None)
+        return [uri2uri.get(uri, None) for uri in uris]
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
