@@ -1,11 +1,11 @@
 import pathlib
 import collections.abc as collections_abc
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
-    List, Dict, overload, Sequence, Literal
+    List, Dict, overload, Sequence, Hashable
 
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
-from paquo.images import QuPathProjectImageEntry
+from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider
 from paquo.java import ImageServerProvider, BufferedImage, \
     ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI
 
@@ -72,11 +72,16 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         return list(self._images.values())[i]
 
 
+DEFAULT_IMAGE_PROVIDER = SimpleURIImageProvider()
+
+
 class QuPathProject(QuPathBase):
 
     def __init__(self,
                  path: Union[str, pathlib.Path],
-                 create: bool = True):
+                 create: bool = True,
+                 *,
+                 image_provider: ImageProvider = DEFAULT_IMAGE_PROVIDER):
         """load or create a new qupath project
 
         Parameters
@@ -87,6 +92,9 @@ class QuPathProject(QuPathBase):
             if create is False raise FileNotFoundError if project doesn't exist
 
         """
+        if not isinstance(image_provider, ImageProvider):
+            raise TypeError("image_provider must quack like a paquo.images.ImageProvider")
+
         p = pathlib.Path(path).expanduser().absolute()
         # guarantee p points to quproj file (allow directory)
         if not p.suffix:
@@ -109,6 +117,7 @@ class QuPathProject(QuPathBase):
 
         super().__init__(project)
         self._image_entries_proxy = _ProjectImageEntriesProxy(project)
+        self._image_provider = image_provider
 
     @property
     def images(self) -> Sequence[QuPathProjectImageEntry]:
@@ -152,23 +161,29 @@ class QuPathProject(QuPathBase):
 
         return self._image_entries_proxy[-1]
 
-    def is_readable(self, ) -> Dict[str, bool]:
+    def is_readable(self) -> Dict[Hashable, bool]:
         """verify if images are reachable"""
-        # todo: image_name is definitely not a good unique key...
-        return {
-            img.image_name: img.is_readable() for img in self.images
-        }
+        readability_map = {}
+        for image in self.images:
+            image_id = self._image_provider.id(image.uri)
+            if image_id in readability_map:
+                raise RuntimeError("received the same image_id from image_provider for two different images")
+            readability_map[image_id] = image.is_readable()
+        return readability_map
 
-    def update_image_paths(self, name_path_map: Dict[str, str]):
+    def update_image_paths(self, **rebase_kwargs):
         """update image path uris if image files moved"""
         for image in self.images:
-            if image.image_name not in name_path_map:
+            old_image_uri = image.uri
+            new_image_uri = self._image_provider.rebase(old_image_uri, **rebase_kwargs)
+
+            if new_image_uri is None:
                 continue
-            # update uri
-            new_path = pathlib.Path(name_path_map[image.image_name])
-            new_path = new_path.absolute()
+            elif new_image_uri == image.uri:
+                continue
+
             uri2uri = {
-                URI(image.uri): File(str(new_path)).toURI()
+                URI(old_image_uri): URI(new_image_uri)
             }
             image.java_object.updateServerURIs(uri2uri)
 

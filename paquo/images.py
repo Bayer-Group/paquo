@@ -89,6 +89,21 @@ class ImageProvider(ABC):
         return NotImplemented
 
 
+# noinspection PyMethodMayBeStatic
+class SimpleURIImageProvider:
+    """simple image provider that uses the files uri as it's identifier"""
+
+    def uri(self, image_id: str) -> str:
+        return image_id
+
+    def id(self, uri: str) -> str:
+        return uri
+
+    def rebase(self, uri: str, **kwargs):
+        uri2uri = kwargs.pop('uri2uri', {})
+        return uri2uri.get(uri, None)
+
+
 class _ProjectImageEntryMetadata(MutableMapping):
     """provides a python dict interface for image entry metadata"""
 
