@@ -1,8 +1,9 @@
 import tempfile
+from contextlib import nullcontext
 
 import pytest
 from paquo.hierarchy import QuPathPathObjectHierarchy
-from paquo.images import QuPathImageType
+from paquo.images import QuPathImageType, ImageProvider
 from paquo.projects import QuPathProject
 
 
@@ -83,3 +84,54 @@ def test_image_type(image_entry):
 
     image_entry.image_type = QuPathImageType.BRIGHTFIELD_H_E
     assert image_entry.image_type == QuPathImageType.BRIGHTFIELD_H_E
+
+
+@pytest.mark.parametrize(
+    "uri,parts1n,exc", [
+        ("\\\\SHARE\\site\\2020-01-01\\image 123-X,X.svs", None, ValueError),  # weird non-uri found in one project
+        ("file:////SHARE/site/image.svs", ('SHARE', 'site', 'image.svs'), None),  # share on win
+        ("file:/C:/ABC/image.svs", ('ABC', 'image.svs'), None),  # win-style uris
+        ("file:/C:/ABC%20-%20ABC/image.svs", ('ABC - ABC', 'image.svs'), None),
+        ("file:/C:/ABC,ABC/image.svs", ('ABC,ABC', 'image.svs'), None),
+        ("file:/C:/ABC%20,%20ABC/image.svs", ('ABC , ABC', 'image.svs'), None),
+        ("file:/D:/2020-01-01/image.svs", ('2020-01-01', 'image.svs'), None),
+        ("file:/F:/2020-01-01/image-123-abc.svs", ('2020-01-01', 'image-123-abc.svs'), None),
+        ("file:/U:/site/ABC%20ABC/image.svs", ('site', 'ABC ABC', 'image.svs'), None),
+        ("file:/site/image.svs", ('site', 'image.svs'), None),  # posix-style uri
+    ],
+    ids=[
+        "no-uri",
+        "network-share",
+        "win-simple",
+        "win-spaces",
+        "win-commas",
+        "win-space-comma",
+        "win-comb-01",
+        "win-comb-02",
+        "win-comb-03",
+        "posix",
+    ]
+)
+def test_image_provider_path_from_uri(uri, parts1n, exc):
+    cm = pytest.raises(exc) if exc else nullcontext()
+    with cm:
+        path = ImageProvider.path_from_uri(uri)
+        assert path.parts[1:] == parts1n
+        new_uri = ImageProvider.uri_from_path(path)
+        assert ImageProvider.compare_uris(uri, new_uri)
+
+
+def test_image_provider_ducktyping():
+    class IPBad:
+        def id(self, x):
+            pass
+
+    class IPGood(IPBad):  # if both id and uri are implemented we're an ImageProvider
+        def uri(self, y):
+            pass
+
+        def rebase(self, **x):
+            pass
+
+    assert not isinstance(IPBad(), ImageProvider)
+    assert isinstance(IPGood(), ImageProvider)
