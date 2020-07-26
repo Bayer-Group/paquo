@@ -87,7 +87,7 @@ class QuPathProject(QuPathBase):
         Parameters
         ----------
         path:
-            path to `project.quproj` file, or its parent directory
+            path to `project.qpproj` file, or its parent directory
         create:
             if create is False raise FileNotFoundError if project doesn't exist
 
@@ -96,11 +96,11 @@ class QuPathProject(QuPathBase):
             raise TypeError("image_provider must quack like a paquo.images.ImageProvider")
 
         p = pathlib.Path(path).expanduser().absolute()
-        # guarantee p points to quproj file (allow directory)
+        # guarantee p points to qpproj file (allow directory)
         if not p.suffix:
-            p /= 'project.quproj'
-        elif p.suffix != "quproj":
-            raise ValueError("project file requires '.quproj' suffix")
+            p /= 'project.qpproj'
+        elif p.suffix != "qpproj":
+            raise ValueError("project file requires '.qpproj' suffix")
 
         if p.is_file():  # existing project
             project = ProjectIO.loadProject(File(str(p)), BufferedImage)
