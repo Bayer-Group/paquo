@@ -1,3 +1,4 @@
+import shutil
 import tempfile
 
 # noinspection PyPackageRequirements
@@ -5,6 +6,8 @@ from pathlib import Path
 
 # noinspection PyPackageRequirements
 import pytest
+
+from paquo.images import ImageProvider
 from paquo.projects import QuPathProject
 
 
@@ -83,3 +86,30 @@ def test_project_save_image_data(new_project, svs_small):
     )
     new_project.save()
     assert (entry.entry_path / "data.qpdata").is_file()
+
+
+def test_project_image_uri_update(new_project, svs_small):
+
+    with tempfile.TemporaryDirectory(prefix="paquo-") as tmp:
+        new_svs_small = Path(tmp) / svs_small.name
+        shutil.copy(svs_small, new_svs_small)
+
+        entry = new_project.add_image(new_svs_small)
+
+        # test that entry can be read
+        assert entry.is_readable()
+        assert all(new_project.is_readable().values())
+
+    # tempdir is cleanup up, entry is not readable anymore
+    assert not entry.is_readable()
+    assert not any(new_project.is_readable().values())
+
+    # mapping for uris
+    uri2uri = {
+        entry.uri: ImageProvider.uri_from_path(svs_small)
+    }
+    new_project.update_image_paths(uri2uri=uri2uri)
+
+    # test that entry can be read
+    assert entry.is_readable()
+    assert all(new_project.is_readable().values())
