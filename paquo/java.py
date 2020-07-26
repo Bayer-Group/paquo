@@ -47,3 +47,4 @@ WKBWriter = JClass("org.locationtech.jts.io.WKBWriter")
 WKBReader = JClass("org.locationtech.jts.io.WKBReader")
 
 IOException = JClass("java.io.IOException")
+URISyntaxException = JClass("java.net.URISyntaxException")

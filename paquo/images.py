@@ -1,13 +1,92 @@
-import pathlib
-from collections.abc import MutableMapping
+import re
+from abc import ABC, abstractmethod
+from collections import namedtuple
+from collections.abc import MutableMapping, Hashable
 from enum import Enum
 from functools import cached_property
+from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
 from typing import Iterator, Optional, Any
-from urllib.parse import urlparse
 
 from paquo._base import QuPathBase
 from paquo.hierarchy import QuPathPathObjectHierarchy
-from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException
+from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException
+
+
+class ImageProvider(ABC):
+    """Maps image ids to paths and paths to image ids."""
+
+    @abstractmethod
+    def uri(self, image_id: Hashable) -> Optional[str]:
+        """Returns an URI for an image given an image id tuple."""
+        # default implementation:
+        # -> null uri
+        return None
+
+    @abstractmethod
+    def id(self, uri: str) -> Hashable:
+        """Returns an image id given an URI."""
+        # default implementation:
+        # -> return filename as image id
+        return ImageProvider.path_from_uri(uri).name
+
+    @abstractmethod
+    def rebase(self, uri: str, **kwargs):
+        """Allows rebasing """
+        return self.uri(self.id(uri))
+
+    @staticmethod
+    def path_from_uri(uri: str) -> PurePath:
+        """
+        Parses an URI representing a file system path into a Path.
+        """
+        try:
+            java_uri = URI(uri)
+        except URISyntaxException:
+            raise ValueError(f"not a valid uri '{uri}'")
+
+        if str(java_uri.getScheme()) != "file":
+            raise NotImplementedError("paquo only supports file:/ URIs as of now")
+        path_str = str(java_uri.getPath())
+
+        # check if we encode a windows path
+        # fixme: not sure if there's a better way to do this...
+        if re.match("/[A-Z]:/", path_str):
+            return PureWindowsPath(path_str[1:])
+        else:
+            return PurePosixPath(path_str)
+
+    @staticmethod
+    def uri_from_path(path: PurePath) -> str:
+        """
+        Convert a python path object to an URI
+        """
+        if not path.is_absolute():
+            raise ValueError("uri_from_path requires an absolute path")
+        return str(URI(path.as_uri()).toString())
+
+    @staticmethod
+    def compare_uris(a: str, b: str):
+        # ... comma encoding is problematic
+        # python url encodes commas, but java doesn't
+        # need to add more tests
+        uri_a = URI(a)
+        uri_b = URI(b)
+        if any(str(uri.getScheme()) != "file" for uri in [uri_a, uri_b]):
+            raise NotImplementedError("currently untested ...")
+        return bool(uri_a.getPath() == uri_b.getPath())
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        """ImageProviders don't need to derive but only duck-type"""
+        required_methods = ('uri', 'id', 'rebase')
+        if cls is ImageProvider:
+            methods_available = [False] * len(required_methods)
+            for B in C.__mro__:
+                for idx, method in enumerate(required_methods):
+                    methods_available[idx] |= method in B.__dict__
+                if all(methods_available):
+                    return True
+        return NotImplemented
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
@@ -237,11 +316,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     def is_readable(self) -> bool:
         """check if the image file is readable"""
-        # note: alternatively try reading image_data to check if readable
-        uri = urlparse(self.uri)
-        if not uri.scheme == "file":
-            raise NotImplementedError("unsupported in paquo as of now")
-        return pathlib.Path(uri.path).is_file()
+        concrete_path = Path(ImageProvider.path_from_uri(self.uri))
+        return concrete_path.is_file()
 
     def is_changed(self) -> bool:
         """check if image_data is changed
