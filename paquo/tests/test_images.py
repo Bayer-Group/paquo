@@ -19,7 +19,7 @@ def test_image_entry_return_hierarchy(image_entry):
 
 
 def test_identifers(image_entry):
-    assert image_entry.id == "1"  # first image...
+    assert image_entry.entry_id == "1"  # first image...
     assert image_entry.image_name == "CMU-1-Small-Region.svs"
     assert image_entry.image_name_original == "CMU-1-Small-Region.svs"
     # not changed yet.

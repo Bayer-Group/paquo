@@ -244,9 +244,14 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         return _ImageDataProperties(self._image_data)
 
     @property
-    def id(self) -> str:
+    def entry_id(self) -> str:
         """the unique image entry id"""
         return str(self.java_object.getID())
+
+    @property
+    def entry_path(self) -> Path:
+        """path to the image directory"""
+        return Path(str(self.java_object.getEntryPath().toString()))
 
     @property
     def image_name(self) -> str:
@@ -264,18 +269,6 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         return str(org_name) if org_name else None
 
     @property
-    def description(self) -> str:
-        """free text describing the image"""
-        text = self.java_object.getDescription()
-        if text is None:
-            return ""
-        return str(text)
-
-    @description.setter
-    def description(self, text: str) -> None:
-        self.java_object.setDescription(text)
-
-    @property
     def image_type(self) -> QuPathImageType:
         """image type"""
         return QuPathImageType.from_java(self._image_data.getImageType())
@@ -287,9 +280,16 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         self._image_data.setImageType(value.java_enum)
 
     @property
-    def entry_path(self) -> pathlib.Path:
-        """path to the image directory"""
-        return pathlib.Path(str(self.java_object.getEntryPath().toString()))
+    def description(self) -> str:
+        """free text describing the image"""
+        text = self.java_object.getDescription()
+        if text is None:
+            return ""
+        return str(text)
+
+    @description.setter
+    def description(self, text: str) -> None:
+        self.java_object.setDescription(text)
 
     @property
     def metadata(self) -> _ProjectImageEntryMetadata:
