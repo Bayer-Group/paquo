@@ -4,7 +4,7 @@ from collections.abc import MutableMapping
 import json
 import math
 from functools import cached_property
-from typing import Optional, Union, Iterator
+from typing import Optional, Union, Iterator, TypeVar
 
 from shapely.geometry.base import BaseGeometry
 from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
@@ -12,7 +12,8 @@ from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.colors import QuPathColor, ColorType
-from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryTools, PathAnnotationObject, GsonTools
+from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryTools, PathAnnotationObject, GsonTools, \
+    PathROIObject, PathDetectionObject
 
 
 def _shapely_geometry_to_qupath_roi(geometry: BaseGeometry, image_plane=None) -> ROI:
@@ -75,7 +76,14 @@ class _MeasurementList(MutableMapping):
         return f"<Measurements({repr(dict(self))})>"
 
 
-class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
+PathObjectType = TypeVar('PathObjectType', bound=PathROIObject)
+
+
+class _PathROIObject(QuPathBase[PathObjectType]):
+    """internal base class for PathObjects"""
+
+    _java_class = None
+    _java_class_factory = None
 
     @classmethod
     def from_shapely(cls,
@@ -83,8 +91,8 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
                      path_class: Optional[QuPathPathClass] = None,
                      measurements: Optional[dict] = None,
                      *,
-                     path_class_probability: float = math.nan) -> QuPathPathAnnotationObject:
-        """create a QuPathPathAnnotationObject from a shapely shape
+                     path_class_probability: float = math.nan) -> _PathROIObject:
+        """create a Path Object from a shapely shape
 
         Parameters
         ----------
@@ -102,22 +110,22 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
         qupath_roi = _shapely_geometry_to_qupath_roi(roi)
         qupath_path_class = path_class.java_object if path_class is not None else None
         # fixme: should create measurements here and pass instead of None
-        ao = PathObjects.createAnnotationObject(
+        java_obj = cls._java_class_factory(
             qupath_roi, qupath_path_class, None
         )
         if not math.isnan(path_class_probability):
-            ao.setPathClass(ao.getPathClass(), path_class_probability)
-        obj = cls(ao)
+            java_obj.setPathClass(java_obj.getPathClass(), path_class_probability)
+        obj = cls(java_obj)
         if measurements is not None:
             obj.measurements.update(measurements)
         return obj
 
     @classmethod
-    def from_geojson(cls, geojson) -> QuPathPathAnnotationObject:
-        """create a new QuPathPathAnnotationObject from geojson"""
+    def from_geojson(cls, geojson) -> PathObjectType:
+        """create a new Path Object from geojson"""
         gson = GsonTools.getInstance()
-        ao = gson.fromJson(String(json.dumps(geojson)), PathAnnotationObject)
-        return cls(ao)
+        java_obj = gson.fromJson(String(json.dumps(geojson)), cls._java_class)
+        return cls(java_obj)
 
     def to_geojson(self) -> dict:
         """convert the annotation object to geojson"""
@@ -162,15 +170,6 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
         return int(self.java_object.getLevel())
 
     @property
-    def description(self) -> str:
-        """an optional description for the annotation"""
-        return str(self.java_object.getDescription())
-
-    @description.setter
-    def description(self, value: Union[str, None]):
-        self.java_object.setDescription(value)
-
-    @property
     def name(self) -> str:
         """an optional name for the annotation"""
         return str(self.java_object.getName())
@@ -194,12 +193,13 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
         self.java_object.setColor(argb)
 
     @property
-    def parent(self) -> Optional[QuPathPathAnnotationObject]:
+    def parent(self) -> Optional[_PathROIObject]:
         """the annotation object's parent annotation object"""
         parent = self.java_object.getParent()
         if not parent:
             return None
-        return QuPathPathAnnotationObject(parent)
+        # fixme: Is this true? Or do we need to dynamically cast to the right subclass
+        return self.__class__(parent)
 
     @property
     def roi(self) -> BaseGeometry:
@@ -215,3 +215,24 @@ class QuPathPathAnnotationObject(QuPathBase[PathAnnotationObject]):
     @cached_property
     def measurements(self):
         return _MeasurementList(self.java_object.getMeasurementList())
+
+
+class QuPathPathAnnotationObject(_PathROIObject[PathAnnotationObject]):
+
+    _java_class = PathAnnotationObject
+    _java_class_factory = PathObjects.createAnnotationObject
+
+    @property
+    def description(self) -> str:
+        """an optional description for the annotation"""
+        return str(self.java_object.getDescription())
+
+    @description.setter
+    def description(self, value: Union[str, None]):
+        self.java_object.setDescription(value)
+
+
+class QuPathPathDetectionObject(_PathROIObject[PathDetectionObject]):
+
+    _java_class = PathDetectionObject
+    _java_class_factory = PathObjects.createDetectionObject
