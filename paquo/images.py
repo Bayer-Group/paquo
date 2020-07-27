@@ -243,6 +243,10 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def _properties(self):
         return _ImageDataProperties(self._image_data)
 
+    @cached_property
+    def _image_server(self):
+        return self._image_data.getServer()
+
     @property
     def entry_id(self) -> str:
         """the unique image entry id"""
@@ -290,6 +294,26 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     @description.setter
     def description(self, text: str) -> None:
         self.java_object.setDescription(text)
+
+    @property
+    def width(self):
+        return int(self._image_server.getWidth())
+
+    @property
+    def height(self):
+        return int(self._image_server.getHeight())
+
+    @property
+    def num_channels(self):
+        return int(self._image_server.nChannels())
+
+    @property
+    def num_z_slices(self):
+        return int(self._image_server.nZSlices())
+
+    @property
+    def num_timepoints(self):
+        return int(self._image_server.nTimepoints())
 
     @property
     def metadata(self) -> _ProjectImageEntryMetadata:

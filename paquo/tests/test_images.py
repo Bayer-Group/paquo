@@ -30,6 +30,14 @@ def test_path(image_entry):
     assert image_entry.entry_path.is_dir()
 
 
+def test_image_properties_from_image_server(image_entry):
+    assert image_entry.width == 2220
+    assert image_entry.height == 2967
+    assert image_entry.num_channels == 3
+    assert image_entry.num_timepoints == 1
+    assert image_entry.num_z_slices == 1
+
+
 def test_metadata_interface(image_entry):
 
     assert len(image_entry.metadata) == 0
