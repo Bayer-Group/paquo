@@ -69,6 +69,6 @@ def test_geojson_serialization(path_annotation):
     prop = geo_json["properties"]
 
     assert prop["isLocked"] == path_annotation.locked
-    # todo: assert prop["measurements"] == path_annotation.measurements
+    assert prop["measurements"] == path_annotation.measurements.to_records()
     assert prop["classification"]["name"] == path_annotation.path_class.name
     assert prop["classification"]["colorRGB"] == path_annotation.path_class.color.to_java_rgba()
