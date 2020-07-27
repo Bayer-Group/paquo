@@ -44,11 +44,10 @@ def test_project_save_and_path(new_project):
     assert new_project.path.is_file()
 
 
-@pytest.mark.xfail(reason="needs gui running?")
 def test_project_version(new_project):
+    from paquo.java import GeneralTools
     new_project.save()
-    # fixme: update when we update qupath or compare to qupath version
-    assert new_project.version == "0.2.1"
+    assert new_project.version == str(GeneralTools.getVersion())
 
 
 def test_project_add_path_classes(new_project):

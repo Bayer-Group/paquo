@@ -7,7 +7,7 @@ from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider
 from paquo.java import ImageServerProvider, BufferedImage, \
-    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI
+    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI, GeneralTools
 
 
 class _ProjectImageEntriesProxy(collections_abc.Sequence):
@@ -250,9 +250,15 @@ class QuPathProject(QuPathBase):
     @property
     def version(self) -> str:
         """the project version. should be identical to the qupath version"""
-        # note: only available when building project while the gui
-        #   is active? ...
-        return str(self.java_object.getVersion())
+        # for older projects this returns null.
+        # for newer projects this will be set to DefaultProject.LATEST_VERSION
+        # which is just GeneralTools.getVersion()...
+        version = self.java_object.getVersion()
+        # fixme: this implictly requires qupath versions >= 0.2.0-m3
+        latest_version = GeneralTools.getVersion()
+        if version is None:
+            return str(latest_version)
+        return str(version)
 
     @classmethod
     def from_settings(
