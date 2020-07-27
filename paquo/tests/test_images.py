@@ -126,7 +126,7 @@ def test_image_provider_ducktyping():
         def id(self, x):
             pass
 
-    class IPGood(IPBad):  # if both id and uri are implemented we're an ImageProvider
+    class IPGood(IPBad):  # if all required methods are implemented we're an ImageProvider
         def uri(self, y):
             pass
 

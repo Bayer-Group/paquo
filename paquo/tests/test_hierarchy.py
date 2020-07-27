@@ -1,9 +1,12 @@
+from functools import partial
+from typing import Type
+
 import pytest
 
 import shapely.geometry
 
 from paquo.hierarchy import QuPathPathObjectHierarchy
-from paquo.pathobjects import QuPathPathAnnotationObject
+from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject
 
 
 @pytest.fixture(scope="function")
@@ -18,14 +21,18 @@ def test_initial_state(empty_hierarchy: QuPathPathObjectHierarchy):
     assert len(h) == 0
 
 
-def _make_polygon_annotations(amount: int):
-    """returns a list of amount QuPathPathAnnotationObjects"""
-    annotations = []
+def _make_polygons(obj_cls: Type[_PathROIObject], amount: int):
+    """returns a list of amount Path Objects"""
+    path_objects = []
     for x in range(0, 10 * amount, 10):
         roi = shapely.geometry.Polygon.from_bounds(x, 0, x+5, 5)
-        ao = QuPathPathAnnotationObject.from_shapely(roi)
-        annotations.append(ao)
-    return annotations
+        ao = obj_cls.from_shapely(roi)
+        path_objects.append(ao)
+    return path_objects
+
+
+_make_polygon_annotations = partial(_make_polygons, QuPathPathAnnotationObject)
+_make_polygon_detections = partial(_make_polygons, QuPathPathDetectionObject)
 
 
 def test_attach_annotations(empty_hierarchy):
@@ -42,6 +49,32 @@ def test_attach_annotations(empty_hierarchy):
     # discard
     h.annotations.discard(annotations[7])
     assert len(h) == len(annotations) - 1
+
+
+def test_attach_detections(empty_hierarchy):
+    h = empty_hierarchy
+    detections = _make_polygon_detections(10)
+
+    # add many
+    h.detections.update(detections)
+
+    # length
+    assert len(h) == len(detections)
+    # contains
+    assert detections[3] in h.detections
+    # discard
+    h.detections.discard(detections[7])
+    assert len(h) == len(detections) - 1
+
+
+def test_annotations_detections_separation(empty_hierarchy):
+    h = empty_hierarchy
+    annotations = _make_polygon_annotations(5)
+    detections = _make_polygon_detections(7)
+    h.annotations.update(annotations)
+    h.detections.update(detections)
+    assert len(h.annotations) == 5
+    assert len(h.detections) == 7
 
 
 def test_geojson_roundtrip_via_geojson(empty_hierarchy):
