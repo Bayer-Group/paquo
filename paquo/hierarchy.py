@@ -1,29 +1,32 @@
 import collections.abc as collections_abc
 import json
 import math
-from typing import Optional, Iterator, MutableSet
+from typing import Optional, Iterator, MutableSet, TypeVar, Type
 
 from shapely.geometry.base import BaseGeometry
 
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools, PathObjectHierarchy
-from paquo.pathobjects import QuPathPathAnnotationObject
+from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject
+
+PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
 
 
-class _AnnotationsListProxy(MutableSet[QuPathPathAnnotationObject]):
-    """provides a python set interface for annotations"""
+class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
+    """provides a python set interface for path objects"""
 
-    def __init__(self, hierarchy: PathObjectHierarchy):
+    def __init__(self, hierarchy: PathObjectHierarchy, paquo_cls: Type[_PathROIObject]):
         self._hierarchy = hierarchy
+        self._paquo_cls = paquo_cls
 
-    def add(self, x: QuPathPathAnnotationObject) -> None:
+    def add(self, x: PathROIObjectType) -> None:
         self._hierarchy.addPathObject(x.java_object)
 
-    def discard(self, x: QuPathPathAnnotationObject) -> None:
+    def discard(self, x: PathROIObjectType) -> None:
         self._hierarchy.removeObject(x.java_object, True)
 
-    def __contains__(self, x: QuPathPathAnnotationObject) -> bool:
+    def __contains__(self, x: PathROIObjectType) -> bool:
         # ... inHierarchy is private
         # return bool(self._hierarchy.inHierarchy(x.java_object))
         while x.parent is not None:
@@ -31,13 +34,13 @@ class _AnnotationsListProxy(MutableSet[QuPathPathAnnotationObject]):
         return x.java_object == self._hierarchy.getRootObject()
 
     def __len__(self) -> int:
-        return int(self._hierarchy.getAnnotationObjects().size())
+        return int(self._hierarchy.getObjects(None, self._paquo_cls.java_class).size())
 
-    def __iter__(self) -> Iterator[QuPathPathAnnotationObject]:
-        return map(QuPathPathAnnotationObject, self._hierarchy.getAnnotationObjects())
+    def __iter__(self) -> Iterator[PathROIObjectType]:
+        return map(self._paquo_cls, self._hierarchy.getObjects(None, self._paquo_cls.java_class))
 
     def __repr__(self):
-        return f"<AnnotationSet(n={len(self)})>"
+        return f"<{self._paquo_cls.__name__}Set(n={len(self)})>"
 
     # provide update
     update = collections_abc.MutableSet.__ior__
@@ -57,7 +60,8 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         if hierarchy is None:
             hierarchy = PathObjectHierarchy()
         super().__init__(hierarchy)
-        self._annotations = _AnnotationsListProxy(hierarchy)
+        self._annotations = _PathObjectSetProxy(hierarchy, paquo_cls=QuPathPathAnnotationObject)
+        self._detections = _PathObjectSetProxy(hierarchy, paquo_cls=QuPathPathDetectionObject)
 
     def __len__(self) -> int:
         """Number of objects in hierarchy (all types)"""
@@ -80,7 +84,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         return QuPathPathAnnotationObject(root)  # todo: specialize...
 
     @property
-    def annotations(self) -> _AnnotationsListProxy:
+    def annotations(self) -> _PathObjectSetProxy[QuPathPathAnnotationObject]:
         """all annotations provided as a flattened set-like proxy"""
         return self._annotations
 
@@ -91,12 +95,31 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                        *,
                        path_class_probability: float = math.nan):
         """convenience method for adding annotations"""
-        ao = QuPathPathAnnotationObject.from_shapely(
+        obj = QuPathPathAnnotationObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
         )
-        self._annotations.add(ao)
-        return ao
+        self._annotations.add(obj)
+        return obj
+
+    @property
+    def detections(self) -> _PathObjectSetProxy[QuPathPathDetectionObject]:
+        """all detections provided as a flattened set-like proxy"""
+        return self._detections
+
+    def add_detection(self,
+                      roi: BaseGeometry,
+                      path_class: Optional[QuPathPathClass] = None,
+                      measurements: Optional[dict] = None,
+                      *,
+                      path_class_probability: float = math.nan):
+        """convenience method for adding detections"""
+        obj = QuPathPathDetectionObject.from_shapely(
+            roi, path_class, measurements,
+            path_class_probability=path_class_probability
+        )
+        self._detections.add(obj)
+        return obj
 
     def to_geojson(self) -> list:
         """return all annotations as a list of geojson features"""

@@ -82,8 +82,8 @@ PathObjectType = TypeVar('PathObjectType', bound=PathROIObject)
 class _PathROIObject(QuPathBase[PathObjectType]):
     """internal base class for PathObjects"""
 
-    _java_class = None
-    _java_class_factory = None
+    java_class = None
+    java_class_factory = None
 
     @classmethod
     def from_shapely(cls,
@@ -110,7 +110,7 @@ class _PathROIObject(QuPathBase[PathObjectType]):
         qupath_roi = _shapely_geometry_to_qupath_roi(roi)
         qupath_path_class = path_class.java_object if path_class is not None else None
         # fixme: should create measurements here and pass instead of None
-        java_obj = cls._java_class_factory(
+        java_obj = cls.java_class_factory(
             qupath_roi, qupath_path_class, None
         )
         if not math.isnan(path_class_probability):
@@ -124,7 +124,7 @@ class _PathROIObject(QuPathBase[PathObjectType]):
     def from_geojson(cls, geojson) -> PathObjectType:
         """create a new Path Object from geojson"""
         gson = GsonTools.getInstance()
-        java_obj = gson.fromJson(String(json.dumps(geojson)), cls._java_class)
+        java_obj = gson.fromJson(String(json.dumps(geojson)), cls.java_class)
         return cls(java_obj)
 
     def to_geojson(self) -> dict:
@@ -219,8 +219,8 @@ class _PathROIObject(QuPathBase[PathObjectType]):
 
 class QuPathPathAnnotationObject(_PathROIObject[PathAnnotationObject]):
 
-    _java_class = PathAnnotationObject
-    _java_class_factory = PathObjects.createAnnotationObject
+    java_class = PathAnnotationObject
+    java_class_factory = PathObjects.createAnnotationObject
 
     @property
     def description(self) -> str:
@@ -234,5 +234,5 @@ class QuPathPathAnnotationObject(_PathROIObject[PathAnnotationObject]):
 
 class QuPathPathDetectionObject(_PathROIObject[PathDetectionObject]):
 
-    _java_class = PathDetectionObject
-    _java_class_factory = PathObjects.createDetectionObject
+    java_class = PathDetectionObject
+    java_class_factory = PathObjects.createDetectionObject
