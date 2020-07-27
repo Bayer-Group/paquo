@@ -36,6 +36,7 @@ def test_image_properties_from_image_server(image_entry):
     assert image_entry.num_channels == 3
     assert image_entry.num_timepoints == 1
     assert image_entry.num_z_slices == 1
+    assert image_entry.downsample_levels == {0: {'downsample': 1.0, 'height': 2967, 'width': 2220}}
 
 
 def test_metadata_interface(image_entry):

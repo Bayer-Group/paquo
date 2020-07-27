@@ -315,6 +315,19 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def num_timepoints(self):
         return int(self._image_server.nTimepoints())
 
+    @cached_property
+    def downsample_levels(self):
+        md = self._image_server.getMetadata()
+        levels = {}
+        for level in range(int(md.nLevels())):
+            resolution_level = md.getLevel(level)
+            levels[level] = {
+                'downsample': float(resolution_level.getDownsample()),
+                'width': int(resolution_level.getWidth()),
+                'height': int(resolution_level.getHeight()),
+            }
+        return levels
+
     @property
     def metadata(self) -> _ProjectImageEntryMetadata:
         """the metadata stored on the image as dict-like proxy"""
