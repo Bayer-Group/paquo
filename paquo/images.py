@@ -1,6 +1,5 @@
 import re
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from collections.abc import MutableMapping, Hashable
 from enum import Enum
 from functools import cached_property
@@ -8,6 +7,7 @@ from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
 from typing import Iterator, Optional, Any, List
 
 from paquo._base import QuPathBase
+from paquo._logging import redirect
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException
 
@@ -235,7 +235,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     @cached_property
     def _image_data(self):
         try:
-            return self.java_object.readImageData()
+            with redirect(stdout=True, stderr=True):
+                return self.java_object.readImageData()
         except IOException:  # from java land
             raise IOError("can't load image data")
 
@@ -384,5 +385,6 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     def save(self):
         """save image entry"""
-        if self.is_readable() and self.is_changed():
-            self.java_object.saveImageData(self._image_data)
+        with redirect(stdout=True, stderr=True):
+            if self.is_readable() and self.is_changed():
+                self.java_object.saveImageData(self._image_data)
