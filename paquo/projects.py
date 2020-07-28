@@ -4,6 +4,7 @@ from typing import Union, Iterable, Tuple, Optional, Iterator, \
     List, Dict, overload, Sequence, Hashable
 
 from paquo._base import QuPathBase
+from paquo._logging import redirect
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider, QuPathImageType
 from paquo.java import ImageServerProvider, BufferedImage, \
@@ -124,6 +125,7 @@ class QuPathProject(QuPathBase):
         """project images"""
         return self._image_entries_proxy
 
+    @redirect(stderr=True, stdout=True)
     def add_image(self,
                   filename: Union[str, pathlib.Path],
                   image_type: Optional[QuPathImageType] = None) -> QuPathProjectImageEntry:
@@ -227,6 +229,7 @@ class QuPathProject(QuPathBase):
         """the path to the project root"""
         return pathlib.Path(str(self.java_object.getPath()))
 
+    @redirect(stderr=True, stdout=True)
     def save(self) -> None:
         """flush changes in the project to disk
 

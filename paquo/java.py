@@ -18,9 +18,13 @@ start_jvm()
 
 ArrayList = JClass("java.util.ArrayList")
 BufferedImage = JClass('java.awt.image.BufferedImage')
+ByteArrayOutputStream = JClass("java.io.ByteArrayOutputStream")
 File = JClass('java.io.File')
 Integer = JClass('java.lang.Integer')
+PrintStream = JClass('java.io.PrintStream')
+StandardCharsets = JClass("java.nio.charset.StandardCharsets")
 String = JClass('java.lang.String')
+System = JClass('java.lang.System')
 URI = JClass('java.net.URI')
 
 ColorTools = JClass('qupath.lib.common.ColorTools')
