@@ -8,7 +8,7 @@ from paquo._logging import redirect
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider, QuPathImageType
 from paquo.java import ImageServerProvider, BufferedImage, \
-    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI, GeneralTools
+    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI, GeneralTools, IOException
 
 
 class _ProjectImageEntriesProxy(collections_abc.Sequence):
@@ -144,10 +144,13 @@ class QuPathProject(QuPathBase):
         """
         # first get a server builder
         img_path = pathlib.Path(filename).absolute()
-        support = ImageServerProvider.getPreferredUriImageSupport(
-            BufferedImage,
-            String(str(img_path))
-        )
+        try:
+            support = ImageServerProvider.getPreferredUriImageSupport(
+                BufferedImage,
+                String(str(img_path))
+            )
+        except IOException:
+            raise FileNotFoundError(filename)
         if not support:
             raise Exception("unsupported file")
         server_builders = list(support.getBuilders())
