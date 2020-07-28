@@ -5,7 +5,7 @@ from typing import Union, Iterable, Tuple, Optional, Iterator, \
 
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
-from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider
+from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider, QuPathImageType
 from paquo.java import ImageServerProvider, BufferedImage, \
     ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI, GeneralTools
 
@@ -124,7 +124,9 @@ class QuPathProject(QuPathBase):
         """project images"""
         return self._image_entries_proxy
 
-    def add_image(self, filename: Union[str, pathlib.Path]) -> QuPathProjectImageEntry:
+    def add_image(self,
+                  filename: Union[str, pathlib.Path],
+                  image_type: Optional[QuPathImageType] = None) -> QuPathProjectImageEntry:
         """add an image to the project
 
         todo: expose copying/moving/re-association etc...
@@ -133,6 +135,9 @@ class QuPathProject(QuPathBase):
         ----------
         filename:
             filename pointing to the image file
+        image_type:
+            provide an image type for the image. If not provided the user will
+            be prompted before opening the image in QuPath.
 
         """
         # first get a server builder
@@ -159,7 +164,10 @@ class QuPathProject(QuPathBase):
         # update the proxy
         self._image_entries_proxy.refresh()
 
-        return self._image_entries_proxy[-1]
+        py_entry = self._image_entries_proxy[-1]
+        if image_type is not None:
+            py_entry.image_type = image_type
+        return py_entry
 
     def is_readable(self) -> Dict[Hashable, bool]:
         """verify if images are reachable"""
