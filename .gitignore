@@ -135,3 +135,8 @@ paquo/_version.py
 
 # paquo test files
 *.svs
+
+# example resources
+examples/data/*
+examples/images/*
+examples/projects/*
