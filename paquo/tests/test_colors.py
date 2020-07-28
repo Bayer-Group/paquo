@@ -39,3 +39,15 @@ def test_rgb_via_java_rgba():
     assert c0.green == c1.green
     assert c0.blue == c1.blue
     assert c0.alpha == 4 and c1.alpha == 255
+
+
+def test_hexcolor():
+    c0 = "#ff00ff"
+    qc = QuPathColor.from_hex(c0)
+    assert qc.to_rgb() == (255, 0, 255)
+    assert c0 == qc.to_hex()
+
+    with pytest.raises(ValueError):
+        QuPathColor.from_hex("abc")
+
+    assert qc == QuPathColor.from_any(c0)

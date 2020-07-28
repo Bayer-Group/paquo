@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import string
 from dataclasses import dataclass
 from typing import Tuple, Union
 
@@ -6,7 +8,7 @@ from paquo.java import ColorTools, Integer
 
 ColorTypeRGB = Tuple[int, int, int]
 ColorTypeRGBA = Tuple[int, int, int, int]
-ColorType = Union[ColorTypeRGB, ColorTypeRGBA, 'QuPathColor']
+ColorType = Union[ColorTypeRGB, ColorTypeRGBA, 'QuPathColor', str]
 
 
 @dataclass
@@ -44,6 +46,23 @@ class QuPathColor:
         r, g, b, a = self.to_rgba()
         return r / 255.0, g / 255.0, b / 255.0, a / 255.0
 
+    def to_hex(self) -> str:
+        """convert to hex color. loses alpha."""
+        r, g, b = self.to_rgb()
+        return f"#{r:02x}{g:02x}{b:02x}"
+
+    @classmethod
+    def from_hex(cls, hex_color: str) -> QuPathColor:
+        """convert from hex_color"""
+        if (
+            not isinstance(hex_color, str)
+            or len(hex_color) != 7
+            or hex_color[0] != "#"
+            or any(c not in string.hexdigits for c in hex_color[1:])
+        ):
+            raise ValueError("requires a hexcolor #000000 - #ffffff")
+        return cls(*(int(hex_color[i:i+2], 16) for i in (1, 3, 5)))
+
     def to_java_rgb(self) -> Integer:
         """"convert to the java rgb integer representation used by qupath"""
         return ColorTools.makeRGB(*self.to_rgb())
@@ -79,6 +98,8 @@ class QuPathColor:
         """try creating a QuPathColor from all supported types"""
         if isinstance(value, (tuple, list)):
             return cls(*value)
+        elif isinstance(value, str):
+            return cls.from_hex(value)
         elif isinstance(value, QuPathColor):
             return cls(*value.to_rgba())
         else:
