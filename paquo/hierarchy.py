@@ -8,7 +8,8 @@ from shapely.geometry.base import BaseGeometry
 from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools, PathObjectHierarchy
-from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject
+from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
+    QuPathPathTileObject
 
 PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
 
@@ -93,7 +94,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                        path_class: Optional[QuPathPathClass] = None,
                        measurements: Optional[dict] = None,
                        *,
-                       path_class_probability: float = math.nan):
+                       path_class_probability: float = math.nan) -> QuPathPathAnnotationObject:
         """convenience method for adding annotations"""
         obj = QuPathPathAnnotationObject.from_shapely(
             roi, path_class, measurements,
@@ -112,9 +113,28 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                       path_class: Optional[QuPathPathClass] = None,
                       measurements: Optional[dict] = None,
                       *,
-                      path_class_probability: float = math.nan):
+                      path_class_probability: float = math.nan) -> QuPathPathDetectionObject:
         """convenience method for adding detections"""
         obj = QuPathPathDetectionObject.from_shapely(
+            roi, path_class, measurements,
+            path_class_probability=path_class_probability
+        )
+        self._detections.add(obj)
+        return obj
+
+    def add_tile(self,
+                 roi: BaseGeometry,
+                 path_class: Optional[QuPathPathClass] = None,
+                 measurements: Optional[dict] = None,
+                 *,
+                 path_class_probability: float = math.nan) -> QuPathPathTileObject:
+        """convenience method for adding tile detections
+
+        Notes
+        -----
+        these will be added to self.detections
+        """
+        obj = QuPathPathTileObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
         )

@@ -13,7 +13,7 @@ from paquo._base import QuPathBase
 from paquo.classes import QuPathPathClass
 from paquo.colors import QuPathColor, ColorType
 from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryTools, PathAnnotationObject, GsonTools, \
-    PathROIObject, PathDetectionObject
+    PathROIObject, PathDetectionObject, PathTileObject
 
 
 def _shapely_geometry_to_qupath_roi(geometry: BaseGeometry, image_plane=None) -> ROI:
@@ -239,3 +239,9 @@ class QuPathPathDetectionObject(_PathROIObject[PathDetectionObject]):
 
     java_class = PathDetectionObject
     java_class_factory = PathObjects.createDetectionObject
+
+
+class QuPathPathTileObject(QuPathPathDetectionObject):
+
+    java_class = PathTileObject
+    java_class_factory = PathObjects.createTileObject
