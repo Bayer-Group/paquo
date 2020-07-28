@@ -1,6 +1,6 @@
 import logging
 import os
-from contextlib import contextmanager, ExitStack, ContextDecorator, AbstractContextManager
+from contextlib import contextmanager, ExitStack, ContextDecorator, AbstractContextManager, suppress
 
 from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardCharsets
 
@@ -41,6 +41,7 @@ class _JavaLoggingBase(AbstractContextManager):
                     True,
                     StandardCharsets.UTF_8.name()
                 )
+                # note: these two lines should be atomic
                 self.java_setter(ps)
                 self._java_buffer = java_buffer
         return self
@@ -50,16 +51,20 @@ class _JavaLoggingBase(AbstractContextManager):
         self._count = max(0, self._count - 1)
         self.flush_logs()  # flush logs no matter what
         if not self._count:
-            self._java_buffer = None
+            # note: these two lines should be atomic
             self.java_setter(self.java_default)
+            self._java_buffer = None
 
     def flush_logs(self):
         """flush the java buffer to the Logger"""
-        if self._java_buffer is None:
-            return
         # extract the buffer and clear it
-        output = str(self._java_buffer.toString())
-        self._java_buffer.reset()
+        try:
+            output = str(self._java_buffer.toString())
+        except AttributeError:
+            return
+        finally:
+            with suppress(AttributeError):
+                self._java_buffer.reset()
         # assume JVM console output is one line per msg
         for line in output.splitlines():
             if not (line := line.strip()):
