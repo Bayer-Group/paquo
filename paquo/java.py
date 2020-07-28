@@ -1,12 +1,19 @@
 from distutils.util import strtobool
+from distutils.version import LooseVersion
 import os
+import warnings
 
 from paquo.jpype_backend import start_jvm, JClass
 
+# we can extend this as when we add more testing against different versions
+MIN_QUPATH_VERSION = LooseVersion('0.2.1')  # FIXME: this is bound to change
+
+
+# let sphinx docs be generated without requiring an installed qupath
 RUNNING_ON_RTD = strtobool(os.environ.get('READTHEDOCS', 'false'))
 if RUNNING_ON_RTD:
     def start_jvm(*args, **kwargs):
-        pass
+        return MIN_QUPATH_VERSION
 
     class JClass:
         def __init__(self, *args, **kwargs):
@@ -14,7 +21,11 @@ if RUNNING_ON_RTD:
 
 
 # ensure the jvm is running
-start_jvm()
+qupath_version = start_jvm()
+if qupath_version is None or qupath_version < MIN_QUPATH_VERSION:
+    # let's not exit for now but warn the user that
+    warnings.warn(f"QUPATH '{qupath_version}' UNTESTED OR UNSUPPORTED")
+
 
 ArrayList = JClass("java.util.ArrayList")
 BufferedImage = JClass('java.awt.image.BufferedImage')

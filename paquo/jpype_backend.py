@@ -1,3 +1,4 @@
+from distutils.version import LooseVersion
 import os
 import platform
 import collections.abc as collections_abc
@@ -155,9 +156,20 @@ def start_jvm(finder: Optional[Callable[[], QuPathJVMInfo]] = None) -> None:
     if finder is None:
         finder = find_qupath
 
-    if not jpype.isJVMStarted():
-        # For the time being, we assume qupath is our JVM of choice
-        app_dir, runtime_dir, jvm_path, jvm_options = finder()
-        # This is not really needed, but beware we might need SL4J classes (see warning)
-        jpype.addClassPath(str(app_dir / '*'))
-        jpype.startJVM(str(jvm_path), *jvm_options, convertStrings=False)
+    if jpype.isJVMStarted():
+        return  # nothing to be done
+
+    # For the time being, we assume qupath is our JVM of choice
+    app_dir, runtime_dir, jvm_path, jvm_options = finder()
+    # This is not really needed, but beware we might need SL4J classes (see warning)
+    jpype.addClassPath(str(app_dir / '*'))
+    jpype.startJVM(str(jvm_path), *jvm_options, convertStrings=False)
+
+    # we'll do this explicitly here to verify the QuPath version
+    try:
+        version = str(JClass("qupath.lib.common.GeneralTools").getVersion())
+    except (TypeError, AttributeError):
+        version = None
+    else:
+        version = LooseVersion(version)
+    return version
