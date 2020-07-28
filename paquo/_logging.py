@@ -70,11 +70,11 @@ class _JavaLoggingBase(AbstractContextManager):
             if not (line := line.strip()):
                 continue
             # very basic conversion to logging methods
-            if "WARN" in output:
+            if "WARN" in line:
                 self._logger.warning(line)
-            elif "ERR" in output:
-                self._logger.error(line)
+            elif "ERR" in line:
                 # FIXME: SHOULD THIS RAISE AN EXCEPTION?
+                self._logger.error(line)
             else:
                 self._logger.info(line)
 
