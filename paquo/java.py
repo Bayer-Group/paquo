@@ -11,7 +11,7 @@ MIN_QUPATH_VERSION = LooseVersion('0.2.1')  # FIXME: this is bound to change
 
 # let sphinx docs be generated without requiring an installed qupath
 RUNNING_ON_RTD = strtobool(os.environ.get('READTHEDOCS', 'false'))
-if RUNNING_ON_RTD:
+if RUNNING_ON_RTD:  # pragma: no cover
     def start_jvm(*_args, **_kwargs):
         return MIN_QUPATH_VERSION
 

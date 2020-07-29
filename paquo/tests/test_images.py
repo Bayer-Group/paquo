@@ -133,14 +133,14 @@ def test_image_provider_path_from_uri(uri, parts1n, exc):
 def test_image_provider_ducktyping():
     class IPBad:
         def id(self, x):
-            pass
+            pass  # pragma: no cover
 
     class IPGood(IPBad):  # if all required methods are implemented we're an ImageProvider
         def uri(self, y):
-            pass
+            pass  # pragma: no cover
 
         def rebase(self, **x):
-            pass
+            pass  # pragma: no cover
 
     assert not isinstance(IPBad(), ImageProvider)
     assert isinstance(IPGood(), ImageProvider)

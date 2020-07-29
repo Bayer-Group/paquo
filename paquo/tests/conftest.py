@@ -34,7 +34,7 @@ def svs_small():
         with urllib.request.urlopen(url) as response, open(img_fn, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
 
-    if md5(img_fn) != small_image_md5:
+    if md5(img_fn) != small_image_md5:  # pragma: no cover
         shutil.rmtree(img_fn)
         pytest.skip("incorrect md5")
     else:
