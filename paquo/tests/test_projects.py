@@ -31,6 +31,13 @@ def test_project_create_no_dir():
         q.save()
 
 
+def test_project_open_with_filename(new_project):
+    new_project.save()
+    # this points to path/project.qpproj
+    proj_fn = new_project.path
+    QuPathProject(proj_fn, create=False)
+
+
 def test_project_uri(new_project):
     assert new_project.uri.startswith("file:")
     assert new_project.uri.endswith(".qpproj")

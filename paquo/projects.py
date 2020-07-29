@@ -100,7 +100,7 @@ class QuPathProject(QuPathBase):
         # guarantee p points to qpproj file (allow directory)
         if not p.suffix:
             p /= 'project.qpproj'
-        elif p.suffix != "qpproj":
+        elif p.suffix != ".qpproj":
             raise ValueError("project file requires '.qpproj' suffix")
 
         if p.is_file():  # existing project
