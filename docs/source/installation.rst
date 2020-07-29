@@ -40,7 +40,8 @@ you get started. You should be able to run:
 
 .. code-block:: console
 
-    user@computer:paquo$ pytest
+    user@computer:paquo$ conda activate paquo
+    (paquo) user@computer:paquo$ pytest
 
 And you should see that all the tests pass |:heart:|
 
