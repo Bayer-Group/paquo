@@ -13,5 +13,6 @@ dependencies:
   - shapely
   - qupath
   - pytest
+  - pytest-cov
   - pip:
     - "-e ."

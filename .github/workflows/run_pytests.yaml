@@ -36,4 +36,8 @@ jobs:
       run: |
         conda info
         conda list
-        pytest
+        pytest --cov=./ --cov-report=xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        name: paquo
