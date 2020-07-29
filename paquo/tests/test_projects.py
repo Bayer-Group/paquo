@@ -7,14 +7,22 @@ from pathlib import Path
 # noinspection PyPackageRequirements
 import pytest
 
+from paquo.classes import QuPathPathClass
 from paquo.images import ImageProvider
 from paquo.projects import QuPathProject
 
 
 @pytest.fixture(scope='function')
-def new_project():
+def new_project_with_tmpdir():
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        yield QuPathProject(tmpdir)
+        qp = QuPathProject(tmpdir)
+        yield qp, tmpdir
+        del qp
+
+
+@pytest.fixture(scope='function')
+def new_project(new_project_with_tmpdir):
+    yield new_project_with_tmpdir[0]
 
 
 def test_project_instance():
@@ -31,11 +39,14 @@ def test_project_create_no_dir():
         q.save()
 
 
-def test_project_open_with_filename(new_project):
-    new_project.save()
-    # this points to path/project.qpproj
-    proj_fn = new_project.path
-    QuPathProject(proj_fn, create=False)
+def test_project_open_with_filename():
+    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+        with QuPathProject(tmpdir, create=True) as qp:
+            qp.path_classes = [QuPathPathClass.create('abc')]
+            proj_fn = qp.path
+        del qp
+
+        QuPathProject(proj_fn, create=False)
 
 
 def test_project_uri(new_project):
@@ -94,7 +105,9 @@ def test_project_save_image_data(new_project, svs_small):
     assert (entry.entry_path / "data.qpdata").is_file()
 
 
-def test_project_image_uri_update(new_project, svs_small):
+def test_project_image_uri_update(new_project_with_tmpdir, svs_small):
+
+    new_project, tmpdir = new_project_with_tmpdir
 
     with tempfile.TemporaryDirectory(prefix="paquo-") as tmp:
         new_svs_small = Path(tmp) / svs_small.name
@@ -105,17 +118,22 @@ def test_project_image_uri_update(new_project, svs_small):
         # test that entry can be read
         assert entry.is_readable()
         assert all(new_project.is_readable().values())
+        del entry
 
+    entry = new_project.images[0]
     # tempdir is cleanup up, entry is not readable anymore
     assert not entry.is_readable()
     assert not any(new_project.is_readable().values())
+    old_uri = entry.uri
+    del entry
 
     # mapping for uris
     uri2uri = {
-        entry.uri: ImageProvider.uri_from_path(svs_small)
+        old_uri: ImageProvider.uri_from_path(svs_small)
     }
     new_project.update_image_paths(uri2uri=uri2uri)
 
+    entry = new_project.images[0]
     # test that entry can be read
     assert entry.is_readable()
     assert all(new_project.is_readable().values())
