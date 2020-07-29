@@ -11,7 +11,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
     def __init__(self, path_class: PathClass) -> None:
         """initialize a QuPathPathClass from its corresponding java PathClass"""
         if not isinstance(path_class, PathClass):
-            raise ValueError("use PathClass.create() to instantiate")
+            raise TypeError("use PathClass.create() to instantiate")
         super().__init__(path_class)
 
     @classmethod
@@ -42,12 +42,19 @@ class QuPathPathClass(QuPathBase[PathClass]):
             the QuPathPathClass
         """
         if name is None:
-            # note:
-            #   parent=None for name=None creates the root node on the qupath java side
-            #   will have to consider if we expose this here.
-            if parent is not None:
+            if parent is None:
+                # note:
+                #   parent=None for name=None creates the root node on the qupath java side
+                #   will have to consider if we expose this here.
+                raise NotImplementedError("creating Root PathClass is currently not supported")
+            else:
                 raise ValueError("cannot create derived QuPathPathClass with name=None")
-        name = String(name)
+        elif isinstance(name, str):
+            if ":" in name or "\n" in name:
+                raise ValueError("PathClass names cannot contain ':' or '\n'")
+            name = String(name)
+        else:
+            raise TypeError(f"name requires type 'str' got '{type(name)}'")
 
         # get the parent class if requested
         java_parent = None
