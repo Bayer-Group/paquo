@@ -1,9 +1,9 @@
 PAQUO: PAthological QUpath Obsession
 ====================================
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bayer-science-for-a-better-life/paquo/run%20pytests?label=tests)
-![Codecov](https://img.shields.io/codecov/c/github/bayer-science-for-a-better-life/paquo)
-![GitHub issues](https://img.shields.io/github/issues/bayer-science-for-a-better-life/paquo)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bayer-science-for-a-better-life/paquo/run%20pytests?label=tests)](https://github.com/bayer-science-for-a-better-life/paquo/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/bayer-science-for-a-better-life/paquo)](https://codecov.io/gh/bayer-science-for-a-better-life/paquo)
+[![GitHub issues](https://img.shields.io/github/issues/bayer-science-for-a-better-life/paquo)](https://github.com/bayer-science-for-a-better-life/paquo/issues)
 
 Welcome to ```paquo``` :wave:, a library for interacting with [QuPath](https://qupath.github.io/)
 from python.
