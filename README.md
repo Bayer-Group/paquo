@@ -1,10 +1,31 @@
 PAQUO: PAthological QUpath Obsession
 ====================================
 
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bayer-science-for-a-better-life/paquo/run%20pytests?label=tests)
+![Codecov](https://img.shields.io/codecov/c/github/bayer-science-for-a-better-life/paquo)
+![GitHub issues](https://img.shields.io/github/issues/bayer-science-for-a-better-life/paquo)
+
 Welcome to ```paquo``` :wave:, a library for interacting with [QuPath](https://qupath.github.io/)
 from python.
 
 paquo [lives in github](https://github.com/bayer-science-for-a-better-life/paquo).
+
+It's goal is to provide a pythonic interface to important features of QuPath,
+and to make creating and working with QuPath projects intuitive for python
+programmers.
+
+We strive to make your live as easy as possible: If `Paquo` is not pythonic,
+unintuitive, slow or if its documentation is confusing, it's a bug in
+`Paquo`. Feel free to report any issues or feature requests in the issue
+tracker!
+
+
+Documentation
+-------------
+
+You can find paquo's documentation at
+[paquo.readthedocs.io](https://paquo.readthedocs.io) :heart:
+
 
 Development Installation
 ------------------------
@@ -27,5 +48,6 @@ Contributing Guidelines
 - Please only use notebooks only when strictly necessary
 - tests go hand in hand with modules on ```tests``` packages at the same level. We use ```pytest```.
 
-You can setup your IDE to help you adhering to these guidelines
-(Santi is happy to help you setting up pycharm in 5 minutes).
+You can setup your IDE to help you adhering to these guidelines.
+<br>
+_([Santi](https://github.com/sdvillal) is happy to help you setting up pycharm in 5 minutes)_
