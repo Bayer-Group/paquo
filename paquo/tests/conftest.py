@@ -36,6 +36,6 @@ def svs_small():
 
     if md5(img_fn) != small_image_md5:  # pragma: no cover
         shutil.rmtree(img_fn)
-        pytest.skip("incorrect md5")
+        pytest.fail("incorrect md5")
     else:
         yield img_fn.absolute()
