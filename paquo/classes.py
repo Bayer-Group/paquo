@@ -3,7 +3,7 @@ from typing import Optional
 
 from paquo._base import QuPathBase
 from paquo.colors import QuPathColor, ColorType
-from paquo.java import PathClass, PathClassFactory, ColorTools, String
+from paquo.java import PathClass, PathClassFactory, String
 
 
 class QuPathPathClass(QuPathBase[PathClass]):
@@ -120,7 +120,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
     @color.setter
     def color(self, rgb: ColorType) -> None:
         """set the path color"""
-        rgb = ColorTools.from_any(rgb).to_java_rgb()  # maybe use argb?
+        rgb = QuPathColor.from_any(rgb).to_java_rgb()  # maybe use argb?
         self.java_object.setColor(rgb)
 
     @property
