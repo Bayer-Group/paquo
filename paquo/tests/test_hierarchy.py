@@ -16,6 +16,7 @@ def empty_hierarchy():
 
 def test_initial_state(empty_hierarchy: QuPathPathObjectHierarchy):
     h = empty_hierarchy
+    repr(h)
     assert h.is_empty
     assert h.root is not None  # root is auto populated
     assert len(h) == 0
@@ -37,6 +38,9 @@ _make_polygon_detections = partial(_make_polygons, QuPathPathDetectionObject)
 
 def test_attach_annotations(empty_hierarchy):
     h = empty_hierarchy
+    # repr empty
+    repr(h.annotations)
+
     annotations = _make_polygon_annotations(10)
 
     # add many
@@ -49,6 +53,20 @@ def test_attach_annotations(empty_hierarchy):
     # discard
     h.annotations.discard(annotations[7])
     assert len(h) == len(annotations) - 1
+    # repr full
+    repr(h.annotations)
+
+
+def test_add_annotation_detection_tile(empty_hierarchy):
+    empty_hierarchy.add_annotation(
+        roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5)
+    )
+    empty_hierarchy.add_detection(
+        roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5)
+    )
+    empty_hierarchy.add_tile(
+        roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5)
+    )
 
 
 def test_attach_detections(empty_hierarchy):
@@ -87,6 +105,10 @@ def test_geojson_roundtrip_via_geojson(empty_hierarchy):
 
     h.annotations.clear()
     assert len(h) == 0
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        h.load_geojson("[]")
 
     h.load_geojson(geojson)
     assert len(h) == 10
