@@ -2,8 +2,9 @@ version: 2
 sphinx:
   configuration: docs/source/conf.py
 python:
-   install:
-      - method: pip
-        path: .
-        extra_requirements:
-          - docs
+  version: 3.8
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
