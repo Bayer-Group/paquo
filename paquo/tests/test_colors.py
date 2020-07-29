@@ -3,11 +3,39 @@ import pytest
 from paquo.colors import QuPathColor
 
 
+def test_incorrect_color():
+    # NOTE THIS DOESNT CRASH BY DESIGN CURRENTLY!
+    c = QuPathColor(300, 300, 300)
+    assert not c.is_valid()
+    c = QuPathColor(30, 30, 30)
+    assert c.is_valid()
+
+
 def test_color_roundtrip():
     c0 = (64, 64, 64)
     j0 = QuPathColor(*c0).to_java_rgb()
     c1 = QuPathColor.from_java_rgb(j0).to_rgb()
     assert c0 == c1
+
+
+def test_color_mpl_rgba():
+    assert QuPathColor(255, 255, 255).to_mpl_rgba() == (1, 1, 1, 1)
+
+
+def test_repr():
+    repr(QuPathColor(0, 0, 0, 255))
+    repr(QuPathColor(0, 0, 0, 0))
+
+
+def test_color_from_color():
+    c = QuPathColor(0, 0, 0, 0)
+    assert QuPathColor.from_any(c) == c
+
+
+def test_from_any_error():
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        QuPathColor.from_any(object())
 
 
 def test_alpha_roundtrip():
