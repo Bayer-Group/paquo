@@ -112,19 +112,19 @@ class _ProjectImageEntryMetadata(MutableMapping):
 
     def __setitem__(self, k: str, v: str) -> None:
         if not isinstance(k, str):
-            raise ValueError(f"key must be of type `str` got `{type(k)}`")
+            raise TypeError(f"key must be of type `str` got `{type(k)}`")
         if not isinstance(v, str):
-            raise ValueError(f"value must be of type `str` got `{type(v)}`")
+            raise TypeError(f"value must be of type `str` got `{type(v)}`")
         self._entry.putMetadataValue(String(str(k)), String(str(v)))
 
     def __delitem__(self, k: str) -> None:
         if not isinstance(k, str):
-            raise ValueError(f"key must be of type `str` got `{type(k)}`")
+            raise TypeError(f"key must be of type `str` got `{type(k)}`")
         self._entry.removeMetadataValue(String(str(k)))
 
     def __getitem__(self, k: str) -> str:
         if not isinstance(k, str):
-            raise ValueError(f"key must be of type `str` got `{type(k)}`")
+            raise TypeError(f"key must be of type `str` got `{type(k)}`")
         v = self._entry.getMetadataValue(String(str(k)))
         if v is None:
             raise KeyError(f"'{k}' not in metadata")
@@ -154,17 +154,17 @@ class _ImageDataProperties(MutableMapping):
 
     def __setitem__(self, k: str, v: Any) -> None:
         if not isinstance(k, str):
-            raise ValueError(f"key must be of type `str` got `{type(k)}`")
+            raise TypeError(f"key must be of type `str` got `{type(k)}`")
         self._image_data.setProperty(String(k), v)
 
     def __delitem__(self, k: str) -> None:
         if not isinstance(k, str):
-            raise ValueError(f"key must be of type `str` got `{type(k)}`")
+            raise TypeError(f"key must be of type `str` got `{type(k)}`")
         self._image_data.removeProperty(String(k))
 
     def __getitem__(self, k: str) -> Any:
         if not isinstance(k, str):
-            raise ValueError(f"key must be of type `str` got `{type(k)}`")
+            raise TypeError(f"key must be of type `str` got `{type(k)}`")
         if k not in self:
             raise KeyError(f"'{k}' not in metadata")
         v = self._image_data.getProperty(String(k))
