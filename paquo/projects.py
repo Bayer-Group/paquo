@@ -153,15 +153,19 @@ class QuPathProject(QuPathBase):
         except IOException:
             raise FileNotFoundError(filename)
         if not support:
-            raise Exception("unsupported file")
+            raise IOError("no preferred support found")  # pragma: no cover
         server_builders = list(support.getBuilders())
         if not server_builders:
-            raise Exception("unsupported file")
+            raise IOError("no supported server builders found")  # pragma: no cover
         server_builder = server_builders[0]
         entry = self.java_object.addImage(server_builder)
 
         # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
-        server = server_builder.build()
+        try:
+            server = server_builder.build()
+        except IOException:
+            _, _, _sb = server_builder.__class__.__name__.rpartition(".")
+            raise IOError(f"{_sb} can't open {img_path}")
         entry.setImageName(ServerTools.getDisplayableImageName(server))
         # basically getThumbnailRGB(server, None) without the resize...
         thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
