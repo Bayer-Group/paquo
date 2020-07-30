@@ -12,9 +12,8 @@ from paquo.projects import QuPathProject
 
 
 @pytest.fixture(scope='function')
-def new_project():
-    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        yield QuPathProject(tmpdir)
+def new_project(tmp_path):
+    yield QuPathProject(tmp_path / "paquo-project")
 
 
 def test_project_instance():
