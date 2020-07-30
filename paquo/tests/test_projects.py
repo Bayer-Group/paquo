@@ -124,7 +124,11 @@ def test_project_add_image(new_project, svs_small):
 
 def test_project_add_image_twice(new_project, svs_small):
     new_project.add_image(svs_small)
-    new_project.add_image(svs_small)
+    with pytest.raises(FileExistsError):
+        new_project.add_image(svs_small)
+    assert len(new_project.images) == 1
+
+    new_project.add_image(svs_small, allow_duplicates=True)
     assert len(new_project.images) == 2
 
 
