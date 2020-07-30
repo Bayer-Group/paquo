@@ -72,3 +72,69 @@ def test_geojson_serialization(path_annotation):
     assert prop["measurements"] == path_annotation.measurements.to_records()
     assert prop["classification"]["name"] == path_annotation.path_class.name
     assert prop["classification"]["colorRGB"] == path_annotation.path_class.color.to_java_rgba()
+
+
+def test_annotation_object():
+    ao = QuPathPathAnnotationObject.from_shapely(
+        shapely.geometry.Point(1, 1),
+        path_class=QuPathPathClass.create('myclass'),
+        measurements={'measurement1': 1.23},
+        path_class_probability=0.5,
+    )
+
+    assert ao.path_class.name == "myclass"
+    assert ao.path_class_probability == 0.5
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        ao.update_path_class(123)
+    ao.update_path_class(None)
+    assert ao.path_class is None
+    assert ao.is_editable
+    assert not ao.locked
+    ao.locked = True
+    assert ao.locked
+    assert ao.level == 0
+
+    # name
+    assert ao.name is None
+    ao.name = "my annotation"
+    assert ao.name == "my annotation"
+    ao.name = None
+
+    # description
+    assert ao.description is None
+    ao.description = "my description"
+    assert ao.description == "my description"
+    with pytest.raises(TypeError):
+        ao.description = None
+
+    # roi
+    pt = shapely.geometry.Point(2, 2)
+    ao.update_roi(pt)
+    assert ao.roi == pt
+
+
+def test_measurements():
+    ao = QuPathPathAnnotationObject.from_shapely(
+        shapely.geometry.Point(1, 1),
+        path_class=QuPathPathClass.create('myclass'),
+        measurements={'measurement1': 1.23},
+        path_class_probability=0.5,
+    )
+
+    assert 123 not in ao.measurements
+    assert "measurement1" in ao.measurements
+    assert len(ao.measurements) == 1
+    assert repr(ao.measurements)
+
+    # allow index access (note this depends on order of insertion)
+    assert ao.measurements[0] == ao.measurements['measurement1']
+
+    with pytest.raises(KeyError):
+        _ = ao.measurements[None]
+
+    with pytest.raises(KeyError):
+        del ao.measurements[None]
+
+    del ao.measurements['measurement1']
+    ao.measurements.clear()
