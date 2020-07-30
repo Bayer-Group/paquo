@@ -224,9 +224,14 @@ def test_project_image_uri_update(tmp_path, svs_small):
         assert not entry.is_readable()
         assert not all(qp.is_readable().values())
 
+        # test if there's no remapping
+        qp.update_image_paths(uri2uri={})
+        # test if we remap to same
+        qp.update_image_paths(uri2uri={entry.uri: entry.uri})
+
         # create mapping for uris
         uri2uri = {
-            entry.uri: ImageProvider.uri_from_path(svs_small)
+            entry.uri: ImageProvider.uri_from_path(svs_small),
         }
         # update the uris
         qp.update_image_paths(uri2uri=uri2uri)
