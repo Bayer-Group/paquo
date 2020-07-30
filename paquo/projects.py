@@ -56,7 +56,8 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
     def __contains__(self, entry: object) -> bool:
         if not isinstance(entry, QuPathProjectImageEntry):
             return False
-        return entry.java_object.getFullProjectEntryID() in self._images
+        full_id = self._key_func(entry.java_object)
+        return full_id in self._images
 
     def __len__(self) -> int:
         return len(self._images)
