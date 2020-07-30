@@ -41,7 +41,7 @@ class _JavaLoggingBase(AbstractContextManager):
                     True,
                     StandardCharsets.UTF_8.name()
                 )
-                # note: these two lines should be atomic
+                # note: these two lines should be made atomic
                 self.java_setter(ps)
                 self._java_buffer = java_buffer
         return self
@@ -51,7 +51,7 @@ class _JavaLoggingBase(AbstractContextManager):
         self._count = max(0, self._count - 1)
         self.flush_logs()  # flush logs no matter what
         if not self._count:
-            # note: these two lines should be atomic
+            # note: these two lines should be made atomic
             self.java_setter(self.java_default)
             self._java_buffer = None
 
@@ -60,15 +60,14 @@ class _JavaLoggingBase(AbstractContextManager):
         # extract the buffer and clear it
         try:
             output = str(self._java_buffer.toString())
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             return
-        finally:
-            with suppress(AttributeError):
-                self._java_buffer.reset()
+        with suppress(AttributeError):
+            self._java_buffer.reset()
         # assume JVM console output is one line per msg
         for line in output.splitlines():
             if not (line := line.strip()):
-                continue
+                continue  # pragma: no cover
             # very basic conversion to logging methods
             if "WARN" in line:
                 self._logger.warning(line)
