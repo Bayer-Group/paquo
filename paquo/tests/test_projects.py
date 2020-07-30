@@ -124,6 +124,7 @@ def test_project_delete_image_file_when_opened(new_project, svs_small):
         os.unlink(new_svs_small)
 
 
+@pytest.mark.xfail(platform.system() == "Windows", reason="file handles don't get closed by qupath?")
 def test_project_image_uri_update(tmp_path, svs_small):
 
     project_path = tmp_path / "paquo-project"
