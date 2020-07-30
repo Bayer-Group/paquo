@@ -274,42 +274,6 @@ class QuPathProject(QuPathBase):
             return str(latest_version)
         return str(version)
 
-    @classmethod
-    def from_settings(
-            cls,
-            project_path: pathlib.Path,
-            image_paths: List[pathlib.Path],
-            path_classes: Optional[List[Dict]] = None,
-            image_metadata: Optional[Dict] = None,
-            *,
-            save: bool = True
-    ):
-        """create a project from settings"""
-        if project_path.exists():
-            raise ValueError("project_path exists already")
-        project_path.mkdir(parents=True)
-
-        # create empty project
-        project = QuPathProject(project_path)
-
-        # set required path classes
-        if path_classes:
-            project.path_classes = [
-                QuPathPathClass.create(**class_dict) for class_dict in path_classes
-            ]
-
-        # append images from paths
-        for image in image_paths:
-            entry = project.add_image(image)
-            if image_metadata:
-                entry.metadata.update(image_metadata)
-
-        if save:
-            # store the project
-            project.save()
-
-        return project
-
     def __enter__(self):
         return self
 
