@@ -10,7 +10,7 @@ from pathlib import Path
 # noinspection PyPackageRequirements
 import pytest
 
-from paquo.images import ImageProvider, QuPathProjectImageEntry
+from paquo.images import ImageProvider, QuPathProjectImageEntry, QuPathImageType
 from paquo.projects import QuPathProject
 
 
@@ -31,6 +31,26 @@ def test_project_create_no_dir():
         project_path = Path(tmpdir) / "new_project"
         q = QuPathProject(project_path)
         q.save()
+
+
+def test_project_creation_input_error(tmp_path):
+
+    p = Path('.')
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        QuPathProject(p, image_provider=object())
+
+    with pytest.raises(ValueError):
+        QuPathProject(p / 'myproject.proj')  # needs .qpproj
+
+    with pytest.raises(FileNotFoundError):
+        QuPathProject(p / 'myproject.qpproj', create=False)
+
+    with open(p / 'should-not-be-here', 'w') as f:
+        f.write('project directories need to be empty')
+    with pytest.raises(ValueError):
+        QuPathProject(p)
 
 
 def test_project_open_with_filename(new_project):
@@ -89,6 +109,21 @@ def test_project_add_image(new_project, svs_small):
     assert len(new_project.images) == 1
     assert entry in new_project.images
     assert object() not in new_project.images
+
+
+def test_project_add_image_with_type(new_project, svs_small):
+    t = QuPathImageType.BRIGHTFIELD_H_DAB
+    entry = new_project.add_image(svs_small, image_type=t)
+    assert entry.image_type == t
+
+
+def test_project_add_unsupported_image(new_project, tmp_path):
+    image = Path(tmp_path) / "unsupported.image"
+    with open(image, "w") as f:
+        f.write("very unsupported image")
+
+    with pytest.raises(IOError):
+        new_project.add_image(image)
 
 
 def test_project_image_slicing(new_project):
