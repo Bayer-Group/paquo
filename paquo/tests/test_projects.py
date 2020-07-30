@@ -1,3 +1,6 @@
+import contextlib
+import os
+import platform
 import shutil
 import tempfile
 
@@ -98,28 +101,63 @@ def test_project_save_image_data(new_project, svs_small):
     assert (entry.entry_path / "data.qpdata").is_file()
 
 
-def test_project_image_uri_update(new_project, svs_small):
+def test_project_delete_image_file_when_opened(new_project, svs_small):
+    # prepare new image to be deleted
+    new_svs_small = new_project.path.parent / f"image_be_gone{svs_small.suffix}"
+    shutil.copy(svs_small, new_svs_small)
 
-    with tempfile.TemporaryDirectory(prefix="paquo-") as tmp:
-        new_svs_small = Path(tmp) / svs_small.name
-        shutil.copy(svs_small, new_svs_small)
+    entry = new_project.add_image(new_svs_small)
+    assert entry.is_readable()
 
-        entry = new_project.add_image(new_svs_small)
+    if platform.system() == "Windows":
+        # NOTE: on windows because you can't delete files that have open
+        #   file handles. In this test we're deleting the file opened by
+        #   the ImageServer on the java side. (this is happening
+        #   implicitly when calling is_readable() because the java
+        #   implementation of is_readable() loads the ImageData which
+        #   creates an instance of an ImageServer)
+        cm = pytest.raises(PermissionError)
+    else:
+        cm = contextlib.nullcontext()
+
+    with cm:
+        os.unlink(new_svs_small)
+
+
+def test_project_image_uri_update(tmp_path, svs_small):
+
+    project_path = tmp_path / "paquo-project"
+    new_svs_small = tmp_path / "images" / f"image_be_gone{svs_small.suffix}"
+    new_svs_small.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(svs_small, new_svs_small)
+    assert new_svs_small.is_file()
+
+    # create a project
+    with QuPathProject(project_path, create=True) as qp:
+        entry = qp.add_image(new_svs_small)
+        assert entry.is_readable()
+        assert all(qp.is_readable().values())
+
+    # cleanup
+    del entry
+    del qp
+
+    # remove image
+    os.unlink(new_svs_small)
+
+    # reload the project
+    with QuPathProject(project_path, create=False) as qp:
+        entry, = qp.images
+        assert not entry.is_readable()
+        assert not all(qp.is_readable().values())
+
+        # create mapping for uris
+        uri2uri = {
+            entry.uri: ImageProvider.uri_from_path(svs_small)
+        }
+        # update the uris
+        qp.update_image_paths(uri2uri=uri2uri)
 
         # test that entry can be read
         assert entry.is_readable()
-        assert all(new_project.is_readable().values())
-
-    # tempdir is cleanup up, entry is not readable anymore
-    assert not entry.is_readable()
-    assert not any(new_project.is_readable().values())
-
-    # mapping for uris
-    uri2uri = {
-        entry.uri: ImageProvider.uri_from_path(svs_small)
-    }
-    new_project.update_image_paths(uri2uri=uri2uri)
-
-    # test that entry can be read
-    assert entry.is_readable()
-    assert all(new_project.is_readable().values())
+        assert all(qp.is_readable().values())
