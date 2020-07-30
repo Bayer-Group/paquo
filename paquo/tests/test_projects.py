@@ -122,6 +122,12 @@ def test_project_add_image(new_project, svs_small):
     assert object() not in new_project.images
 
 
+def test_project_add_image_twice(new_project, svs_small):
+    new_project.add_image(svs_small)
+    new_project.add_image(svs_small)
+    assert len(new_project.images) == 2
+
+
 def test_project_add_image_with_type(new_project, svs_small):
     t = QuPathImageType.BRIGHTFIELD_H_DAB
     entry = new_project.add_image(svs_small, image_type=t)
