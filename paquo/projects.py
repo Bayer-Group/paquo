@@ -213,13 +213,13 @@ class QuPathProject(QuPathBase):
         """the uri identifying the project location"""
         return str(self.java_object.getURI().toString())
 
-    @property
-    def uri_previous(self) -> Optional[str]:
-        """previous uri. potentially useful for re-associating"""
-        uri = self.java_object.getPreviousURI()
-        if uri is None:
-            return None
-        return str(uri.toString())
+    # @property
+    # def uri_previous(self) -> Optional[str]:
+    #     """previous uri. potentially useful for re-associating"""
+    #     uri = self.java_object.getPreviousURI()
+    #     if uri is None:
+    #         return None
+    #     return str(uri.toString())
 
     @property
     def path_classes(self) -> Tuple[QuPathPathClass]:
