@@ -60,6 +60,13 @@ def test_project_open_with_filename(new_project):
     QuPathProject(proj_fn, create=False)
 
 
+def test_project_name(tmp_path):
+    p = Path(tmp_path) / "my_project_123"
+    p.mkdir()
+    qp = QuPathProject(p)
+    assert qp.name == "my_project_123"
+
+
 def test_project_uri(new_project):
     assert new_project.uri.startswith("file:")
     assert new_project.uri.endswith(".qpproj")
@@ -76,7 +83,11 @@ def test_project_save_and_path(new_project):
 def test_project_version(new_project):
     from paquo.java import GeneralTools
     new_project.save()
-    assert new_project.version == str(GeneralTools.getVersion())
+    qp_version = str(GeneralTools.getVersion())
+    assert new_project.version == qp_version
+
+    with QuPathProject(new_project.path, create=False) as qp:
+        assert qp.version == qp_version
 
 
 def test_project_add_path_classes(new_project):
