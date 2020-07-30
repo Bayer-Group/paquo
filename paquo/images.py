@@ -94,6 +94,9 @@ class SimpleURIImageProvider:
     """simple image provider that uses the files uri as it's identifier"""
 
     def uri(self, image_id: str) -> str:
+        # fixme: this is currently not being called and i think it
+        #   should in the default implementation... need to figure
+        #   out where this needs to be used in QuPathProject
         return image_id
 
     def id(self, uri: str) -> str:
