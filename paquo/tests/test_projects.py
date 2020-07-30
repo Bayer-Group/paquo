@@ -86,6 +86,18 @@ def test_project_add_image(new_project, svs_small):
     entry = new_project.add_image(svs_small)
     assert (Path(entry.entry_path) / "thumbnail.jpg").is_file()
 
+    assert len(new_project.images) == 1
+    assert entry in new_project.images
+    assert object() not in new_project.images
+
+
+def test_project_image_slicing(new_project):
+    _ = new_project.images[slice(None, None, None)]
+
+
+def test_project_image_repr(new_project):
+    assert repr(new_project.images)
+
 
 def test_project_add_image_incorrect_path(new_project):
     with pytest.raises(FileNotFoundError):
