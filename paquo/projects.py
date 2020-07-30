@@ -129,10 +129,10 @@ class QuPathProject(QuPathBase):
     @redirect(stderr=True, stdout=True)
     def add_image(self,
                   filename: Union[str, pathlib.Path],
-                  image_type: Optional[QuPathImageType] = None) -> QuPathProjectImageEntry:
+                  image_type: Optional[QuPathImageType] = None,
+                  *,
+                  allow_duplicates: bool = False) -> QuPathProjectImageEntry:
         """add an image to the project
-
-        todo: expose copying/moving/re-association etc...
 
         Parameters
         ----------
@@ -143,8 +143,18 @@ class QuPathProject(QuPathBase):
             be prompted before opening the image in QuPath.
 
         """
-        # first get a server builder
         img_path = pathlib.Path(filename).absolute()
+
+        # test if we may add:
+        img_uri = ImageProvider.uri_from_path(img_path)
+        img_id = self._image_provider.id(img_uri)
+        if not allow_duplicates:
+            for entry in self.images:
+                uri = self._image_provider.id(entry.uri)
+                if img_id == uri:
+                    raise FileExistsError(img_id)
+
+        # first get a server builder
         try:
             support = ImageServerProvider.getPreferredUriImageSupport(
                 BufferedImage,

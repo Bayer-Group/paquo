@@ -93,6 +93,13 @@ class ImageProvider(ABC):
 class SimpleURIImageProvider:
     """simple image provider that uses the files uri as it's identifier"""
 
+    class URIString(str):
+        """string uri's are not necess"""
+        # we need some way to normalize uris
+        def __eq__(self, other):
+            return ImageProvider.compare_uris(self, other)
+        __hash__ = str.__hash__  # fixme: this is not correct!
+
     def uri(self, image_id: str) -> str:
         # fixme: this is currently not being called and i think it
         #   should in the default implementation... need to figure
@@ -100,7 +107,7 @@ class SimpleURIImageProvider:
         return image_id
 
     def id(self, uri: str) -> str:
-        return uri
+        return self.URIString(uri)
 
     def rebase(self, *uris: str, **kwargs) -> List[Optional[str]]:
         uri2uri = kwargs.pop('uri2uri', {})
