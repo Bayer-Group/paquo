@@ -1,5 +1,6 @@
 import tempfile
 from contextlib import nullcontext
+from pathlib import Path
 
 import pytest
 from paquo.hierarchy import QuPathPathObjectHierarchy
@@ -22,8 +23,10 @@ def test_image_entry_return_hierarchy(image_entry):
 def test_identifers(image_entry):
     assert image_entry.entry_id == "1"  # first image...
     assert image_entry.image_name == "CMU-1-Small-Region.svs"
-    assert image_entry.image_name_original == "CMU-1-Small-Region.svs"
     # not changed yet.
+    image_entry.image_name = "new_name"
+    assert image_entry.image_name == "new_name"
+    assert repr(image_entry)
 
 
 def test_path(image_entry):
@@ -63,6 +66,8 @@ def test_image_downsample_levels(image_entry):
 
 def test_metadata_interface(image_entry):
 
+    assert repr(image_entry.metadata)
+
     assert len(image_entry.metadata) == 0
     image_entry.metadata["test_key"] = "test_value"
     assert "test_key" in image_entry.metadata
@@ -75,29 +80,59 @@ def test_metadata_interface(image_entry):
     assert "1" in image_entry.metadata
     assert "not-found" not in image_entry.metadata
 
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        del image_entry.metadata[123]
+    with pytest.raises(TypeError):
+        _ = image_entry.metadata[123]
+    with pytest.raises(KeyError):
+        _ = image_entry.metadata['not-found']
+
+    image_entry.metadata = {}
+    assert dict(image_entry.metadata) == {}
+
+    image_entry.metadata['a'] = '2'
+    del image_entry.metadata['a']
+    assert len(image_entry.metadata) == 0
+
 
 # noinspection PyTypeChecker
-def test_metadata_non_str_keys(image_entry):
+def test_metadata_non_str_items(image_entry):
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         image_entry.metadata[1] = "abc"
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         image_entry.metadata["1"] = 123
 
 
 def test_properties_interface(image_entry):
     from paquo.java import DefaultProject
 
+    assert repr(image_entry.properties)
+
     assert len(image_entry.properties) == 1
     assert str(DefaultProject.IMAGE_ID) in image_entry.properties
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         image_entry.properties[1] = 123
 
     image_entry.properties["annotated"] = "no"
 
     assert image_entry.properties["annotated"] == "no"
+
+    assert 123 not in image_entry.properties
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        del image_entry.properties[123]
+    with pytest.raises(KeyError):
+        _ = image_entry.properties['not-found']
+    with pytest.raises(TypeError):
+        _ = image_entry.properties[123]
+
+    image_entry.properties = {}
+    assert dict(image_entry.properties) == {}
 
 
 def test_description(image_entry):
@@ -166,3 +201,25 @@ def test_image_provider_ducktyping():
 
     assert not isinstance(IPBad(), ImageProvider)
     assert isinstance(IPGood(), ImageProvider)
+
+
+def test_image_provider_default_implementation():
+    class NoneProvider(ImageProvider):
+        def id(self, x):
+            return super().id(x)
+
+        def uri(self, y):
+            return super().uri(y)
+
+        def rebase(self, *x, **y):
+            return super().rebase(*x, **y)
+
+    ip = NoneProvider()
+    assert set(ip.rebase('file:/abc.svs', 'file:/efg.svs')) == {None}
+
+
+def test_image_provider_uri_from_path():
+    with pytest.raises(ValueError):
+        ImageProvider.uri_from_path(Path('./abc.svs'))
+
+    assert ImageProvider.uri_from_path(Path('/abc.svs')).startswith('file:')

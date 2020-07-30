@@ -10,7 +10,7 @@ from pathlib import Path
 # noinspection PyPackageRequirements
 import pytest
 
-from paquo.images import ImageProvider
+from paquo.images import ImageProvider, QuPathProjectImageEntry
 from paquo.projects import QuPathProject
 
 
@@ -79,6 +79,10 @@ def test_timestamps(new_project):
 
 
 def test_project_add_image(new_project, svs_small):
+    with pytest.raises(ValueError):
+        # can't add images by instantiating them
+        QuPathProjectImageEntry(svs_small)
+
     entry = new_project.add_image(svs_small)
     assert (Path(entry.entry_path) / "thumbnail.jpg").is_file()
 
