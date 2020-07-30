@@ -267,11 +267,12 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def image_name(self, name: str) -> None:
         self.java_object.setImageName(String(name))
 
-    @property
-    def image_name_original(self) -> Optional[str]:
-        """original name in case the user has changed the image name"""
-        org_name = self.java_object.getOriginalImageName()
-        return str(org_name) if org_name else None
+    # remove until there's a good use case for this...
+    # @property
+    # def image_name_original(self) -> Optional[str]:
+    #     """original name in case the user has changed the image name"""
+    #     org_name = self.java_object.getOriginalImageName()
+    #     return str(org_name) if org_name else None
 
     @property
     def image_type(self) -> QuPathImageType:
