@@ -10,12 +10,9 @@ from paquo.projects import QuPathProject
 @pytest.fixture(scope='module')
 def image_entry(svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        with QuPathProject(tmpdir) as qp:
-            entry = qp.add_image(svs_small)
-            qp.save()
-            yield entry
-            del entry
-        del qp
+        qp = QuPathProject(tmpdir)
+        entry = qp.add_image(svs_small)
+        yield entry
 
 
 def test_image_entry_return_hierarchy(image_entry):
