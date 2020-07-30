@@ -80,6 +80,11 @@ def test_project_add_image(new_project, svs_small):
     assert (Path(entry.entry_path) / "thumbnail.jpg").is_file()
 
 
+def test_project_add_image_incorrect_path(new_project):
+    with pytest.raises(FileNotFoundError):
+        new_project.add_image("i-do-not-exist.svs")
+
+
 def test_project_save_image_data(new_project, svs_small):
     from paquo.pathobjects import QuPathPathAnnotationObject
     from shapely.geometry import Point
