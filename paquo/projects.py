@@ -18,7 +18,7 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
 
     def __init__(self, project: DefaultProject):
         if not isinstance(project, DefaultProject):
-            raise TypeError('requires DefaultProject instance')
+            raise TypeError('requires DefaultProject instance')  # pragma: no cover
         self._project = project
         self._images = {
             self._key_func(entry): QuPathProjectImageEntry(entry)
@@ -46,7 +46,7 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
             else:
                 removed.discard(key)  # existing entry
         if removed:
-            for key in removed:
+            for key in removed:  # pragma: no cover
                 _ = self._images.pop(key)
                 raise NotImplementedError("removal not yet implemented")
 
@@ -67,7 +67,7 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
 
     @overload
     def __getitem__(self, i: slice) -> Sequence[QuPathProjectImageEntry]:
-        ...
+        ...  # pragma: no cover
 
     def __getitem__(self, i: int) -> QuPathProjectImageEntry:
         # n images is very likely to be small
@@ -194,7 +194,7 @@ class QuPathProject(QuPathBase):
         readability_map = {}
         for image in self.images:
             image_id = self._image_provider.id(image.uri)
-            if image_id in readability_map:
+            if image_id in readability_map:  # pragma: no cover
                 raise RuntimeError("received the same image_id from image_provider for two different images")
             readability_map[image_id] = image.is_readable()
         return readability_map
@@ -285,6 +285,7 @@ class QuPathProject(QuPathBase):
         version = self.java_object.getVersion()
         # fixme: this implictly requires qupath versions >= 0.2.0-m3
         latest_version = GeneralTools.getVersion()
+        # version is None, until we save a project to disk AND reload it!
         if version is None:
             return str(latest_version)
         return str(version)
