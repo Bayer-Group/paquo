@@ -204,7 +204,7 @@ class QuPathImageType(str, Enum):
         for value in cls.__members__.values():
             if value.java_enum == java_enum:
                 return value
-        raise ValueError("unsupported java_enum")
+        raise ValueError("unsupported java_enum")  # pragma: no cover
 
     # Brightfield image with hematoxylin and DAB stains.
     BRIGHTFIELD_H_DAB = ("Brightfield (H-DAB)", ImageType.BRIGHTFIELD_H_DAB)
@@ -237,7 +237,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         try:
             with redirect(stdout=True, stderr=True):
                 return self.java_object.readImageData()
-        except IOException:  # from java land
+        # from java land
+        except IOException:  # pragma: no cover
             raise IOError("can't load image data")
 
     @cached_property
@@ -363,7 +364,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         """the image entry uri"""
         uris = self.java_object.getServerURIs()
         if len(uris) == 0:
-            raise RuntimeError("no server")
+            raise RuntimeError("no server")  # pragma: no cover
         elif len(uris) > 1:
             raise NotImplementedError("unsupported in paquo as of now")
         return str(uris[0].toString())
