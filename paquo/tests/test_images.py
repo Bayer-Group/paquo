@@ -1,3 +1,4 @@
+import platform
 import tempfile
 from contextlib import nullcontext
 from pathlib import Path
@@ -222,4 +223,5 @@ def test_image_provider_uri_from_path():
     with pytest.raises(ValueError):
         ImageProvider.uri_from_path(Path('./abc.svs'))
 
-    assert ImageProvider.uri_from_path(Path('/abc.svs')).startswith('file:')
+    p = '/abc.svs' if platform.system() != "Windows" else 'C:/abc.svs'
+    assert ImageProvider.uri_from_path(Path(p)).startswith('file:')
