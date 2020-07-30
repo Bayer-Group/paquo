@@ -149,9 +149,13 @@ class _PathROIObject(QuPathBase[PathObjectType]):
         """the annotation path class probability"""
         return float(self.java_object.getClassProbability())
 
-    def update_path_class(self, pc: QuPathPathClass, probability: float = math.nan) -> None:
+    def update_path_class(self, pc: Optional[QuPathPathClass], probability: float = math.nan) -> None:
         """updating the class or probability has to be done via this method"""
-        self.java_object.setPathClass(pc.java_object, probability)
+        if not (pc is None or isinstance(pc, QuPathPathClass)):
+            raise TypeError("requires QuPathPathClass")
+        else:
+            pc = pc if pc is None else pc.java_object
+        self.java_object.setPathClass(pc, probability)
 
     @property
     def locked(self) -> bool:
@@ -173,27 +177,18 @@ class _PathROIObject(QuPathBase[PathObjectType]):
         return int(self.java_object.getLevel())
 
     @property
-    def name(self) -> str:
+    def name(self) -> Optional[str]:
         """an optional name for the annotation"""
-        return str(self.java_object.getName())
+        name = self.java_object.getName()
+        if name is None:
+            return None
+        return str(name)
 
     @name.setter
-    def name(self, name: str):
-        self.java_object.setName(String(name))
-
-    @property
-    def color(self) -> QuPathColor:
-        """the path annotation object color
-
-        todo: ? is this separate from the class color ?
-        """
-        argb = self.java_object.getColor()
-        return QuPathColor.from_java_rgba(argb)
-
-    @color.setter
-    def color(self, rgb: ColorType) -> None:
-        argb = QuPathColor.from_any(rgb).to_java_rgba()
-        self.java_object.setColor(argb)
+    def name(self, name: Union[str, None]):
+        if name is not None:
+            name = String(name)
+        self.java_object.setName(name)
 
     @property
     def parent(self) -> Optional[_PathROIObject]:
@@ -226,13 +221,16 @@ class QuPathPathAnnotationObject(_PathROIObject[PathAnnotationObject]):
     java_class_factory = PathObjects.createAnnotationObject
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         """an optional description for the annotation"""
-        return str(self.java_object.getDescription())
+        desc = self.java_object.getDescription()
+        return str(desc) if desc is not None else None
 
     @description.setter
-    def description(self, value: Union[str, None]):
-        self.java_object.setDescription(value)
+    def description(self, value: str):
+        if not isinstance(value, str):
+            raise TypeError("requires a str")
+        self.java_object.setDescription(String(value))
 
 
 class QuPathPathDetectionObject(_PathROIObject[PathDetectionObject]):
