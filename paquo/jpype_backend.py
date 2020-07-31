@@ -1,6 +1,7 @@
 from distutils.version import LooseVersion
 import os
 import platform
+import shlex
 import collections.abc as collections_abc
 from pathlib import Path
 from typing import Tuple, List, Optional, Callable, Union, Iterable
@@ -144,6 +145,11 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path) -> QuPathJVMInfo:
     # verify that paths are sane
     if not (app_dir.is_dir() and runtime_dir.is_dir() and jvm_dir.is_file()):
         raise FileNotFoundError('qupath installation is incompatible')
+
+    # append JAVA_OPTS env
+    java_opts = os.environ.get('JAVA_OPTS')
+    if java_opts:
+        jvm_options.extend(shlex.split(java_opts))
 
     return app_dir, runtime_dir, jvm_dir, jvm_options
 
