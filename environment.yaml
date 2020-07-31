@@ -12,7 +12,7 @@ dependencies:
   - jpype1>=1.0.1
   - shapely
   - qupath
-  - pytest
+  - pytest>=6
   - pytest-cov
   - pip:
     - "-e ."

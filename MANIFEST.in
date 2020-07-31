@@ -1,0 +1,4 @@
+prune .github
+exclude .git*
+exclude .*.yml
+recursive-exclude . *secrets*
