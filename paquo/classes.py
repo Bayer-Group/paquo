@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Optional
 
 from paquo._base import QuPathBase
@@ -18,7 +17,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
     def create(cls,
                name: str,
                color: Optional[ColorType] = None,
-               parent: Optional[QuPathPathClass] = None) -> QuPathPathClass:
+               parent: Optional['QuPathPathClass'] = None) -> 'QuPathPathClass':
         """create a QuPathPathClass
 
         The QuPathPathClasses are wrappers around singletons defined by their
@@ -81,14 +80,14 @@ class QuPathPathClass(QuPathBase[PathClass]):
         """the unique identifier string of the class"""
         return str(self.java_object.toString())
 
-    def __eq__(self, other: QuPathPathClass) -> bool:
+    def __eq__(self, other: 'QuPathPathClass') -> bool:
         # check if path classes are identical
         if not isinstance(other, QuPathPathClass):
             return False
         return self.java_object.compareTo(other.java_object) == 0
 
     @property
-    def parent(self) -> Optional[QuPathPathClass]:
+    def parent(self) -> Optional['QuPathPathClass']:
         """the parent path class of this path class"""
         path_class = self.java_object.getParentClass()
         if path_class is None:
@@ -96,18 +95,18 @@ class QuPathPathClass(QuPathBase[PathClass]):
         return QuPathPathClass(path_class)
 
     @property
-    def origin(self) -> QuPathPathClass:
+    def origin(self) -> 'QuPathPathClass':
         """the toplevel parent of this path class"""
         origin_class = self
         while origin_class.parent is not None:
             origin_class = origin_class.parent
         return origin_class
 
-    def is_derived_from(self, parent_class: QuPathPathClass):
+    def is_derived_from(self, parent_class: 'QuPathPathClass'):
         """is this class derived from the parent_class"""
         return self.java_object.isDerivedFrom(parent_class.java_object)
 
-    def is_ancestor_of(self, child_class: QuPathPathClass):
+    def is_ancestor_of(self, child_class: 'QuPathPathClass'):
         """is this class an ancestor of the child_class"""
         return self.java_object.isAncestorOf(child_class.java_object)
 

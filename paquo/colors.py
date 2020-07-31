@@ -1,8 +1,5 @@
-from __future__ import annotations
-
 import string
-from dataclasses import dataclass
-from typing import Tuple, Union
+from typing import Tuple, Union, NamedTuple
 
 from paquo.java import ColorTools, Integer
 
@@ -11,8 +8,7 @@ ColorTypeRGBA = Tuple[int, int, int, int]
 ColorType = Union[ColorTypeRGB, ColorTypeRGBA, 'QuPathColor', str]
 
 
-@dataclass
-class QuPathColor:
+class QuPathColor(NamedTuple):
     """color representation in paquo
 
     >>> c = QuPathColor(128, 128, 160, alpha=240)
@@ -52,7 +48,7 @@ class QuPathColor:
         return f"#{r:02x}{g:02x}{b:02x}"
 
     @classmethod
-    def from_hex(cls, hex_color: str) -> QuPathColor:
+    def from_hex(cls, hex_color: str) -> 'QuPathColor':
         """convert from hex_color"""
         if (
             not isinstance(hex_color, str)
@@ -68,7 +64,7 @@ class QuPathColor:
         return ColorTools.makeRGB(*self.to_rgb())
 
     @classmethod
-    def from_java_rgb(cls, java_rgb: int) -> QuPathColor:
+    def from_java_rgb(cls, java_rgb: int) -> 'QuPathColor':
         """convert from java but ignore the alpha value in java_rgb"""
         r = int(ColorTools.red(java_rgb))
         g = int(ColorTools.green(java_rgb))
@@ -80,7 +76,7 @@ class QuPathColor:
         return ColorTools.makeRGBA(*self.to_rgba())
 
     @classmethod
-    def from_java_rgba(cls, java_rgba: int) -> QuPathColor:
+    def from_java_rgba(cls, java_rgba: int) -> 'QuPathColor':
         """converts a java integer color into a QuPathColor instance"""
         r = int(ColorTools.red(java_rgba))
         g = int(ColorTools.green(java_rgba))
@@ -94,7 +90,7 @@ class QuPathColor:
         return f"<Color rgb{self.to_rgb()}>"
 
     @classmethod
-    def from_any(cls, value: ColorType) -> QuPathColor:
+    def from_any(cls, value: ColorType) -> 'QuPathColor':
         """try creating a QuPathColor from all supported types"""
         if isinstance(value, (tuple, list)):
             return cls(*value)

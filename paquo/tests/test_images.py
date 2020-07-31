@@ -1,6 +1,9 @@
 import platform
 import tempfile
-from contextlib import nullcontext
+try:
+    from contextlib import nullcontext
+except ImportError:
+    from contextlib import suppress as nullcontext  # works with 3.4+
 from pathlib import Path
 
 import pytest

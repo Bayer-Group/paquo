@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections.abc import MutableMapping
 import json
 import math
@@ -94,7 +92,7 @@ class _PathROIObject(QuPathBase[PathObjectType]):
                      path_class: Optional[QuPathPathClass] = None,
                      measurements: Optional[dict] = None,
                      *,
-                     path_class_probability: float = math.nan) -> _PathROIObject:
+                     path_class_probability: float = math.nan) -> '_PathROIObject':
         """create a Path Object from a shapely shape
 
         Parameters
@@ -191,7 +189,7 @@ class _PathROIObject(QuPathBase[PathObjectType]):
         self.java_object.setName(name)
 
     @property
-    def parent(self) -> Optional[_PathROIObject]:
+    def parent(self) -> Optional['_PathROIObject']:
         """the annotation object's parent annotation object"""
         parent = self.java_object.getParent()
         if not parent:

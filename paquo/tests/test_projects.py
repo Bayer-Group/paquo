@@ -1,11 +1,13 @@
-import contextlib
 import os
 import platform
 import shutil
 import tempfile
 
-# noinspection PyPackageRequirements
 from pathlib import Path
+try:
+    from contextlib import nullcontext
+except ImportError:
+    from contextlib import suppress as nullcontext  # works with 3.4+
 
 # noinspection PyPackageRequirements
 import pytest
@@ -190,7 +192,7 @@ def test_project_delete_image_file_when_opened(new_project, svs_small):
         #   creates an instance of an ImageServer)
         cm = pytest.raises(PermissionError)
     else:
-        cm = contextlib.nullcontext()
+        cm = nullcontext()
 
     with cm:
         os.unlink(new_svs_small)
