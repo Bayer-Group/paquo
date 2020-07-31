@@ -3,13 +3,13 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 import json
 import math
-from functools import cached_property
 from typing import Optional, Union, Iterator, TypeVar
 
 from shapely.geometry.base import BaseGeometry
 from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
 
 from paquo._base import QuPathBase
+from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
 from paquo.colors import QuPathColor, ColorType
 from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryTools, PathAnnotationObject, GsonTools, \

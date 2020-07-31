@@ -66,7 +66,7 @@ class _JavaLoggingBase(AbstractContextManager):
             self._java_buffer.reset()
         # assume JVM console output is one line per msg
         for line in output.splitlines():
-            if not (line := line.strip()):
+            if not line.strip():
                 continue  # pragma: no cover
             # very basic conversion to logging methods
             if "WARN" in line:

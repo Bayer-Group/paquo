@@ -2,12 +2,12 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import MutableMapping, Hashable
 from enum import Enum
-from functools import cached_property
 from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
 from typing import Iterator, Optional, Any, List
 
 from paquo._base import QuPathBase
 from paquo._logging import redirect
+from paquo._utils import cached_property
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException
 
