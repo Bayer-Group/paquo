@@ -1,9 +1,9 @@
 
 try:
-    from functools import cached_property
+    from functools import cached_property  # type: ignore
 except ImportError:
     # noinspection PyPep8Naming
-    class cached_property(object):
+    class cached_property:  # type: ignore  # https://github.com/python/mypy/issues/1153
         def __init__(self, getter):
             self.getter = getter
             self.name = getter.__name__
