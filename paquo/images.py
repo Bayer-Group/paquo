@@ -201,15 +201,17 @@ class _ImageDataProperties(MutableMapping):
 #   but it's better to be explicit so that all values are defined here
 class QuPathImageType(str, Enum):
     """Enum representing image types"""
+    java_enum: ImageType
+
     def __new__(cls, value: str, java_enum: ImageType):
         # noinspection PyArgumentList
-        obj = str.__new__(cls, value)
+        obj = super().__new__(cls, value)
         obj._value_ = value
         obj.java_enum = java_enum
         return obj
 
     @classmethod
-    def from_java(cls, java_enum):
+    def from_java(cls, java_enum) -> 'QuPathImageType':
         """internal for converting from java to python"""
         for value in cls.__members__.values():
             if value.java_enum == java_enum:
