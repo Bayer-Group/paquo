@@ -34,7 +34,7 @@ def find_qupath(search_dirs: Union[PathOrFunc, List[PathOrFunc]] = None,
     if search_dirs is None:
         search_dirs = []
 
-    elif isinstance(search_dirs, Path):
+    if not isinstance(search_dirs, list):
         search_dirs = [search_dirs]
 
     if search_default_locations:
