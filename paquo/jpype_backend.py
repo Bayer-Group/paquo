@@ -4,12 +4,12 @@ import platform
 import shlex
 import collections.abc as collections_abc
 from pathlib import Path
-from typing import Tuple, List, Optional, Callable, Union, Iterable
+from typing import Tuple, List, Optional, Callable, Union, Iterable, Any
 
 import jpype
 
 # types
-PathOrFunc = Union[Path, str, Callable[[], Optional[Path]], None]
+PathOrFunc = Union[Path, str, Callable[[], Iterable[Path]], Callable[[], Optional[Path]], None]
 QuPathJVMInfo = Tuple[Path, Path, Path, List[str]]
 
 __all__ = ["JClass", "start_jvm", "find_qupath"]
@@ -53,7 +53,7 @@ def find_qupath(search_dirs: Union[PathOrFunc, List[PathOrFunc]] = None,
         raise ValueError("no valid qupath installation found")
 
 
-def _iter_nested_paths(paths: Union[PathOrFunc, List[PathOrFunc]]) -> Iterable[Path]:
+def _iter_nested_paths(paths: Any) -> Iterable[Path]:
     """iterate lists of paths and callables that return paths or lists of paths
 
     this helper returns a flat iterator of pathlib.Paths
@@ -77,6 +77,7 @@ def _default_qupath_dirs() -> Iterable[Path]:
     """return default search paths for QuPath"""
     # todo: this needs to be configurable via config files (dynaconf?)
     system = platform.system()
+    locations: List[Union[str, Path]]
     if system == "Linux":
         locations = ["/opt", "/usr/local", Path.home()]
         def match(x): return x.startswith("qupath")
