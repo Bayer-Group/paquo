@@ -1,7 +1,7 @@
 from collections.abc import MutableMapping
 import json
 import math
-from typing import Optional, Union, Iterator, TypeVar
+from typing import Optional, Union, Iterator, TypeVar, Callable, Type
 
 from shapely.geometry.base import BaseGeometry
 from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
@@ -9,7 +9,6 @@ from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
 from paquo._base import QuPathBase
 from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
-from paquo.colors import QuPathColor, ColorType
 from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryTools, PathAnnotationObject, GsonTools, \
     PathROIObject, PathDetectionObject, PathTileObject
 
@@ -56,7 +55,7 @@ class _MeasurementList(MutableMapping):
             raise KeyError(f"unsupported key of type {type(k)}")
         return float(self._measurement_list.getMeasurementValue(k))
 
-    def __contains__(self, item: str):
+    def __contains__(self, item: object) -> bool:
         if not isinstance(item, str):
             return False
         return bool(self._measurement_list.containsNamedMeasurement(item))
@@ -77,22 +76,24 @@ class _MeasurementList(MutableMapping):
         return [{'name': name, 'value': value} for name, value in self.items()]
 
 
-PathObjectType = TypeVar('PathObjectType', bound=PathROIObject)
+# noinspection PyTypeChecker
+PathROIObjectType = TypeVar('PathROIObjectType', bound='_PathROIObject')
+JPathROIObjectType = TypeVar('JPathROIObjectType', bound=PathROIObject)
 
 
-class _PathROIObject(QuPathBase[PathObjectType]):
+class _PathROIObject(QuPathBase[JPathROIObjectType]):
     """internal base class for PathObjects"""
 
-    java_class = None
-    java_class_factory = None
+    java_class: Optional[JPathROIObjectType] = None
+    java_class_factory: Callable = lambda *x: None
 
     @classmethod
-    def from_shapely(cls,
+    def from_shapely(cls: Type[PathROIObjectType],
                      roi: BaseGeometry,
                      path_class: Optional[QuPathPathClass] = None,
                      measurements: Optional[dict] = None,
                      *,
-                     path_class_probability: float = math.nan) -> '_PathROIObject':
+                     path_class_probability: float = math.nan) -> PathROIObjectType:
         """create a Path Object from a shapely shape
 
         Parameters
@@ -122,7 +123,7 @@ class _PathROIObject(QuPathBase[PathObjectType]):
         return obj
 
     @classmethod
-    def from_geojson(cls, geojson) -> PathObjectType:
+    def from_geojson(cls: Type[PathROIObjectType], geojson) -> PathROIObjectType:
         """create a new Path Object from geojson"""
         gson = GsonTools.getInstance()
         java_obj = gson.fromJson(String(json.dumps(geojson)), cls.java_class)
@@ -132,7 +133,7 @@ class _PathROIObject(QuPathBase[PathObjectType]):
         """convert the annotation object to geojson"""
         gson = GsonTools.getInstance()
         geojson = gson.toJson(self.java_object)
-        return json.loads(str(geojson))
+        return dict(json.loads(str(geojson)))
 
     @property
     def path_class(self) -> Optional[QuPathPathClass]:
@@ -189,7 +190,7 @@ class _PathROIObject(QuPathBase[PathObjectType]):
         self.java_object.setName(name)
 
     @property
-    def parent(self) -> Optional['_PathROIObject']:
+    def parent(self: PathROIObjectType) -> Optional[PathROIObjectType]:
         """the annotation object's parent annotation object"""
         parent = self.java_object.getParent()
         if not parent:
