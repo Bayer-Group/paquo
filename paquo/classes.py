@@ -80,11 +80,11 @@ class QuPathPathClass(QuPathBase[PathClass]):
         """the unique identifier string of the class"""
         return str(self.java_object.toString())
 
-    def __eq__(self, other: 'QuPathPathClass') -> bool:
+    def __eq__(self, other) -> bool:
         # check if path classes are identical
         if not isinstance(other, QuPathPathClass):
             return False
-        return self.java_object.compareTo(other.java_object) == 0
+        return int(self.java_object.compareTo(other.java_object)) == 0
 
     @property
     def parent(self) -> Optional['QuPathPathClass']:
