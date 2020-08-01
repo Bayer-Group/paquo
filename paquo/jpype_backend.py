@@ -154,16 +154,22 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path) -> QuPathJVMInfo:
     return app_dir, runtime_dir, jvm_dir, jvm_options
 
 
-def start_jvm(finder: Optional[Callable[[], QuPathJVMInfo]] = None) -> None:
+# stores qupath version to handle consecutive calls to start_jvm
+_QUPATH_VERSION: Optional[LooseVersion] = None
+
+
+def start_jvm(finder: Optional[Callable[[], QuPathJVMInfo]] = None) -> Optional[LooseVersion]:
     """start the jvm via jpype
 
     This is automatically called at import of `paquo.java`.
     """
-    if finder is None:
-        finder = find_qupath
+    global _QUPATH_VERSION
 
     if jpype.isJVMStarted():
-        return  # nothing to be done
+        return _QUPATH_VERSION  # nothing to be done
+
+    if finder is None:
+        finder = find_qupath
 
     # For the time being, we assume qupath is our JVM of choice
     app_dir, runtime_dir, jvm_path, jvm_options = finder()
@@ -173,9 +179,9 @@ def start_jvm(finder: Optional[Callable[[], QuPathJVMInfo]] = None) -> None:
 
     # we'll do this explicitly here to verify the QuPath version
     try:
-        version = str(JClass("qupath.lib.common.GeneralTools").getVersion())
+        _version = str(JClass("qupath.lib.common.GeneralTools").getVersion())
     except (TypeError, AttributeError):
-        version = None
+        version = _QUPATH_VERSION = None
     else:
-        version = LooseVersion(version)
+        version = _QUPATH_VERSION = LooseVersion(_version)
     return version
