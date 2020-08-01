@@ -1,7 +1,7 @@
 import pathlib
 import collections.abc as collections_abc
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
-    List, Dict, overload, Sequence, Hashable
+    Dict, overload, Sequence, Hashable, Any
 
 from paquo._base import QuPathBase
 from paquo._logging import redirect
@@ -66,15 +66,18 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         return f"<ImageEntries({repr([entry.image_name for entry in self])})>"
 
     @overload
-    def __getitem__(self, i: slice) -> Sequence[QuPathProjectImageEntry]:
-        ...  # pragma: no cover
+    def __getitem__(self, i: int) -> QuPathProjectImageEntry: ...
 
-    def __getitem__(self, i: int) -> QuPathProjectImageEntry:
-        # n images is very likely to be small
+    @overload
+    def __getitem__(self, i: slice) -> Sequence[QuPathProjectImageEntry]: ...
+
+    def __getitem__(self, i):
+        if not isinstance(i, (int, slice)):
+            raise IndexError(i)
         return list(self._images.values())[i]
 
 
-DEFAULT_IMAGE_PROVIDER = SimpleURIImageProvider()
+DEFAULT_IMAGE_PROVIDER: Any = SimpleURIImageProvider()
 
 
 class QuPathProject(QuPathBase):
@@ -126,7 +129,7 @@ class QuPathProject(QuPathBase):
         """project images"""
         return self._image_entries_proxy
 
-    @redirect(stderr=True, stdout=True)
+    @redirect(stderr=True, stdout=True)  # type: ignore
     def add_image(self,
                   filename: Union[str, pathlib.Path],
                   image_type: Optional[QuPathImageType] = None,
@@ -141,6 +144,8 @@ class QuPathProject(QuPathBase):
         image_type:
             provide an image type for the image. If not provided the user will
             be prompted before opening the image in QuPath.
+        allow_duplicates:
+            check if file has already been added to the project.
 
         """
         img_path = pathlib.Path(filename).absolute()
@@ -168,7 +173,7 @@ class QuPathProject(QuPathBase):
         if not server_builders:
             raise IOError("no supported server builders found")  # pragma: no cover
         server_builder = server_builders[0]
-        entry = self.java_object.addImage(server_builder)
+        j_entry = self.java_object.addImage(server_builder)
 
         # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
         try:
@@ -176,10 +181,10 @@ class QuPathProject(QuPathBase):
         except IOException:
             _, _, _sb = server_builder.__class__.__name__.rpartition(".")
             raise IOError(f"{_sb} can't open {img_path}")
-        entry.setImageName(ServerTools.getDisplayableImageName(server))
+        j_entry.setImageName(ServerTools.getDisplayableImageName(server))
         # basically getThumbnailRGB(server, None) without the resize...
         thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
-        entry.setThumbnail(thumbnail)
+        j_entry.setThumbnail(thumbnail)
 
         # update the proxy
         self._image_entries_proxy.refresh()
@@ -232,7 +237,7 @@ class QuPathProject(QuPathBase):
     #     return str(uri.toString())
 
     @property
-    def path_classes(self) -> Tuple[QuPathPathClass]:
+    def path_classes(self) -> Tuple[QuPathPathClass, ...]:
         """return path_classes stored in the project"""
         return tuple(map(QuPathPathClass, self.java_object.getPathClasses()))
 
@@ -260,7 +265,7 @@ class QuPathProject(QuPathBase):
     @property
     def name(self) -> str:
         """project name"""
-        return self.java_object.getName()
+        return str(self.java_object.getName())
 
     def __repr__(self) -> str:
         name = self.java_object.getNameFromURI(self.java_object.getURI())
