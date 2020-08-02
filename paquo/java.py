@@ -1,17 +1,17 @@
-from distutils.util import strtobool
 from distutils.version import LooseVersion
-import os
 import warnings
 
+from paquo._config import settings
 from paquo.jpype_backend import start_jvm, JClass
 
 # we can extend this as when we add more testing against different versions
 MIN_QUPATH_VERSION = LooseVersion('0.2.1')  # FIXME: this is bound to change
 
 
-# let sphinx docs be generated without requiring an installed qupath
-RUNNING_ON_RTD = strtobool(os.environ.get('READTHEDOCS', 'false'))
-if RUNNING_ON_RTD:  # pragma: no cover
+# allow paquo to be imported in case qupath and a jvm are not available
+# Note: this renders paquo unusable. But we need it for example for the
+#   sphinx docs to be generated without requiring an installed qupath.
+if settings.mock_backend:  # pragma: no cover
     def start_jvm(*_args, **_kwargs):  # type: ignore
         return MIN_QUPATH_VERSION
 

@@ -1,0 +1,30 @@
+# paquo's default configuration
+# =============================
+
+# options passed to the JVM.
+# - one option per string item
+java_opts = [
+  "-XX:MaxRAMPercentage=50",
+]
+
+# default search paths for qupath
+qupath_search_dirs = [
+  "/opt",  # linux
+  "/Applications",  # macos
+  "c:/Program Files",  # win
+  "/usr/local",  # linux
+  "~/Applications",  # macos
+  "~/AppData/Local",  # win
+  "~",
+]
+# used to match qupath_dirs during search
+qupath_search_dir_regex = "(?i)qupath.*"
+# search for the qupath conda package?
+qupath_search_conda = true
+# prefer the qupath conda package?
+qupath_prefer_conda = true
+
+
+# internal setting
+# (allows building the docs without qupath)
+mock_backend = false
