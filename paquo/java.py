@@ -1,7 +1,7 @@
 from distutils.version import LooseVersion
 import warnings
 
-from paquo._config import settings
+from paquo._config import settings, to_kwargs
 from paquo.jpype_backend import start_jvm, JClass
 
 # we can extend this as when we add more testing against different versions
@@ -25,7 +25,7 @@ if settings.mock_backend:  # pragma: no cover
         return _JClass
 
 # ensure the jvm is running
-qupath_version = start_jvm(**settings.to_dict())
+qupath_version = start_jvm(finder_kwargs=to_kwargs(settings))
 if qupath_version is None or qupath_version < MIN_QUPATH_VERSION:
     # let's not exit for now but warn the user that
     warnings.warn(f"QUPATH '{qupath_version}' UNTESTED OR UNSUPPORTED")

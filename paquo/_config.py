@@ -5,8 +5,14 @@ except ImportError:
     from importlib_resources import path as importlib_resources_path
 
 from pathlib import Path
+from typing import Any, Dict
 
 from dynaconf import Dynaconf, Validator
+from dynaconf.base import Settings
+
+
+def to_kwargs(s: Settings) -> Dict[str, Any]:
+    return {k.lower(): v for k, v in s.to_dict().items()}
 
 
 with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config:

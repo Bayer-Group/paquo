@@ -91,7 +91,7 @@ def _conda_qupath_dir() -> Optional[Path]:
             return Path(prefix) / "bin" / "QuPath.app"
         elif system == "Windows":
             return Path(prefix) / "Library" / "QuPath"
-        else:
+        else:  # pragma: no cover
             raise ValueError(f'Unknown platform {system}')
     return None
 
@@ -114,7 +114,7 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) ->
         runtime_dir = qupath_dir / "runtime"
         jvm_dir = runtime_dir / "bin" / "server" / "jvm.dll"
 
-    else:
+    else:  # pragma: no cover
         raise ValueError(f'Unknown platform {system}')
 
     # verify that paths are sane
