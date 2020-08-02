@@ -46,25 +46,14 @@ def test_image_properties_from_image_server(image_entry):
 
 
 def test_image_downsample_levels(image_entry):
-    # TODO INVESTIGATE: VERY STRANGE???
-    import platform
-    if platform.system() == "Darwin":
-        # ON OSX WE GET ONE DOWNSAMPLE LEVEL
-        levels = {
-            0: {'downsample': 1.0,
-                'height': 2967,
-                'width': 2220},
-        }
-    else:
-        # ON THE OTHER OSES IT'S TWO???
-        levels = {
-            0: {'downsample': 1.0,
-                'height': 2967,
-                'width': 2220},
-            1: {'downsample': 3.865438534407666,
-                'height': 768,
-                'width': 574},
-        }
+    levels = {
+        0: {'downsample': 1.0,
+            'height': 2967,
+            'width': 2220},
+        1: {'downsample': 3.865438534407666,
+            'height': 768,
+            'width': 574},
+    }
     assert image_entry.downsample_levels == levels
 
 

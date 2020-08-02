@@ -129,10 +129,7 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path) -> QuPathJVMInfo:
         app_dir = qupath_dir / "Contents" / "app"
         runtime_dir = qupath_dir / "Contents" / "runtime" / "Contents" / "Home"
         jvm_dir = runtime_dir / "lib" / "libjli.dylib"  # not server/libjvm.dylib
-        jvm_options = [
-            f'-Djava.library.path={app_dir}:{qupath_dir}/Contents/MacOS',
-            f'-Djava.launcher.path={qupath_dir}/Contents/MacOS',
-        ]
+        jvm_options = []
 
     elif system == "Windows":
         app_dir = qupath_dir / "app"
