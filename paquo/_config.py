@@ -1,4 +1,9 @@
-from importlib.resources import path as importlib_resources_path
+try:
+    from importlib.resources import path as importlib_resources_path
+except ImportError:
+    # noinspection PyUnresolvedReferences
+    from importlib_resources import path as importlib_resources_path
+
 from pathlib import Path
 
 from dynaconf import Dynaconf, Validator
