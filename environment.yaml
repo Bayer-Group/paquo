@@ -15,4 +15,5 @@ dependencies:
   - pytest>=6
   - pytest-cov
   - pip:
+    - dynaconf
     - "-e ."

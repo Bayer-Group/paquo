@@ -1,26 +1,30 @@
-from distutils.version import LooseVersion
 import os
 import platform
-import shlex
-import collections.abc as collections_abc
+import re
+from distutils.version import LooseVersion
+from itertools import chain
 from pathlib import Path
-from typing import Tuple, List, Optional, Callable, Union, Iterable, Any
+from typing import Tuple, List, Optional, Callable, Union, Iterable, Any, Dict
 
 import jpype
 
 # types
-PathOrFunc = Union[Path, str, Callable[[], Iterable[Path]], Callable[[], Optional[Path]], None]
+PathOrStr = Union[Path, str]
 QuPathJVMInfo = Tuple[Path, Path, Path, List[str]]
 
-__all__ = ["JClass", "start_jvm", "find_qupath"]
+__all__ = ["JClass", "start_jvm"]
 
 JClass = jpype.JClass
 
 
-def find_qupath(search_dirs: Union[PathOrFunc, List[PathOrFunc]] = None,
-                *,
-                search_default_locations: bool = True,
-                prefer_conda_qupath: Optional[bool] = True) -> QuPathJVMInfo:
+def find_qupath(*,
+                qupath_dir: PathOrStr = None,
+                qupath_search_dirs: Union[PathOrStr, List[PathOrStr]] = None,
+                qupath_search_dir_regex: str = None,
+                qupath_search_conda: bool = None,
+                qupath_prefer_conda: bool = None,
+                java_opts: List[str] = None,
+                **_kwargs) -> QuPathJVMInfo:
     """find current qupath installation and jvm paths/options
 
     For now this supports a qupath which ships its own JRE installation
@@ -31,72 +35,48 @@ def find_qupath(search_dirs: Union[PathOrFunc, List[PathOrFunc]] = None,
     qupath_jvm_info:
         a tuple (app_dir, runtime_dir, jvm_path, jvm_options)
     """
-    if search_dirs is None:
-        search_dirs = []
+    if qupath_dir:
+        # short circuit in case we provide a qupath_dir
+        # --> when qupath_dir is provided, search is disabled
+        if isinstance(qupath_dir, str):
+            qupath_dir = Path(qupath_dir)
+        if java_opts is None:
+            java_opts = []
+        return qupath_jvm_info_from_qupath_dir(qupath_dir, java_opts)
 
-    if not isinstance(search_dirs, list):
-        search_dirs = [search_dirs]
+    if qupath_search_dirs is None:
+        qupath_search_dirs = []
+    if not isinstance(qupath_search_dirs, list):
+        qupath_search_dirs = [qupath_search_dirs]
+    qupath_search_dirs = _scan_qupath_dirs(qupath_search_dirs, qupath_search_dir_regex)
 
-    if search_default_locations:
-        search_dirs.append(_default_qupath_dirs)
+    if qupath_search_conda:
+        conda_search_dir = [_conda_qupath_dir()]
+        if qupath_prefer_conda:
+            qupath_search_dirs = chain(conda_search_dir, qupath_search_dirs)
+        else:
+            qupath_search_dirs = chain(qupath_search_dirs, conda_search_dir)
 
-    if prefer_conda_qupath is not None:
-        loc = 0 if prefer_conda_qupath else len(search_dirs)
-        search_dirs.insert(loc, _conda_qupath_dir)
-
-    for qupath_dir in _iter_nested_paths(search_dirs):
+    for qupath_dir in qupath_search_dirs:
+        if qupath_dir is None:
+            continue
         try:
-            return qupath_jvm_info_from_qupath_dir(qupath_dir)
+            return qupath_jvm_info_from_qupath_dir(qupath_dir, java_opts)
         except FileNotFoundError:
             continue
     else:
         raise ValueError("no valid qupath installation found")
 
 
-def _iter_nested_paths(paths: Any) -> Iterable[Path]:
-    """iterate lists of paths and callables that return paths or lists of paths
-
-    this helper returns a flat iterator of pathlib.Paths
-    """
-    if callable(paths):
-        paths = paths()
-    if isinstance(paths, str):
-        yield Path(paths)  # single path
-    elif isinstance(paths, Path):
-        yield paths
-    elif paths is None:
-        return
-    elif isinstance(paths, collections_abc.Iterable):
-        for p in paths:
-            yield from _iter_nested_paths(p)
-    else:
-        raise ValueError(f"unsupported value '{paths}'")
-
-
-def _default_qupath_dirs() -> Iterable[Path]:
-    """return default search paths for QuPath"""
-    # todo: this needs to be configurable via config files (dynaconf?)
-    system = platform.system()
-    locations: List[Union[str, Path]]
-    if system == "Linux":
-        locations = ["/opt", "/usr/local", Path.home()]
-        def match(x): return x.startswith("qupath")
-    elif system == "Darwin":
-        locations = ["/opt", "/Applications", Path.home() / "Applications", Path.home()]
-        def match(x): return x.startswith("qupath") and x.endswith('.app')
-    elif system == "Windows":
-        locations = ["c:/Program Files/", Path.home() / "AppData" / "Local"]
-        def match(x): return x.startswith("qupath")
-    else:
-        raise ValueError(f'Unknown platform {system}')
-
-    for location in map(Path, locations):
+def _scan_qupath_dirs(qupath_search_dirs: List[PathOrStr], qupath_search_dir_regex: str) -> Iterable[Path]:
+    """return potential paths for QuPath"""
+    qp_match = re.compile(qupath_search_dir_regex).match
+    for location in map(Path, qupath_search_dirs):
         if not location.is_dir():
             continue
-        # noinspection PyTypeChecker
         with os.scandir(location.absolute()) as it:
             for dir_entry in sorted(it, key=lambda x: x.name.lower(), reverse=True):
-                if dir_entry.is_dir() and match(dir_entry.name.lower()):
+                if dir_entry.is_dir() and qp_match(dir_entry.name):
                     yield Path(dir_entry.path)
 
 
@@ -116,26 +96,23 @@ def _conda_qupath_dir() -> Optional[Path]:
     return None
 
 
-def qupath_jvm_info_from_qupath_dir(qupath_dir: Path) -> QuPathJVMInfo:
+def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) -> QuPathJVMInfo:
     """convert qupath_dir to paths according to platform"""
     system = platform.system()
     if system == "Linux":
         app_dir = qupath_dir / "lib" / "app"
         runtime_dir = qupath_dir / "lib" / "runtime"
         jvm_dir = runtime_dir / "lib" / "server" / "libjvm.so"
-        jvm_options = []
 
     elif system == "Darwin":
         app_dir = qupath_dir / "Contents" / "app"
         runtime_dir = qupath_dir / "Contents" / "runtime" / "Contents" / "Home"
         jvm_dir = runtime_dir / "lib" / "libjli.dylib"  # not server/libjvm.dylib
-        jvm_options = []
 
     elif system == "Windows":
         app_dir = qupath_dir / "app"
         runtime_dir = qupath_dir / "runtime"
         jvm_dir = runtime_dir / "bin" / "server" / "jvm.dll"
-        jvm_options = []
 
     else:
         raise ValueError(f'Unknown platform {system}')
@@ -144,11 +121,9 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path) -> QuPathJVMInfo:
     if not (app_dir.is_dir() and runtime_dir.is_dir() and jvm_dir.is_file()):
         raise FileNotFoundError('qupath installation is incompatible')
 
-    # append JAVA_OPTS env
-    java_opts = os.environ.get('JAVA_OPTS')
-    if java_opts:
-        jvm_options.extend(shlex.split(java_opts))
-
+    # note: jvm_options is just passed through
+    #   but this is the best place to have os-specific jvm_options modifications
+    #   in case it's needed at some point
     return app_dir, runtime_dir, jvm_dir, jvm_options
 
 
@@ -156,7 +131,8 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path) -> QuPathJVMInfo:
 _QUPATH_VERSION: Optional[LooseVersion] = None
 
 
-def start_jvm(finder: Optional[Callable[[], QuPathJVMInfo]] = None) -> Optional[LooseVersion]:
+def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
+              finder_kwargs: Optional[Dict[str, Any]] = None) -> Optional[LooseVersion]:
     """start the jvm via jpype
 
     This is automatically called at import of `paquo.java`.
@@ -170,7 +146,7 @@ def start_jvm(finder: Optional[Callable[[], QuPathJVMInfo]] = None) -> Optional[
         finder = find_qupath
 
     # For the time being, we assume qupath is our JVM of choice
-    app_dir, runtime_dir, jvm_path, jvm_options = finder()
+    app_dir, runtime_dir, jvm_path, jvm_options = finder(**finder_kwargs)
     # This is not really needed, but beware we might need SL4J classes (see warning)
     jpype.addClassPath(str(app_dir / '*'))
     jpype.startJVM(str(jvm_path), *jvm_options, convertStrings=False)

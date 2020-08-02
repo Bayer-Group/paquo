@@ -25,7 +25,7 @@ if settings.mock_backend:  # pragma: no cover
         return _JClass
 
 # ensure the jvm is running
-qupath_version = start_jvm()
+qupath_version = start_jvm(**settings.to_dict())
 if qupath_version is None or qupath_version < MIN_QUPATH_VERSION:
     # let's not exit for now but warn the user that
     warnings.warn(f"QUPATH '{qupath_version}' UNTESTED OR UNSUPPORTED")
