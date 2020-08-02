@@ -35,31 +35,37 @@ def find_qupath(*,
     qupath_jvm_info:
         a tuple (app_dir, runtime_dir, jvm_path, jvm_options)
     """
+    if java_opts is None:
+        java_opts = []
+
     if qupath_dir:
         # short circuit in case we provide a qupath_dir
         # --> when qupath_dir is provided, search is disabled
         if isinstance(qupath_dir, str):
             qupath_dir = Path(qupath_dir)
-        if java_opts is None:
-            java_opts = []
         return qupath_jvm_info_from_qupath_dir(qupath_dir, java_opts)
 
     if qupath_search_dirs is None:
         qupath_search_dirs = []
     if not isinstance(qupath_search_dirs, list):
         qupath_search_dirs = [qupath_search_dirs]
-    qupath_search_dirs = _scan_qupath_dirs(qupath_search_dirs, qupath_search_dir_regex)
+    if qupath_search_dir_regex is None:
+        qupath_search_dir_regex = ""  # match everything
+    search_dirs = _scan_qupath_dirs(qupath_search_dirs, qupath_search_dir_regex)
 
     if qupath_search_conda:
-        conda_search_dir = [_conda_qupath_dir()]
-        if qupath_prefer_conda:
-            qupath_search_dirs = chain(conda_search_dir, qupath_search_dirs)
-        else:
-            qupath_search_dirs = chain(qupath_search_dirs, conda_search_dir)
+        conda_search_dir = _conda_qupath_dir()
+        if conda_search_dir is not None:
+            if qupath_prefer_conda:
+                search_dirs = chain([conda_search_dir], search_dirs)
+            else:
+                search_dirs = chain(search_dirs, [conda_search_dir])
 
-    for qupath_dir in qupath_search_dirs:
+    for qupath_dir in search_dirs:
         if qupath_dir is None:
             continue
+        if isinstance(qupath_dir, str):
+            qupath_dir = Path(qupath_dir)
         try:
             return qupath_jvm_info_from_qupath_dir(qupath_dir, java_opts)
         except FileNotFoundError:
@@ -144,6 +150,9 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
 
     if finder is None:
         finder = find_qupath
+
+    if finder_kwargs is None:
+        finder_kwargs = {}
 
     # For the time being, we assume qupath is our JVM of choice
     app_dir, runtime_dir, jvm_path, jvm_options = finder(**finder_kwargs)

@@ -1,8 +1,8 @@
 try:
-    from importlib.resources import path as importlib_resources_path
+    from importlib.resources import path as importlib_resources_path  # type: ignore
 except ImportError:
     # noinspection PyUnresolvedReferences
-    from importlib_resources import path as importlib_resources_path
+    from importlib_resources import path as importlib_resources_path  # type: ignore
 
 from pathlib import Path
 from typing import Any, Dict
