@@ -1,11 +1,11 @@
 # paquo's default configuration
 # =============================
 
-# options passed to the JVM.
-# - one option per string item
-java_opts = [
-  "-XX:MaxRAMPercentage=50",
-]
+# valid: debug, info, warning, error
+log_level = "WARNING"
+
+# if set will skip search and try to use qupath from there:
+qupath_dir = ""
 
 # default search paths for qupath
 qupath_search_dirs = [
@@ -24,7 +24,14 @@ qupath_search_conda = true
 # prefer the qupath conda package?
 qupath_prefer_conda = true
 
+# options passed to the JVM.
+# - one option per string item
+java_opts = [
+  "-XX:MaxRAMPercentage=50",
+]
 
-# internal setting
-# (allows building the docs without qupath)
+
+# internal settings
+# -----------------
+# allows building the docs without qupath
 mock_backend = false
