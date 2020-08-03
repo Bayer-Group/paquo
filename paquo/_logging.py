@@ -1,13 +1,15 @@
 import logging
-import os
+import re
 from contextlib import contextmanager, ExitStack, ContextDecorator, AbstractContextManager, suppress
+from typing import Iterable, Tuple
 
-from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardCharsets
+from paquo import settings
+from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardCharsets, LogManager
 
-
-# fixme: use different way to configure
-LOGLEVEL = os.environ.get('LOGLEVEL', 'WARNING').upper()
-logging.basicConfig(level=LOGLEVEL)
+# log level settings
+LOG_LEVEL = settings.LOG_LEVEL.upper()
+logging.basicConfig(level=LOG_LEVEL)
+getattr(LogManager, f"set{LOG_LEVEL.title()}", lambda: None)()
 
 
 class _JavaLoggingBase(AbstractContextManager):
@@ -19,7 +21,15 @@ class _JavaLoggingBase(AbstractContextManager):
     java_setter = None  # REQUIRED IN SUBCLASSES
     _count = 0
     _java_buffer = None
-    _logger = logging.getLogger("JVM")
+    _logger = logging.getLogger("QUPATH")
+    _java_log_entry_match = re.compile(r"""^
+        (?P<timestamp>[0-9:.]+)
+        [ ]\[(?P<logger>[^]]+)\]
+        [ ]\[(?P<level>[^]]+)\]
+        [ ](?P<origin>[^ ]+)
+        [ ]-[ ](?P<msg>.*)
+        $
+    """, re.VERBOSE).match
 
     @contextmanager
     def _stop_redirection_on_error(self):
@@ -65,17 +75,37 @@ class _JavaLoggingBase(AbstractContextManager):
         with suppress(AttributeError):
             self._java_buffer.reset()
         # assume JVM console output is one line per msg
-        for line in output.splitlines():
+        for (origin, level), entry in self.iter_logs(output):
+            if "WARN" in level:
+                self._logger.warning("%s: %s", origin, entry)
+            elif "ERR" in level:
+                # FIXME: SHOULD THIS RAISE AN EXCEPTION?
+                self._logger.error("%s: %s", origin, entry)
+            elif "DEBUG" in level:
+                self._logger.debug("%s: %s", origin, entry)
+            else:
+                self._logger.info("%s: %s", origin, entry)
+
+    def iter_logs(self, output: str) -> Iterable[Tuple[str, str, str, str]]:
+        entry = []
+        info = ('NONE', 'NONE')
+        for line in output.splitlines(keepends=True):
             if not line.strip():
                 continue  # pragma: no cover
-            # very basic conversion to logging methods
-            if "WARN" in line:
-                self._logger.warning(line)
-            elif "ERR" in line:
-                # FIXME: SHOULD THIS RAISE AN EXCEPTION?
-                self._logger.error(line)
+            m = self._java_log_entry_match(line)
+            if m:
+                if entry:
+                    yield info, "".join(entry).rstrip()
+                    entry.clear()
+                info = (
+                    m.group('origin'),
+                    m.group('level').strip().upper(),
+                )
+                entry.append(m.group('msg'))
             else:
-                self._logger.info(line)
+                entry.append(line)
+        if entry:
+            yield info, "".join(entry).rstrip()
 
 
 class _JavaLoggingStdout(_JavaLoggingBase):
