@@ -1,12 +1,9 @@
 import platform
 import tempfile
-try:
-    from contextlib import nullcontext
-except ImportError:
-    from contextlib import suppress as nullcontext  # works with 3.4+
 from pathlib import Path
 
 import pytest
+from paquo._utils import nullcontext
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.images import QuPathImageType, ImageProvider
 from paquo.projects import QuPathProject

@@ -4,14 +4,11 @@ import shutil
 import tempfile
 
 from pathlib import Path
-try:
-    from contextlib import nullcontext
-except ImportError:
-    from contextlib import suppress as nullcontext  # works with 3.4+
 
 # noinspection PyPackageRequirements
 import pytest
 
+from paquo._utils import nullcontext
 from paquo.images import ImageProvider, QuPathProjectImageEntry, QuPathImageType
 from paquo.projects import QuPathProject
 
