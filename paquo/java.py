@@ -1,5 +1,5 @@
-from distutils.version import LooseVersion
 import warnings
+from distutils.version import LooseVersion
 
 from paquo._config import settings, to_kwargs
 from paquo.jpype_backend import start_jvm, JClass
@@ -15,6 +15,7 @@ if settings.mock_backend:  # pragma: no cover
     def start_jvm(*_args, **_kwargs):  # type: ignore
         return MIN_QUPATH_VERSION
 
+    # noinspection PyPep8Naming
     def JClass(*_args, **_kwargs):
         class JClassType(type):
             def __getattr__(cls, key):

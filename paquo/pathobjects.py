@@ -1,6 +1,6 @@
-from collections.abc import MutableMapping
 import json
 import math
+from collections.abc import MutableMapping
 from typing import Optional, Union, Iterator, TypeVar, Callable, Type
 
 from shapely.geometry.base import BaseGeometry

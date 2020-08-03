@@ -1,5 +1,5 @@
-import pathlib
 import collections.abc as collections_abc
+import pathlib
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
     Dict, overload, Sequence, Hashable, Any
 

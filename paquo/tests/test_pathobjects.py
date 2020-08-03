@@ -1,7 +1,8 @@
 import pytest
+import shapely.geometry
+
 from paquo.classes import QuPathPathClass
 from paquo.pathobjects import QuPathPathAnnotationObject
-import shapely.geometry
 
 
 def test_qupath_to_shapely_conversion():

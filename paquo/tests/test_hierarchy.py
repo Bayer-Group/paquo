@@ -2,7 +2,6 @@ from functools import partial
 from typing import Type
 
 import pytest
-
 import shapely.geometry
 
 from paquo.hierarchy import QuPathPathObjectHierarchy

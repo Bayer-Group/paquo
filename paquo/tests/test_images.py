@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+
 from paquo._utils import nullcontext
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.images import QuPathImageType, ImageProvider
@@ -21,7 +22,7 @@ def test_image_entry_return_hierarchy(image_entry):
     assert isinstance(image_entry.hierarchy, QuPathPathObjectHierarchy)
 
 
-def test_identifers(image_entry):
+def test_identifiers(image_entry):
     assert image_entry.entry_id == "1"  # first image...
     assert image_entry.image_name == "CMU-1-Small-Region.svs"
     # not changed yet.
@@ -74,6 +75,7 @@ def test_metadata_interface(image_entry):
         # noinspection PyTypeChecker
         del image_entry.metadata[123]
     with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
         _ = image_entry.metadata[123]
     with pytest.raises(KeyError):
         _ = image_entry.metadata['not-found']

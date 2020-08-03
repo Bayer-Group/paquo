@@ -15,7 +15,7 @@ except ImportError:
             return value
 
 try:
-    from contextlib import nullcontext
+    from contextlib import nullcontext  # type: ignore
 except ImportError:
     from contextlib import suppress as nullcontext  # works with 3.4+
 

@@ -14,7 +14,7 @@ def test_start_jvm_run_twice():
 def test_non_standard_qupath_installation(tmp_path):
     qupath_dir = Path(tmp_path)
     with pytest.raises(FileNotFoundError):
-        qupath_jvm_info_from_qupath_dir(qupath_dir, ())
+        qupath_jvm_info_from_qupath_dir(qupath_dir, [])
 
 
 def test_conda_qupath_dir(monkeypatch, tmp_path):

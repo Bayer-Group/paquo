@@ -2,10 +2,8 @@ import os
 import platform
 import shutil
 import tempfile
-
 from pathlib import Path
 
-# noinspection PyPackageRequirements
 import pytest
 
 from paquo._utils import nullcontext
