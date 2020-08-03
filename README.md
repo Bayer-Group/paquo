@@ -10,11 +10,11 @@ from python.
 
 paquo [lives in github](https://github.com/bayer-science-for-a-better-life/paquo).
 
-It's goal is to provide a pythonic interface to important features of QuPath,
+Its goal is to provide a pythonic interface to important features of QuPath,
 and to make creating and working with QuPath projects intuitive for python
 programmers.
 
-We strive to make your live as easy as possible: If `Paquo` is not pythonic,
+We strive to make your lives as easy as possible: If `Paquo` is not pythonic,
 unintuitive, slow or if its documentation is confusing, it's a bug in
 `Paquo`. Feel free to report any issues or feature requests in the issue
 tracker!
