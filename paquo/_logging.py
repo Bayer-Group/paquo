@@ -1,7 +1,7 @@
 import logging
 import re
 from contextlib import contextmanager, ExitStack, ContextDecorator, AbstractContextManager, suppress
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, List
 
 from paquo import settings
 from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardCharsets, LogManager
@@ -9,7 +9,16 @@ from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardChars
 # log level settings
 LOG_LEVEL = settings.LOG_LEVEL.upper()
 logging.basicConfig(level=LOG_LEVEL)
+# set java log level
 getattr(LogManager, f"set{LOG_LEVEL.title()}", lambda: None)()
+
+__all__ = ['LOG_LEVEL', 'get_logger', 'redirect']
+
+
+def get_logger(name):
+    """return a logger instance"""
+    # using paquo._logging.get_logger ensures that basicConfig has been called
+    return logging.getLogger(name)
 
 
 class _JavaLoggingBase(AbstractContextManager):
@@ -24,8 +33,8 @@ class _JavaLoggingBase(AbstractContextManager):
     _logger = logging.getLogger("QUPATH")
     _java_log_entry_match = re.compile(r"""^
         (?P<timestamp>[0-9:.]+)
-        [ ]\[(?P<logger>[^]]+)\]
-        [ ]\[(?P<level>[^]]+)\]
+        [ ]\[(?P<logger>[^]]+)]
+        [ ]\[(?P<level>[^]]+)]
         [ ](?P<origin>[^ ]+)
         [ ]-[ ](?P<msg>.*)
         $
@@ -86,13 +95,14 @@ class _JavaLoggingBase(AbstractContextManager):
             else:
                 self._logger.info("%s: %s", origin, entry)
 
-    def iter_logs(self, output: str) -> Iterable[Tuple[str, str, str, str]]:
-        entry = []
+    def iter_logs(self, output: str) -> Iterable[Tuple[Tuple[str, str], str]]:
+        """iterate the individual log messages"""
+        entry: List[str] = []
         info = ('NONE', 'NONE')
         for line in output.splitlines(keepends=True):
             if not line.strip():
                 continue  # pragma: no cover
-            m = self._java_log_entry_match(line)
+            m = self.__class__._java_log_entry_match(line)
             if m:
                 if entry:
                     yield info, "".join(entry).rstrip()
@@ -124,13 +134,13 @@ class redirect(ExitStack, ContextDecorator):
 
     def __init__(self, stdout=True, stderr=True):
         super().__init__()
-        self._stdout = stdout
-        self._stderr = stderr
+        self._stdout = _JavaLoggingStdout if stdout else None
+        self._stderr = _JavaLoggingStderr if stderr else None
 
     def __enter__(self):
         super().__enter__()
         if self._stderr:
-            self.enter_context(_JavaLoggingStderr())
+            self.enter_context(self._stderr())
         if self._stdout:
-            self.enter_context(_JavaLoggingStdout())
+            self.enter_context(self._stdout())
         return self
