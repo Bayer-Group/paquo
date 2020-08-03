@@ -11,8 +11,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        # for now just test with py3.8, more to come...
         python-version: [3.8]
+        include:
+          # we'll test the python support on ubuntu
+          - os: ubuntu-latest
+            python-version: 3.7
+          - os: ubuntu-latest
+            python-version: 3.6
     steps:
     - uses: actions/checkout@v1
     - name: Cache conda
