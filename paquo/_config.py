@@ -10,8 +10,11 @@ from typing import Any, Dict
 from dynaconf import Dynaconf, Validator
 from dynaconf.base import Settings
 
+PAQUO_CONFIG_FILENAME = '.paquo.toml'
+
 
 def to_kwargs(s: Settings) -> Dict[str, Any]:
+    """convert dynaconf settings to lowercase"""
     return {k.lower(): v for k, v in s.to_dict().items()}
 
 
@@ -19,7 +22,7 @@ with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config
 
     settings = Dynaconf(
         envvar_prefix="PAQUO",
-        settings_file=['.paquo.toml'],
+        settings_file=[PAQUO_CONFIG_FILENAME],
         root_path=Path.home(),
         core_loaders=['TOML'],
         preload=[str(default_config.absolute())],

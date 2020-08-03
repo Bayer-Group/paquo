@@ -1,5 +1,6 @@
 # paquo's default configuration
 # =============================
+# format: TOML
 
 # valid: debug, info, warning, error
 log_level = "WARNING"
