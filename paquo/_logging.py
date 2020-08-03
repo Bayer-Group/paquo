@@ -10,7 +10,8 @@ from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardChars
 LOG_LEVEL = settings.LOG_LEVEL.upper()
 logging.basicConfig(level=LOG_LEVEL)
 # set java log level
-getattr(LogManager, f"set{LOG_LEVEL.title()}", lambda: None)()
+with suppress(AttributeError, TypeError):
+    getattr(LogManager, f"set{LOG_LEVEL.title()}")()
 
 __all__ = ['LOG_LEVEL', 'get_logger', 'redirect']
 
