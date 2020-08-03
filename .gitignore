@@ -27,6 +27,7 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.whl
 MANIFEST
 
 # PyInstaller
@@ -132,6 +133,8 @@ dmypy.json
 
 # paquo
 paquo/_version.py
+.paquo.toml
+.paquo.local.toml
 
 # paquo test files
 *.svs
