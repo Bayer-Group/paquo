@@ -10,6 +10,6 @@ except ImportError:
 
         def __get__(self, obj, objtype=None):
             if obj is None:
-                return self
+                return self  # pragma: no cover
             value = obj.__dict__[self.name] = self.getter(obj)
             return value

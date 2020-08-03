@@ -65,10 +65,6 @@ def find_qupath(*,
                 search_dirs = chain(search_dirs, [conda_search_dir])
 
     for qupath_dir in search_dirs:
-        if qupath_dir is None:
-            continue
-        if isinstance(qupath_dir, str):
-            qupath_dir = Path(qupath_dir)
         try:
             return qupath_jvm_info_from_qupath_dir(qupath_dir, java_opts)
         except FileNotFoundError:
@@ -155,7 +151,7 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
         finder = find_qupath
 
     if finder_kwargs is None:
-        finder_kwargs = {}
+        finder_kwargs = {}  # pragma: no cover
 
     # For the time being, we assume qupath is our JVM of choice
     app_dir, runtime_dir, jvm_path, jvm_options = finder(**finder_kwargs)
@@ -168,7 +164,7 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
             ignoreUnrecognized=False,
             convertStrings=False
         )
-    except RuntimeError as jvm_error:
+    except RuntimeError as jvm_error:  # pragma: no cover
         # there's a chance that this RuntimeError occurred because a user provided
         # jvm_option is incorrect. let's try if that is the case and crash with a
         # more verbose error message
@@ -190,7 +186,7 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
     # we'll do this explicitly here to verify the QuPath version
     try:
         _version = str(JClass("qupath.lib.common.GeneralTools").getVersion())
-    except (TypeError, AttributeError):
+    except (TypeError, AttributeError):  # pragma: no cover
         version = _QUPATH_VERSION = None
     else:
         version = _QUPATH_VERSION = LooseVersion(_version)
