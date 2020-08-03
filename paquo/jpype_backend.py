@@ -1,6 +1,7 @@
 import os
 import platform
 import re
+import shlex
 from distutils.version import LooseVersion
 from itertools import chain
 from pathlib import Path
@@ -12,7 +13,7 @@ import jpype
 PathOrStr = Union[Path, str]
 QuPathJVMInfo = Tuple[Path, Path, Path, List[str]]
 
-__all__ = ["JClass", "start_jvm"]
+__all__ = ["JClass", "start_jvm", "find_qupath"]
 
 JClass = jpype.JClass
 
@@ -23,7 +24,7 @@ def find_qupath(*,
                 qupath_search_dir_regex: str = None,
                 qupath_search_conda: bool = None,
                 qupath_prefer_conda: bool = None,
-                java_opts: List[str] = None,
+                java_opts: Union[List[str], str] = None,
                 **_kwargs) -> QuPathJVMInfo:
     """find current qupath installation and jvm paths/options
 
@@ -37,6 +38,8 @@ def find_qupath(*,
     """
     if java_opts is None:
         java_opts = []
+    elif isinstance(java_opts, str):
+        java_opts = shlex.split(java_opts)
 
     if qupath_dir:
         # short circuit in case we provide a qupath_dir
@@ -158,7 +161,31 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
     app_dir, runtime_dir, jvm_path, jvm_options = finder(**finder_kwargs)
     # This is not really needed, but beware we might need SL4J classes (see warning)
     jpype.addClassPath(str(app_dir / '*'))
-    jpype.startJVM(str(jvm_path), *jvm_options, convertStrings=False)
+    try:
+        jpype.startJVM(
+            str(jvm_path),
+            *jvm_options,
+            ignoreUnrecognized=False,
+            convertStrings=False
+        )
+    except RuntimeError as jvm_error:
+        # there's a chance that this RuntimeError occurred because a user provided
+        # jvm_option is incorrect. let's try if that is the case and crash with a
+        # more verbose error message
+        try:
+            jpype.startJVM(
+                str(jvm_path),
+                *jvm_options,
+                ignoreUnrecognized=True,
+                convertStrings=False
+            )
+        except RuntimeError:
+            raise jvm_error
+        else:
+            msg = f"Provided JAVA_OPTS prevent the JVM from starting! {jvm_options}"
+            exc = RuntimeError(msg)
+            exc.__cause__ = jvm_error
+            raise exc
 
     # we'll do this explicitly here to verify the QuPath version
     try:
