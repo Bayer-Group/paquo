@@ -1,14 +1,19 @@
 import collections.abc as collections_abc
+import math
 import pathlib
+from contextlib import contextmanager
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
     Dict, overload, Sequence, Hashable, Any
 
 from paquo._base import QuPathBase
-from paquo._logging import redirect
+from paquo._logging import redirect, get_logger
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider, QuPathImageType
-from paquo.java import ImageServerProvider, BufferedImage, \
-    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI, GeneralTools, IOException
+from paquo.java import ImageServerProvider, BufferedImage, ProjectImportImagesCommand, \
+    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI, GeneralTools, IOException, \
+    NegativeArraySizeException
+
+_log = get_logger(__name__)
 
 
 class _ProjectImageEntriesProxy(collections_abc.Sequence):
@@ -129,6 +134,20 @@ class QuPathProject(QuPathBase):
         """project images"""
         return self._image_entries_proxy
 
+    @contextmanager
+    def _stage_image_entry(self, server_builder):
+        """internal contextmanager for staging new entries"""
+        entry = self.java_object.addImage(server_builder)
+        try:
+            yield entry
+        except Exception:
+            # todo: check if we could set removeAllData to True here
+            self.java_object.removeImage(entry, False)
+            raise
+        finally:
+            # update the proxy
+            self._image_entries_proxy.refresh()
+
     @redirect(stderr=True, stdout=True)  # type: ignore
     def add_image(self,
                   filename: Union[str, pathlib.Path],
@@ -173,21 +192,35 @@ class QuPathProject(QuPathBase):
         if not server_builders:
             raise IOError("no supported server builders found")  # pragma: no cover
         server_builder = server_builders[0]
-        j_entry = self.java_object.addImage(server_builder)
 
-        # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
-        try:
-            server = server_builder.build()
-        except IOException:
-            _, _, _sb = server_builder.__class__.__name__.rpartition(".")
-            raise IOError(f"{_sb} can't open {img_path}")
-        j_entry.setImageName(ServerTools.getDisplayableImageName(server))
-        # basically getThumbnailRGB(server, None) without the resize...
-        thumbnail = server.getDefaultThumbnail(server.nZSlices() // 2, 0)
-        j_entry.setThumbnail(thumbnail)
+        with self._stage_image_entry(server_builder) as j_entry:
+            # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
+            try:
+                server = server_builder.build()
+            except IOException:
+                _, _, _sb = server_builder.__class__.__name__.rpartition(".")
+                raise IOError(f"{_sb} can't open {img_path}")
+            j_entry.setImageName(ServerTools.getDisplayableImageName(server))
 
-        # update the proxy
-        self._image_entries_proxy.refresh()
+            # add some informative logging
+            _md = server.getMetadata()
+            width = int(_md.getWidth())
+            height = int(_md.getHeight())
+            downsamples = [float(x) for x in _md.getPreferredDownsamplesArray()]
+            target_downsample = math.sqrt(width / 1024.0 * height / 1024.0)
+            _log.info(f"Image[{width}x{height}] with downsamples {downsamples}")
+            if not any(d >= target_downsample for d in downsamples):
+                _log.warn(f"No matching downsample for thumbnail! This might take a long time...")
+
+            # set the project thumbnail
+            try:
+                thumbnail = ProjectImportImagesCommand.getThumbnailRGB(server, None)
+            except NegativeArraySizeException:
+                raise RuntimeError(
+                    "Thumbnailing FAILED. Image might be too large and has no embedded thumbnail."
+                )
+            else:
+                j_entry.setThumbnail(thumbnail)
 
         py_entry = self._image_entries_proxy[-1]
         if image_type is not None:
