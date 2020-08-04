@@ -1,6 +1,5 @@
 import argparse
 import functools
-import sys
 from contextlib import redirect_stdout
 
 from paquo._cli import subcommand, argument, DirectoryType, \
@@ -25,6 +24,20 @@ subcommand = functools.partial(subcommand, parent=subparsers)
 parser.add_argument('--version', action='store_true', help="print version")
 
 
+def main(commandline=None):
+    """main command line argument handling"""
+    args = parser.parse_args(commandline)
+    if args.cmd is None:
+        if args.version:
+            from paquo import __version__
+            print(f"{__version__}")
+        else:
+            parser.print_help()
+    else:
+        return args.cmd_func(args)
+    return 0
+
+
 @subcommand(
     argument('-l', '--list', action='store_true', help="list the paquo config"),
     argument('--default', action='store_true', help="default instead of current config"),
@@ -40,7 +53,7 @@ def config(args, subparser):
     """handle configuration"""
     if not args.list:
         print(subparser.format_help())
-        return
+        return 0
 
     if args.default:
         config_print = config_print_defaults
@@ -59,15 +72,10 @@ def config(args, subparser):
                     config_print()
         except FileExistsError:
             print(f"ERROR: file {out_fn} exists! use --force to overwrite")
-            sys.exit(1)
+            return 1
+    return 0
 
 
-args = parser.parse_args()
-if args.cmd is None:
-    if args.version:
-        from paquo import __version__
-        print(f"{__version__}")
-    else:
-        parser.print_help()
-else:
-    args.cmd_func(args)
+if __name__ == "__main__":  # pragma: no cover
+    import sys
+    sys.exit(main())
