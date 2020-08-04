@@ -28,5 +28,6 @@ This page hosts the documentation for version "|version|".
    :caption: Contents:
 
    installation
+   configuration
    quickstart
    api
