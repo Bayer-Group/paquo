@@ -49,11 +49,14 @@ def config_print_settings():
     from paquo._config import to_kwargs
 
     data = DynaBox(settings.as_dict(internal=False))
-    with tempfile.NamedTemporaryFile(suffix=".toml", mode='w+t') as f:
-        loaders.write(f.name, to_kwargs(data))
-        f.flush()
-        f.seek(0)
-        output = f.read()
+    # we create a temporary dir and write to a toml file
+    # note: this is to workaround the fact that using NamedTemporaryFile will
+    #   error under windows due to loaders.write calling open on the file
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fn = str(Path(tmpdir) / ".paquo.temporary.toml")  # suffix determines loader
+        loaders.write(fn, to_kwargs(data))
+        with open(fn, 'rt') as f:
+            output = f.read()
 
     print("# current paquo configuration")
     print("# ===========================")
