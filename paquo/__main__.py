@@ -4,7 +4,7 @@ from contextlib import redirect_stdout
 
 from paquo._cli import subcommand, argument, DirectoryType, \
     config_print_settings, config_print_defaults
-from paquo._config import PAQUO_CONFIG_FILENAME
+from paquo._config import PAQUO_CONFIG_FILENAME, get_searchtree
 
 # noinspection PyTypeChecker
 parser = argparse.ArgumentParser(
@@ -48,11 +48,18 @@ def main(commandline=None):
         help="directory where configuration is written to"
     ),
     argument('--force', action='store_true', help="force overwrite existing config"),
+    argument('--search-tree', action='store_true', help="list all locations searched for config"),
 )
 def config(args, subparser):
     """handle configuration"""
-    if not args.list:
+    if not (args.list or args.search_tree):
         print(subparser.format_help())
+        return 0
+
+    if args.search_tree:
+        print(f"paquo is scanning these dirs for '{PAQUO_CONFIG_FILENAME}':")
+        for idx, location in enumerate(get_searchtree()):
+            print(f"{idx}.", location)
         return 0
 
     if args.default:

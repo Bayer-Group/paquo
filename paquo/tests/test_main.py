@@ -42,3 +42,5 @@ def test_config_cmd(tmp_path):
     assert run(main, ['config', '-l', '-o', str(tmp_path)]).return_code == 1
     # force allows overwrite
     assert run(main, ['config', '-l', '-o', str(tmp_path), '--force']).return_code == 0
+    # allow showing all folders where you can store you paquo config
+    assert run(main, ['config', '--search-tree']).return_code == 0

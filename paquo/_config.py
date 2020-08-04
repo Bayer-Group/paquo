@@ -5,10 +5,11 @@ except ImportError:
     from importlib_resources import path as importlib_resources_path  # type: ignore
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from dynaconf import Dynaconf, Validator
 from dynaconf.base import Settings
+from dynaconf.utils import files as _files
 
 PAQUO_CONFIG_FILENAME = '.paquo.toml'
 
@@ -34,3 +35,12 @@ with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config
             Validator("mock_backend", is_type_of=(bool, int), is_in=(0, 1)),
         ]
     )
+
+
+def get_searchtree() -> List[str]:
+    """return the current search tree for the settings"""
+    if not settings.configured:
+        settings.configure()
+    # note: SEARCHTREE is updated after configure
+    searchtree: List[str] = getattr(_files, 'SEARCHTREE', [])
+    return searchtree
