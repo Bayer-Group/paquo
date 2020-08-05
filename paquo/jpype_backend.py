@@ -126,9 +126,10 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) ->
     if not (app_dir.is_dir() and runtime_dir.is_dir() and jvm_dir.is_file()):
         raise FileNotFoundError('qupath installation is incompatible')
 
-    # note: jvm_options is just passed through
-    #   but this is the best place to have os-specific jvm_options modifications
-    #   in case it's needed at some point
+    # Add java.library.path so that the qupath provided openslide works
+    jvm_options.append(f"-Djava.library.path={app_dir}")
+    jvm_options = list(dict.fromkeys(jvm_options))  # keep options unique and in order
+
     return app_dir, runtime_dir, jvm_dir, jvm_options
 
 
