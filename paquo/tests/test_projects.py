@@ -178,19 +178,32 @@ def test_project_delete_image_file_when_opened(new_project, svs_small):
     entry = new_project.add_image(new_svs_small)
     assert entry.is_readable()
 
-    if platform.system() == "Windows":
-        # NOTE: on windows because you can't delete files that have open
-        #   file handles. In this test we're deleting the file opened by
-        #   the ImageServer on the java side. (this is happening
-        #   implicitly when calling is_readable() because the java
-        #   implementation of is_readable() loads the ImageData which
-        #   creates an instance of an ImageServer)
-        cm = pytest.raises(PermissionError)
-    else:
-        cm = nullcontext()
+    # TODO: this test should actually depend on the backend that qupath
+    #   uses internally for opening the file. Since we reenabled openslide
+    #   we hardcode it here, so that the intention of this test stays clear
+    qupath_uses = "OPENSLIDE"
 
-    with cm:
+    if qupath_uses == "BIOFORMATS":
+        if platform.system() == "Windows":
+            # NOTE: on windows because you can't delete files that have open
+            #   file handles. In this test we're deleting the file opened by
+            #   the ImageServer on the java side. (this is happening
+            #   implicitly when calling is_readable() because the java
+            #   implementation of is_readable() loads the ImageData which
+            #   creates an instance of an ImageServer)
+            cm = pytest.raises(PermissionError)
+        else:
+            cm = nullcontext()
+
+        with cm:
+            os.unlink(new_svs_small)
+
+    elif qupath_uses == "OPENSLIDE":
+
         os.unlink(new_svs_small)
+
+    else:
+        raise ValueError('...')
 
 
 @pytest.mark.xfail(platform.system() == "Windows", reason="file handles don't get closed by qupath?")
