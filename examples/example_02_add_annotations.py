@@ -14,7 +14,7 @@ ANNOTATIONS = {
 }
 
 # create a the new project
-with QuPathProject(EXAMPLE_PROJECT, create=True) as qp:
+with QuPathProject(EXAMPLE_PROJECT, mode='x') as qp:
     print("created", qp.name)
 
     # add a new image:

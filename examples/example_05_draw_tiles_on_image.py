@@ -30,7 +30,7 @@ def iterate_grid(width, height, grid_size) -> Iterator[Tuple[int, int]]:
     )
 
 
-with QuPathProject(EXAMPLE_PROJECT, create=True) as qp:
+with QuPathProject(EXAMPLE_PROJECT, mode='x') as qp:
     print("created", qp.name)
     # add an image
     entry = qp.add_image(

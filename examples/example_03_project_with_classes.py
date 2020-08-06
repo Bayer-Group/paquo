@@ -12,7 +12,7 @@ MY_CLASSES_AND_COLORS = [
 ]
 
 # create a the new project
-with QuPathProject(EXAMPLE_PROJECT, create=True) as qp:
+with QuPathProject(EXAMPLE_PROJECT, mode='x') as qp:
     print("created", qp.name)
 
     new_classes = []

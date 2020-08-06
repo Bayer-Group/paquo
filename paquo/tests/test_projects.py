@@ -42,7 +42,7 @@ def test_project_creation_input_error(tmp_path):
         QuPathProject(p / 'myproject.proj')  # needs .qpproj
 
     with pytest.raises(FileNotFoundError):
-        QuPathProject(p / 'myproject.qpproj', create=False)
+        QuPathProject(p / 'myproject.qpproj', mode='r+')
 
     with open(p / 'should-not-be-here', 'w') as f:
         f.write('project directories need to be empty')
@@ -54,7 +54,7 @@ def test_project_open_with_filename(new_project):
     new_project.save()
     # this points to path/project.qpproj
     proj_fn = new_project.path
-    QuPathProject(proj_fn, create=False)
+    QuPathProject(proj_fn, mode='r+')
 
 
 def test_project_name(tmp_path):
@@ -83,7 +83,7 @@ def test_project_version(new_project):
     qp_version = str(GeneralTools.getVersion())
     assert new_project.version == qp_version
 
-    with QuPathProject(new_project.path, create=False) as qp:
+    with QuPathProject(new_project.path, mode='r+') as qp:
         assert qp.version == qp_version
 
 
@@ -216,7 +216,7 @@ def test_project_image_uri_update(tmp_path, svs_small):
     assert new_svs_small.is_file()
 
     # create a project
-    with QuPathProject(project_path, create=True) as qp:
+    with QuPathProject(project_path, mode='x') as qp:
         entry = qp.add_image(new_svs_small)
         assert entry.is_readable()
         assert all(qp.is_readable().values())
@@ -229,7 +229,7 @@ def test_project_image_uri_update(tmp_path, svs_small):
     os.unlink(new_svs_small)
 
     # reload the project
-    with QuPathProject(project_path, create=False) as qp:
+    with QuPathProject(project_path, mode='r+') as qp:
         entry, = qp.images
         assert not entry.is_readable()
         assert not all(qp.is_readable().values())

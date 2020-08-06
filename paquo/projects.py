@@ -1,12 +1,14 @@
 import collections.abc as collections_abc
 import math
 import pathlib
+import re
 from contextlib import contextmanager
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
-    Dict, overload, Sequence, Hashable, Any
+    Dict, overload, Sequence, Hashable, Any, Literal
 
 from paquo._base import QuPathBase
 from paquo._logging import redirect, get_logger
+from paquo._utils import stash_project_files
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider, QuPathImageType
 from paquo.java import ImageServerProvider, BufferedImage, ProjectImportImagesCommand, \
@@ -85,11 +87,23 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
 DEFAULT_IMAGE_PROVIDER: Any = SimpleURIImageProvider()
 
 
+ProjectIOMode = Union[
+    Literal["r"],
+    Literal["r+"],
+    Literal["w"],
+    Literal["w+"],
+    Literal["a"],
+    Literal["a+"],
+    Literal["x"],
+    Literal["x+"],
+]
+
+
 class QuPathProject(QuPathBase):
 
     def __init__(self,
                  path: Union[str, pathlib.Path],
-                 create: bool = True,
+                 mode: ProjectIOMode = 'x',
                  *,
                  image_provider: ImageProvider = DEFAULT_IMAGE_PROVIDER):
         """load or create a new qupath project
@@ -98,8 +112,12 @@ class QuPathProject(QuPathBase):
         ----------
         path:
             path to `project.qpproj` file, or its parent directory
-        create:
-            if create is False raise FileNotFoundError if project doesn't exist
+        mode:
+            'r' --> readonly, error if not there
+            'r+' --> read/write, error if not there
+            'a' = 'a+' --> read/write, create if not there, append if there
+            'w' = 'w+' --> read/write, create if not there, truncate if there
+            'x' = 'x+' --> read/write, create if not there, error if there
 
         """
         if not isinstance(image_provider, ImageProvider):
@@ -112,17 +130,33 @@ class QuPathProject(QuPathBase):
         elif p.suffix != ".qpproj":
             raise ValueError("project file requires '.qpproj' suffix")
 
-        if p.is_file():  # existing project
+        if not re.match(r"^[rawx][+]?$", mode):
+            ValueError(f"unsupported mode '{mode}'")
+
+        _exists = p.is_file()
+        self._READONLY = mode == "r"
+        if self._READONLY:
+            raise NotImplementedError("readonly mode not implemented yet")
+
+        if mode in {"r", "r+"} and not _exists:
+            raise FileNotFoundError(p)
+        elif mode in {"x", "x+"} and _exists:
+            raise FileExistsError(p)
+        elif mode in {"w", "w+"} and _exists:
+            # truncate gracefully
+            p_dir = p.parent
+            if p_dir.is_dir():
+                stash_project_files(p_dir)
+            _exists = False
+
+        if _exists:
             project = ProjectIO.loadProject(File(str(p)), BufferedImage)
-
-        elif not create:
-            raise FileNotFoundError(path)
-
-        else:  # create new
+        else:
             p_dir = p.parent
             p_dir.mkdir(parents=True, exist_ok=True)
-            if any(p_dir.iterdir()):
-                raise ValueError("will only create projects in empty directories")
+            for f in p_dir.iterdir():
+                if not f.match("*.backup"):
+                    raise ValueError("will only create projects in empty directories")
             project = Projects.createProject(File(str(p_dir)), BufferedImage)
 
         super().__init__(project)
