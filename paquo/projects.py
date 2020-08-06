@@ -4,7 +4,11 @@ import pathlib
 import re
 from contextlib import contextmanager
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
-    Dict, overload, Sequence, Hashable, Any, Literal
+    Dict, overload, Sequence, Hashable, Any
+try:
+    from typing import Literal  # type: ignore
+except ImportError:
+    from typing_extensions import Literal
 
 from paquo._base import QuPathBase
 from paquo._logging import redirect, get_logger
