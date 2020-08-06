@@ -140,7 +140,7 @@ class QuPathProject(QuPathBase):
         _exists = p.is_file()
         self._READONLY = mode == "r"
         if self._READONLY:
-            raise NotImplementedError("readonly mode not implemented yet")
+            raise NotImplementedError("readonly mode not implemented yet, use 'r+'")
 
         if mode in {"r", "r+"} and not _exists:
             raise FileNotFoundError(p)
