@@ -16,6 +16,11 @@ def new_project(tmp_path):
     yield QuPathProject(tmp_path / "paquo-project")
 
 
+@pytest.fixture(scope='function')
+def tmp_path2(tmp_path):
+    yield tmp_path / "another_path"
+
+
 def test_project_instance():
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
         q = QuPathProject(tmpdir)
@@ -48,6 +53,40 @@ def test_project_creation_input_error(tmp_path):
         f.write('project directories need to be empty')
     with pytest.raises(ValueError):
         QuPathProject(p)
+
+
+# noinspection PyTypeChecker
+@pytest.mark.parametrize(
+    "mode", [
+        pytest.param('r', marks=pytest.mark.xfail),  # not implemented yet
+        'r+', 'w', 'w+', 'a', 'a+', 'x', 'x+'
+    ]
+)
+def test_project_creation_mode(mode, tmp_path2, new_project):
+    # test creating in empty dir
+    cm = pytest.raises(FileNotFoundError) if "r" in mode else nullcontext()
+    with cm:
+        QuPathProject(tmp_path2, mode=mode).save()
+
+    # prepare an existing proj
+    p = new_project.path
+    new_project.save()
+    del new_project
+    assert not p.with_suffix('.qpproj.backup').is_file()
+
+    # test creating in existing dir
+    cm = pytest.raises(FileExistsError) if "x" in mode else nullcontext()
+    with cm:
+        QuPathProject(p, mode=mode).save()
+
+    assert p.is_file()
+    assert p.with_suffix('.qpproj.backup').is_file() is ('x' not in mode)
+
+
+# noinspection PyTypeChecker
+def test_unsupported_mode(tmp_path):
+    with pytest.raises(ValueError):
+        QuPathProject(tmp_path, mode="???")
 
 
 def test_project_open_with_filename(new_project):
