@@ -16,10 +16,9 @@ EXAMPLE_IMAGE = Path(__file__).parent.absolute() / "images" / "image_1.svs"
 
 def measurement(x, y, w, h, a=8) -> float:
     """some measurement that you want to display"""
-    return min(max(0, math.exp(
-        - a*(2*(x / w - 0.5)) ** 2
-        - a*(2*(y / h - 0.5)) ** 2
-    ) + random.uniform(-0.1, 0.1)), 1)
+    v = math.exp(-a * ((2 * x / w - 1) ** 2 + (2 * y / h - 1) ** 2))
+    v += random.uniform(-0.1, 0.1)
+    return min(max(0., v), 1.)
 
 
 def iterate_grid(width, height, grid_size) -> Iterator[Tuple[int, int]]:
