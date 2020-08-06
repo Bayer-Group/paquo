@@ -131,7 +131,7 @@ class QuPathProject(QuPathBase):
             raise ValueError("project file requires '.qpproj' suffix")
 
         if not re.match(r"^[rawx][+]?$", mode):
-            ValueError(f"unsupported mode '{mode}'")
+            raise ValueError(f"unsupported mode '{mode}'")
 
         _exists = p.is_file()
         self._READONLY = mode == "r"
