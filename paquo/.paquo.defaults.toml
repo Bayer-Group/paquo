@@ -31,6 +31,9 @@ java_opts = [
   "-XX:MaxRAMPercentage=50",
 ]
 
+# paquo options
+safe_truncate = true
+
 
 # internal settings
 # -----------------

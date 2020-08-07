@@ -32,6 +32,7 @@ with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config
             Validator("qupath_search_dirs", is_type_of=(list, tuple, str)),
             Validator("qupath_search_conda", is_type_of=(bool, int), is_in=(0, 1)),
             Validator("qupath_prefer_conda", is_type_of=(bool, int), is_in=(0, 1)),
+            Validator("safe_truncate", is_type_of=(bool, int), is_in=(0, 1)),
             Validator("mock_backend", is_type_of=(bool, int), is_in=(0, 1)),
         ]
     )
