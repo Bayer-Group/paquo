@@ -73,6 +73,7 @@ def test_project_creation_mode(mode, tmp_path2, new_project):
     new_project.save()
     del new_project
     assert not p.with_suffix('.qpproj.backup').is_file()
+    assert not any(p.parent.parent.glob('*.backup'))
 
     # test creating in existing dir
     cm = pytest.raises(FileExistsError) if "x" in mode else nullcontext()
@@ -80,7 +81,13 @@ def test_project_creation_mode(mode, tmp_path2, new_project):
         QuPathProject(p, mode=mode).save()
 
     assert p.is_file()
-    assert p.with_suffix('.qpproj.backup').is_file() is ('x' not in mode)
+    backups = list(p.parent.parent.glob('*.backup'))
+
+    if 'w' in mode:
+        assert len(backups) == 1
+        assert backups[0].is_file()
+    else:
+        assert len(backups) == 0
 
 
 # noinspection PyTypeChecker
