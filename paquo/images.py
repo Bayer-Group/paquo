@@ -96,7 +96,7 @@ class SimpleURIImageProvider:
     """simple image provider that uses the files uri as it's identifier"""
 
     class URIString(str):
-        """string uri's are not necess"""
+        """string uri's can differ in their string representation and still be identical"""
         # we need some way to normalize uris
         def __eq__(self, other):
             return ImageProvider.compare_uris(self, other)
