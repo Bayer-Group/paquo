@@ -1,15 +1,17 @@
+import json
 import re
 from abc import ABC, abstractmethod
 from collections.abc import MutableMapping, Hashable
 from enum import Enum
 from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
-from typing import Iterator, Optional, Any, List
+from typing import Iterator, Optional, Any, List, Dict
 
 from paquo._base import QuPathBase
 from paquo._logging import redirect, get_logger
 from paquo._utils import cached_property
 from paquo.hierarchy import QuPathPathObjectHierarchy
-from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException
+from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException, \
+    PathIO, File, BufferedImage
 
 _log = get_logger(__name__)
 
@@ -114,6 +116,33 @@ class SimpleURIImageProvider:
     def rebase(self, *uris: str, **kwargs) -> List[Optional[str]]:
         uri2uri = kwargs.pop('uri2uri', {})
         return [uri2uri.get(uri, None) for uri in uris]
+
+
+# noinspection PyPep8Naming
+class _RecoveredReadOnlyImageServer:
+    """internal. used to allow access to image server metadata recovered from project.qpproj"""
+    def __init__(self, entry_path: Path):
+        server_json_f = Path(entry_path) / "server.json"
+        with server_json_f.open('r') as f:
+            self._metadata = json.load(f).get('metadata', {})
+
+    def getWidth(self):
+        return self._metadata['width']
+
+    def getHeight(self):
+        return self._metadata['height']
+
+    def nChannels(self):
+        return len(self._metadata['channels'])
+
+    def nZSlices(self):
+        return self._metadata['sizeZ']
+
+    def nTimepoints(self):
+        return self._metadata['sizeT']
+
+    def getMetadata(self):
+        return self._metadata
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
@@ -253,7 +282,11 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
                 return self.java_object.readImageData()
         # from java land
         except IOException:  # pragma: no cover
-            raise IOError("can't load image data")
+            image_data_fn = self.entry_path / "data.qpdata"
+            return PathIO.readImageData(
+                File(str(image_data_fn)),
+                None, None, BufferedImage
+            )
 
     @cached_property
     def _properties(self):
@@ -261,7 +294,11 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @cached_property
     def _image_server(self):
-        return self._image_data.getServer()
+        server = self._image_data.getServer()
+        if not server:
+            _log.warning("recovering readonly from server.json")
+            server = _RecoveredReadOnlyImageServer(self.entry_path)
+        return server
 
     @property
     def entry_id(self) -> str:
@@ -333,16 +370,18 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         return int(self._image_server.nTimepoints())
 
     @cached_property
-    def downsample_levels(self):
+    def downsample_levels(self) -> List[Dict[str, float]]:
         md = self._image_server.getMetadata()
-        levels = {}
+        if isinstance(md, dict):
+            return md['levels']  # type: ignore
+        levels = []
         for level in range(int(md.nLevels())):
             resolution_level = md.getLevel(level)
-            levels[level] = {
+            levels.append({
                 'downsample': float(resolution_level.getDownsample()),
                 'width': int(resolution_level.getWidth()),
                 'height': int(resolution_level.getHeight()),
-            }
+            })
         return levels
 
     @property
