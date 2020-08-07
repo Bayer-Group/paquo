@@ -2,17 +2,20 @@ import collections.abc as collections_abc
 import math
 import pathlib
 import re
+import shutil
 from contextlib import contextmanager
 from typing import Union, Iterable, Tuple, Optional, Iterator, \
     Dict, overload, Sequence, Hashable, Any
+
 try:
     from typing import Literal  # type: ignore
 except ImportError:
     from typing_extensions import Literal
 
+from paquo import settings
 from paquo._base import QuPathBase
 from paquo._logging import redirect, get_logger
-from paquo._utils import stash_project_files
+from paquo._utils import make_backup_filename
 from paquo.classes import QuPathPathClass
 from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider, QuPathImageType
 from paquo.java import ImageServerProvider, BufferedImage, ProjectImportImagesCommand, \
@@ -88,6 +91,39 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         return list(self._images.values())[i]
 
 
+def _stash_project_files(project_dir: pathlib.Path):
+    """move rename projects files in a project to .backup"""
+    if not project_dir.is_dir():
+        return
+    if not any(project_dir.iterdir()):
+        return
+
+    if settings.safe_truncate:
+        # create a backup archive of the project
+        _log.warning(f"backing up {project_dir.name} before truncating!"
+                     " (this can be disabled via PAQUO_SAFE_TRUNCATE)")
+        str_name = shutil.make_archive(
+            f".{project_dir.name}",
+            format="zip",
+            root_dir=project_dir.parent,
+            base_dir=project_dir,
+            logger=_log
+        )
+        # and rename it
+        src_name = pathlib.Path(str_name)
+        dst_name = make_backup_filename(project_dir.parent, src_name.stem)
+        shutil.move(str(src_name), str(dst_name))
+        _log.info(f"backup to {dst_name.name} successful")
+
+    # empty the project directory
+    for p in project_dir.iterdir():
+        if p.is_file():
+            p.unlink()
+        elif p.is_dir():
+            shutil.rmtree(p)
+    # done
+
+
 DEFAULT_IMAGE_PROVIDER: Any = SimpleURIImageProvider()
 
 
@@ -146,11 +182,11 @@ class QuPathProject(QuPathBase):
             raise FileNotFoundError(p)
         elif mode in {"x", "x+"} and _exists:
             raise FileExistsError(p)
-        elif mode in {"w", "w+"} and _exists:
+        elif mode in {"w", "w+"}:
             # truncate gracefully
             p_dir = p.parent
             if p_dir.is_dir():
-                stash_project_files(p_dir)
+                _stash_project_files(p_dir)
             _exists = False
 
         if _exists:
@@ -359,7 +395,7 @@ class QuPathProject(QuPathBase):
         # for newer projects this will be set to DefaultProject.LATEST_VERSION
         # which is just GeneralTools.getVersion()...
         version = self.java_object.getVersion()
-        # fixme: this implictly requires qupath versions >= 0.2.0-m3
+        # fixme: this implicitly requires qupath versions >= 0.2.0-m3
         latest_version = GeneralTools.getVersion()
         # version is None, until we save a project to disk AND reload it!
         if version is None:
