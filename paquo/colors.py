@@ -66,9 +66,12 @@ class QuPathColor(NamedTuple):
     @classmethod
     def from_java_rgb(cls, java_rgb: int) -> 'QuPathColor':
         """convert from java but ignore the alpha value in java_rgb"""
+        if not isinstance(java_rgb, int):
+            raise TypeError("requires an integer")
         r = int(ColorTools.red(java_rgb))
         g = int(ColorTools.green(java_rgb))
         b = int(ColorTools.blue(java_rgb))
+        # noinspection PyArgumentList
         return cls(r, g, b)
 
     def to_java_rgba(self) -> Integer:
@@ -78,10 +81,13 @@ class QuPathColor(NamedTuple):
     @classmethod
     def from_java_rgba(cls, java_rgba: int) -> 'QuPathColor':
         """converts a java integer color into a QuPathColor instance"""
+        if not isinstance(java_rgba, int):
+            raise TypeError("requires an integer")
         r = int(ColorTools.red(java_rgba))
         g = int(ColorTools.green(java_rgba))
         b = int(ColorTools.blue(java_rgba))
         a = int(ColorTools.alpha(java_rgba))
+        # noinspection PyArgumentList
         return cls(r, g, b, a)
 
     def __repr__(self) -> str:
