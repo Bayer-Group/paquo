@@ -8,9 +8,10 @@ from pathlib import Path
 def subcommand(*arguments, parent):  # type: ignore
     """decorator helper for commandline"""
     def decorator(func):
+        fn = func.__name__.rstrip('_')
         subparser = parent.add_parser(
-            name=func.__name__,
-            prog=f"python -m paquo {func.__name__}",
+            name=fn,
+            prog=f"python -m paquo {fn}",
             help=func.__doc__,
         )
         for args, kwargs in arguments:
