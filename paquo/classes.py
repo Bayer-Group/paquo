@@ -111,15 +111,18 @@ class QuPathPathClass(QuPathBase[PathClass]):
         return self.java_object.isAncestorOf(child_class.java_object)
 
     @property
-    def color(self) -> QuPathColor:
+    def color(self) -> Optional[QuPathColor]:
         """return the path color"""
         rgb = self.java_object.getColor()
+        if rgb is None:
+            return None
         return QuPathColor.from_java_rgb(rgb)
 
     @color.setter
-    def color(self, rgb: ColorType) -> None:
+    def color(self, rgb: Optional[ColorType]) -> None:
         """set the path color"""
-        rgb = QuPathColor.from_any(rgb).to_java_rgb()  # maybe use argb?
+        if rgb is not None:
+            rgb = QuPathColor.from_any(rgb).to_java_rgb()  # maybe use argb?
         self.java_object.setColor(rgb)
 
     @property
