@@ -79,3 +79,21 @@ def config_print_defaults():
         encoding=settings.ENCODING_FOR_DYNACONF
     )
     print(output)
+
+
+# -- create related commands -------------------------------------------
+
+def list_project(path):
+    """print information about the project"""
+    from paquo.projects import QuPathProject
+
+    with QuPathProject(path, mode='r+') as qp:
+        print("Project:", qp.name)
+        print("Classes:", len(qp.path_classes))
+        for path_class in qp.path_classes:
+            color = path_class.color
+            color_str = f" [{color.to_hex()}]" if color else ""
+            print(f"- {path_class.id}{color_str}")
+        print("Images:", len(qp.images))
+        for idx, image in enumerate(qp.images):
+            print(f"- [{idx}] {image.image_name}")

@@ -3,7 +3,7 @@ import functools
 from contextlib import redirect_stdout
 
 from paquo._cli import subcommand, argument, DirectoryType, \
-    config_print_settings, config_print_defaults
+    config_print_settings, config_print_defaults, list_project
 from paquo._config import PAQUO_CONFIG_FILENAME, get_searchtree
 
 # noinspection PyTypeChecker
@@ -81,6 +81,22 @@ def config(args, subparser):
             print(f"ERROR: file {out_fn} exists! use --force to overwrite")
             return 1
     return 0
+
+
+@subcommand(
+    argument('project_path', help="path to your qupath project file/folder"),
+)
+def list_(args, subparser):
+    """list contents of a qupath project"""
+    if not args.project_path:
+        print(subparser.format_help())
+        return 0
+
+    try:
+        list_project(args.project_path)
+
+    except FileNotFoundError:
+        print("error when opening project", file=sys.stderr)
 
 
 if __name__ == "__main__":  # pragma: no cover
