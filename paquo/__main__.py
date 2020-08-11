@@ -34,6 +34,10 @@ def main(commandline=None):
         else:
             parser.print_help()
     else:
+        from paquo import settings
+        if settings.cli_force_log_level_error:
+            import logging
+            logging.basicConfig(level=logging.ERROR)
         return args.cmd_func(args)
     return 0
 

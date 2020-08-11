@@ -39,3 +39,5 @@ safe_truncate = true
 # -----------------
 # allows building the docs without qupath
 mock_backend = false
+# only show paquo errors on cli
+cli_force_log_level_error = true
