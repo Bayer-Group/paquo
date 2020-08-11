@@ -121,12 +121,17 @@ def export(args, subparser):
         print(subparser.format_help())
         return 0
 
-    if args.output is None:
-        export_annotations(args.project_path, args.image_idx, args.pretty)
-    else:
-        with Path(args.output).open('w') as f:
-            with redirect_stdout(f):
-                export_annotations(args.project_path, args.image_idx, args.pretty)
+    try:
+        if args.output is None:
+            export_annotations(args.project_path, args.image_idx, args.pretty)
+        else:
+            with Path(args.output).open('w') as f:
+                with redirect_stdout(f):
+                    export_annotations(args.project_path, args.image_idx, args.pretty)
+    except IndexError:
+        print(f"ERROR: image index {args.image_idx} out of range")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":  # pragma: no cover
