@@ -78,3 +78,9 @@ def test_pathclass_colors():
 
     pc.color = "#ff0000"
     assert pc.color.to_rgb() == (255, 0, 0)
+
+
+def test_pathclass_none_colors():
+    pc = QuPathPathClass.create("MyNew")
+    pc.color = None
+    assert pc.color is None
