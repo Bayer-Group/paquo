@@ -1,9 +1,10 @@
 import argparse
 import functools
 from contextlib import redirect_stdout
+from pathlib import Path
 
 from paquo._cli import subcommand, argument, DirectoryType, \
-    config_print_settings, config_print_defaults, list_project
+    config_print_settings, config_print_defaults, list_project, export_annotations
 from paquo._config import PAQUO_CONFIG_FILENAME, get_searchtree
 
 # noinspection PyTypeChecker
@@ -102,6 +103,29 @@ def list_(args, subparser):
         return 1
 
 
+@subcommand(
+    argument('project_path', nargs='?', default=None, help="path to your qupath project file/folder"),
+    argument('--image-idx', '-i', required=True, type=int, help="index of a qupath image"),
+    argument(
+        '-o', '--output',
+        action='store',
+        type=argparse.FileType('w'), dest='output',
+        help="directory where configuration is written to"
+    ),
+    argument('--pretty', action='store_true', help="pretty format the output"),
+)
+def export(args, subparser):
+    """export annotations of a qupath project image to geojson"""
+    if not args.project_path:
+        print(subparser.format_help())
+        return 0
+
+    if args.output is None:
+        export_annotations(args.project_path, args.image_idx, args.pretty)
+    else:
+        with Path(args.output).open('w') as f:
+            with redirect_stdout(f):
+                export_annotations(args.project_path, args.image_idx, args.pretty)
 
 
 if __name__ == "__main__":  # pragma: no cover

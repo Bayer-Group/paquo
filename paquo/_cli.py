@@ -119,3 +119,19 @@ def list_project(path):
                     val = image.metadata.get(_key, '')
                     line.append(f"{val:<{_md_value_len[_key]}}")
                 print(" ".join(line))
+
+
+# -- export related commands -------------------------------------------
+
+def export_annotations(path, image_idx, pretty=False):
+    """print annotations as geojson"""
+    from paquo.projects import QuPathProject
+    import pprint
+
+    with QuPathProject(path, mode='r+') as qp:
+        image = qp.images[image_idx]
+        data = image.hierarchy.to_geojson()
+        if pretty:
+            pprint.pprint(data)
+        else:
+            print(data)
