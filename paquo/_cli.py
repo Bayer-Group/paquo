@@ -123,6 +123,34 @@ def list_project(path):
                 print(" ".join(line))
 
 
+# -- create related commands -------------------------------------------
+
+def create_project(project_path, class_names_colors, images,
+                   remove_default_classes=False, force_write=False):
+    """create a qupath project"""
+    from paquo.classes import QuPathPathClass
+    from paquo.projects import QuPathProject
+
+    mode = 'x' if not force_write else 'w'
+
+    # noinspection PyTypeChecker
+    with QuPathProject(project_path, mode=mode) as qp:
+        if remove_default_classes:
+            qp.path_classes = ()
+        path_classes = list(qp.path_classes)
+        for name, color in class_names_colors:
+            path_classes.append(
+                QuPathPathClass.create(name, color=color)
+            )
+        qp.path_classes = path_classes
+
+        for image in images:
+            qp.add_image(image)
+
+        name = qp.name
+    return name
+
+
 # -- export related commands -------------------------------------------
 
 def export_annotations(path, image_idx, pretty=False):
