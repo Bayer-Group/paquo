@@ -69,6 +69,15 @@ def test_rgb_via_java_rgba():
     assert c0.alpha == 4 and c1.alpha == 255
 
 
+def test_from_java_typecheck():
+    QuPathColor.from_java_rgb(0)
+    QuPathColor.from_java_rgba(0)
+    with pytest.raises(TypeError):
+        QuPathColor.from_java_rgb(None)
+    with pytest.raises(TypeError):
+        QuPathColor.from_java_rgba(None)
+
+
 def test_hexcolor():
     c0 = "#ff00ff"
     qc = QuPathColor.from_hex(c0)
