@@ -1,4 +1,5 @@
 from argparse import ArgumentTypeError
+from collections import defaultdict
 from functools import partial
 from pathlib import Path
 
@@ -90,11 +91,31 @@ def list_project(path):
 
     with QuPathProject(path, mode='r+') as qp:
         print("Project:", qp.name)
-        print("Classes:", len(qp.path_classes))
+        print("Classes: #", len(qp.path_classes), sep='')
         for path_class in qp.path_classes:
             color = path_class.color
             color_str = f" [{color.to_hex()}]" if color else ""
             print(f"- {path_class.id}{color_str}")
-        print("Images:", len(qp.images))
+
+        _md_keys = set()
+        _md_value_len = defaultdict(int)
+        print("Images: #", len(qp.images), sep='')
         for idx, image in enumerate(qp.images):
             print(f"- [{idx}] {image.image_name}")
+            for k, v in image.metadata.items():
+                _md_keys.add(k)
+                _md_value_len[k] = max(_md_value_len[k], len(v), len(k))
+
+        print("Project Metadata: #", len(_md_keys), sep='')
+        if len(_md_keys):
+            _md_keys = list(sorted(_md_keys))
+            hdr = ["#    "]
+            for _key in _md_keys:
+                hdr.append(f"{_key:<{_md_value_len[_key]}}")
+            print(" ".join(hdr))
+            for idx, image in enumerate(qp.images):
+                line = [f"- [{idx}]"]
+                for _key in _md_keys:
+                    val = image.metadata.get(_key, '')
+                    line.append(f"{val:<{_md_value_len[_key]}}")
+                print(" ".join(line))

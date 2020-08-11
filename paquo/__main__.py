@@ -88,19 +88,20 @@ def config(args, subparser):
 
 
 @subcommand(
-    argument('project_path', help="path to your qupath project file/folder"),
+    argument('project_path', nargs='?', default=None, help="path to your qupath project file/folder"),
 )
 def list_(args, subparser):
     """list contents of a qupath project"""
     if not args.project_path:
         print(subparser.format_help())
         return 0
-
     try:
         list_project(args.project_path)
+    except FileNotFoundError as err:
+        print(str(err), file=sys.stderr)
+        return 1
 
-    except FileNotFoundError:
-        print("error when opening project", file=sys.stderr)
+
 
 
 if __name__ == "__main__":  # pragma: no cover
