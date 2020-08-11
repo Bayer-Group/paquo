@@ -1,5 +1,6 @@
 import argparse
 import functools
+import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from paquo._config import PAQUO_CONFIG_FILENAME, get_searchtree
 
 # noinspection PyTypeChecker
 parser = argparse.ArgumentParser(
-    prog="python -m paquo",
+    prog="python -m paquo" if Path(sys.argv[0]).name == "__main__.py" else None,
     description="""\
  ██████╗  █████╗  ██████╗ ██╗   ██╗ ██████╗ 
  ██╔══██╗██╔══██╗██╔═══██╗██║   ██║██╔═══██╗
@@ -129,5 +130,4 @@ def export(args, subparser):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    import sys
     sys.exit(main())

@@ -1,3 +1,4 @@
+import sys
 from argparse import ArgumentTypeError
 from collections import defaultdict
 from functools import partial
@@ -10,9 +11,10 @@ def subcommand(*arguments, parent):  # type: ignore
     """decorator helper for commandline"""
     def decorator(func):
         fn = func.__name__.rstrip('_')
+        started_via_m = Path(sys.argv[0]).name == "__main__.py"
         subparser = parent.add_parser(
             name=fn,
-            prog=f"python -m paquo {fn}",
+            prog=f"python -m paquo {fn}" if started_via_m else f"paquo {fn}",
             help=func.__doc__,
         )
         for args, kwargs in arguments:
