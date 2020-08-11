@@ -56,7 +56,7 @@ def main(commandline=None):
     argument('--search-tree', action='store_true', help="list all locations searched for config"),
 )
 def config(args, subparser):
-    """handle configuration"""
+    """handle paquo configuration"""
     if not (args.list or args.search_tree):
         print(subparser.format_help())
         return 0
