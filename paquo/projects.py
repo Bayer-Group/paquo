@@ -346,7 +346,7 @@ class QuPathProject(QuPathBase):
     @property
     def path_classes(self) -> Tuple[QuPathPathClass, ...]:
         """return path_classes stored in the project"""
-        return tuple(map(QuPathPathClass, self.java_object.getPathClasses()))
+        return tuple(map(QuPathPathClass.from_java, self.java_object.getPathClasses()))
 
     @path_classes.setter
     def path_classes(self, path_classes: Iterable[QuPathPathClass]):

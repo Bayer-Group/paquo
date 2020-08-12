@@ -18,7 +18,7 @@ with QuPathProject(EXAMPLE_PROJECT, mode='x') as qp:
     new_classes = []
     for class_name, class_color in MY_CLASSES_AND_COLORS:
         new_classes.append(
-            QuPathPathClass.create(name=class_name, color=class_color)
+            QuPathPathClass(name=class_name, color=class_color)
         )
 
     # setting QuPathProject.path_class always replaces all classes

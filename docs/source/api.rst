@@ -14,8 +14,8 @@ QuPathPathClasses
 -----------------
 
 Classes are used to group your annotation into *(you've guessed it)* classes. :class:`QuPathPathClasses` can
-have names, a color and they can be children of other classes. If you want to create a `QuPathPathClass` always
-use the :meth:`QuPathPathClass.create` classmethod.
+have names, a color and they can be children of other classes. If you want to create a new `QuPathPathClass`
+just instantiate it by providing a name and an optional color and optional parent class.
 
 .. autoclass:: paquo.classes.QuPathPathClass
    :members:

@@ -141,7 +141,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         pc = self.java_object.getPathClass()
         if not pc:
             return None
-        return QuPathPathClass(pc)
+        return QuPathPathClass.from_java(pc)
 
     @property
     def path_class_probability(self) -> float:

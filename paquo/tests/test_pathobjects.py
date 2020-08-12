@@ -48,7 +48,7 @@ def test_shapely_to_qupath_conversion():
 def path_annotation(request):
     """parameterized fixture for different Annotation Objects"""
     roi = request.param
-    path_class = QuPathPathClass.create("myclass")
+    path_class = QuPathPathClass("myclass")
 
     ao = QuPathPathAnnotationObject.from_shapely(roi, path_class)
 
@@ -78,7 +78,7 @@ def test_geojson_serialization(path_annotation):
 def test_annotation_object():
     ao = QuPathPathAnnotationObject.from_shapely(
         shapely.geometry.Point(1, 1),
-        path_class=QuPathPathClass.create('myclass'),
+        path_class=QuPathPathClass('myclass'),
         measurements={'measurement1': 1.23},
         path_class_probability=0.5,
     )
@@ -118,7 +118,7 @@ def test_annotation_object():
 def test_measurements():
     ao = QuPathPathAnnotationObject.from_shapely(
         shapely.geometry.Point(1, 1),
-        path_class=QuPathPathClass.create('myclass'),
+        path_class=QuPathPathClass('myclass'),
         measurements={'measurement1': 1.23},
         path_class_probability=0.5,
     )

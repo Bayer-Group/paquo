@@ -4,20 +4,25 @@ from paquo._base import QuPathBase
 from paquo.colors import QuPathColor, ColorType
 from paquo.java import PathClass, PathClassFactory, String
 
+__all__ = ['QuPathPathClass']
+
 
 class QuPathPathClass(QuPathBase[PathClass]):
 
-    def __init__(self, path_class: PathClass) -> None:
+    @classmethod
+    def from_java(cls, path_class: PathClass) -> 'QuPathPathClass':
         """initialize a QuPathPathClass from its corresponding java PathClass"""
         if not isinstance(path_class, PathClass):
-            raise TypeError("use PathClass.create() to instantiate")
-        super().__init__(path_class)
+            raise TypeError("use PathClass(name='myclass') to instantiate")
+        # keep type annotation requirements intact by providing
+        # empty string, which is ignored when providing _java_path_class
+        return cls('', _java_path_class=path_class)
 
-    @classmethod
-    def create(cls,
-               name: str,
-               color: Optional[ColorType] = None,
-               parent: Optional['QuPathPathClass'] = None) -> 'QuPathPathClass':
+    def __init__(self,
+                 name: str,
+                 color: Optional[ColorType] = None,
+                 parent: Optional['QuPathPathClass'] = None,
+                 **_kwargs) -> None:
         """create a QuPathPathClass
 
         The QuPathPathClasses are wrappers around singletons defined by their
@@ -40,6 +45,13 @@ class QuPathPathClass(QuPathBase[PathClass]):
         path_class:
             the QuPathPathClass
         """
+        # internal: check if a java path class was already provided
+        _java_path_class = _kwargs.pop('_java_path_class', None)
+        if _java_path_class is not None:
+            super().__init__(_java_path_class)
+            return
+
+        # called by user
         if name is None:
             if parent is None:
                 # note:
@@ -68,7 +80,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
             java_color = QuPathColor.from_any(color).to_java_rgba()  # use rgba?
 
         path_class = PathClassFactory.getDerivedPathClass(java_parent, name, java_color)
-        return cls(path_class)
+        super().__init__(path_class)
 
     @property
     def name(self) -> str:
@@ -92,7 +104,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
         path_class = self.java_object.getParentClass()
         if path_class is None:
             return None
-        return QuPathPathClass(path_class)
+        return QuPathPathClass.from_java(path_class)
 
     @property
     def origin(self) -> 'QuPathPathClass':

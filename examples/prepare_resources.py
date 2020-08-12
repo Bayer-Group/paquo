@@ -56,7 +56,7 @@ def prepare_example_resources():
     with QuPathProject(example_project_dir) as qp:
         for img_fn in images:
             qp.add_image(img_fn, image_type=QuPathImageType.BRIGHTFIELD_H_E)
-        qp.path_classes = map(QuPathPathClass.create, ["myclass_0", "myclass_1", "myclass_2"])
+        qp.path_classes = map(QuPathPathClass, ["myclass_0", "myclass_1", "myclass_2"])
         for idx, image in enumerate(qp.images):
             image.metadata['image_number'] = str(1000 + idx)
 
@@ -68,7 +68,7 @@ def prepare_example_resources():
         image_0 = qp.images[0]
         for x, y in itertools.product(range(4), repeat=2):
             roi = Polygon.from_bounds(*_get_bounds(x, y))
-            image_0.hierarchy.add_annotation(roi, path_class=QuPathPathClass.create("myclass_1"))
+            image_0.hierarchy.add_annotation(roi, path_class=QuPathPathClass("myclass_1"))
 
         with open(DATA_DIR / "annotations.geojson", "w") as f:
             json.dump(image_0.hierarchy.to_geojson(), f)

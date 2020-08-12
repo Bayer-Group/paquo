@@ -137,7 +137,7 @@ def test_project_add_path_classes(new_project):
     from paquo.classes import QuPathPathClass
 
     names = {'a', 'b', 'c'}
-    new_project.path_classes = map(QuPathPathClass.create, names)
+    new_project.path_classes = map(QuPathPathClass, names)
 
     assert len(new_project.path_classes) == 3
     assert set(c.name for c in new_project.path_classes) == names

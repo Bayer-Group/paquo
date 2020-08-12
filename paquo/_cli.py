@@ -140,7 +140,7 @@ def create_project(project_path, class_names_colors, images,
         path_classes = list(qp.path_classes)
         for name, color in class_names_colors:
             path_classes.append(
-                QuPathPathClass.create(name, color=color)
+                QuPathPathClass(name, color=color)
             )
         qp.path_classes = path_classes
 

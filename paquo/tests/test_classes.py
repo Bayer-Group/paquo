@@ -5,14 +5,14 @@ from paquo.classes import QuPathPathClass
 
 @pytest.fixture(scope='session')
 def pathclass():
-    yield QuPathPathClass.create("MyClass")
+    yield QuPathPathClass("MyClass")
 
 
 def test_pathclass_creation():
     with pytest.raises(TypeError):
-        QuPathPathClass("abc")
+        QuPathPathClass.from_java("abc")
 
-    pc = QuPathPathClass.create("MyClass", color=None)
+    pc = QuPathPathClass("MyClass", color=None)
     assert pc.parent is None
     assert pc.name == pc.id == "MyClass"
     assert pc.is_valid
@@ -22,31 +22,31 @@ def test_pathclass_creation():
 def test_deny_name_none_creation():
     with pytest.raises(NotImplementedError):
         # noinspection PyTypeChecker
-        QuPathPathClass.create(None, parent=None)
+        QuPathPathClass(None, parent=None)
 
-    pc = QuPathPathClass.create("MyClass")
+    pc = QuPathPathClass("MyClass")
     with pytest.raises(ValueError):
         # noinspection PyTypeChecker
-        QuPathPathClass.create(None, parent=pc)
+        QuPathPathClass(None, parent=pc)
 
 
 def test_incorrect_parent_type():
     with pytest.raises(TypeError):
         # noinspection PyTypeChecker
-        QuPathPathClass.create("new class", parent="parent_class")
+        QuPathPathClass("new class", parent="parent_class")
 
 
 def test_incorrect_class_name():
     with pytest.raises(TypeError):
         # noinspection PyTypeChecker
-        QuPathPathClass.create(1)
+        QuPathPathClass(1)
     with pytest.raises(ValueError):
-        QuPathPathClass.create("my::class")
+        QuPathPathClass("my::class")
 
 
 def test_pathclass_equality(pathclass):
-    other = QuPathPathClass.create("MyClass2")
-    same = QuPathPathClass.create("MyClass")
+    other = QuPathPathClass("MyClass2")
+    same = QuPathPathClass("MyClass")
     assert pathclass == pathclass
     assert pathclass != other
     assert pathclass == same
@@ -54,7 +54,7 @@ def test_pathclass_equality(pathclass):
 
 
 def test_pathclass_creation_with_parent(pathclass):
-    pc = QuPathPathClass.create("MyChild", parent=pathclass)
+    pc = QuPathPathClass("MyChild", parent=pathclass)
     assert pc.parent == pathclass
     assert pc.name == "MyChild"
     assert pc.id == "MyClass: MyChild"
@@ -69,11 +69,11 @@ def test_pathclass_creation_with_parent(pathclass):
 
 
 def test_pathclass_colors():
-    pc = QuPathPathClass.create("MyNew", color=None)
+    pc = QuPathPathClass("MyNew", color=None)
     my_class_color = (49, 139, 153)  # based on string MyNew
     assert pc.color.to_rgb() == my_class_color
 
-    pc = QuPathPathClass.create("MyNew2", color=(1, 2, 3))
+    pc = QuPathPathClass("MyNew2", color=(1, 2, 3))
     assert pc.color.to_rgb() == (1, 2, 3)
 
     pc.color = "#ff0000"
@@ -81,6 +81,6 @@ def test_pathclass_colors():
 
 
 def test_pathclass_none_colors():
-    pc = QuPathPathClass.create("MyNew")
+    pc = QuPathPathClass("MyNew")
     pc.color = None
     assert pc.color is None
