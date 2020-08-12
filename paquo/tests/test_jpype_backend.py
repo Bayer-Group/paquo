@@ -51,7 +51,7 @@ def test_find_qupath(tmp_path):
     if _conda_qupath_dir() is not None:
         cm = nullcontext()
     else:
-        cm = pytest.raises(ValueError)
+        cm = pytest.raises(ValueError)  # pragma: mo cover
     with cm:
         # search conda last
         find_qupath(qupath_search_conda=True, qupath_prefer_conda=False)

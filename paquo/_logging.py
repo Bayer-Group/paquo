@@ -90,9 +90,9 @@ class _JavaLoggingBase(AbstractContextManager):
                 self._logger.warning("%s: %s", origin, entry)
             elif "ERR" in level:
                 # FIXME: SHOULD THIS RAISE AN EXCEPTION?
-                self._logger.error("%s: %s", origin, entry)
+                self._logger.error("%s: %s", origin, entry)  # pragma: no cover
             elif "DEBUG" in level:
-                self._logger.debug("%s: %s", origin, entry)
+                self._logger.debug("%s: %s", origin, entry)  # pragma: no cover
             else:
                 self._logger.info("%s: %s", origin, entry)
 
@@ -114,7 +114,7 @@ class _JavaLoggingBase(AbstractContextManager):
                 )
                 entry.append(m.group('msg'))
             else:
-                entry.append(line)
+                entry.append(line)  # pragma: no cover
         if entry:
             yield info, "".join(entry).rstrip()
 

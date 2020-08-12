@@ -42,7 +42,7 @@ with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config
 def get_searchtree() -> List[str]:
     """return the current search tree for the settings"""
     if not settings.configured:
-        settings.configure()
+        settings.configure()  # pragma: no cover
     # note: SEARCHTREE is updated after configure
     searchtree: List[str] = getattr(_files, 'SEARCHTREE', [])
     return searchtree

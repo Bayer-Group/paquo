@@ -289,7 +289,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
             # set the project thumbnail
             try:
                 thumbnail = ProjectImportImagesCommand.getThumbnailRGB(server, None)
-            except NegativeArraySizeException:
+            except NegativeArraySizeException:  # pragma: no cover
                 raise RuntimeError(
                     "Thumbnailing FAILED. Image might be too large and has no embedded thumbnail."
                 )
