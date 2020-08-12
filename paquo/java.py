@@ -29,7 +29,7 @@ if settings.mock_backend:  # pragma: no cover
 qupath_version = start_jvm(finder_kwargs=to_kwargs(settings))
 if qupath_version is None or qupath_version < MIN_QUPATH_VERSION:
     # let's not exit for now but warn the user that
-    warnings.warn(f"QUPATH '{qupath_version}' UNTESTED OR UNSUPPORTED")
+    warnings.warn(f"QUPATH '{qupath_version}' UNTESTED OR UNSUPPORTED")  # pragma: no cover
 
 
 ArrayList = JClass("java.util.ArrayList")
