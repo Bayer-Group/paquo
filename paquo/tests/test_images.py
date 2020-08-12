@@ -31,11 +31,19 @@ def removable_svs_small(svs_small):
 def project_with_removed_image(removable_svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
         qp = QuPathProject(tmpdir)
-        entry = qp.add_image(removable_svs_small)
-        entry.properties['a'] = '1'  # force image data to be written
+        _ = qp.add_image(removable_svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
         qp.save()
         removable_svs_small.unlink()
-        assert (entry.entry_path / "data.qpdata").is_file()
+        yield qp.path
+
+
+@pytest.fixture(scope='function')
+def project_with_removed_image_without_image_data(removable_svs_small):
+    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+        qp = QuPathProject(tmpdir)
+        _ = qp.add_image(removable_svs_small)
+        qp.save()
+        removable_svs_small.unlink()
         yield qp.path
 
 
@@ -121,6 +129,26 @@ def test_metadata_non_str_items(image_entry):
         image_entry.metadata["1"] = 123
 
 
+def test_imagedata_saving_for_removed_images(project_with_removed_image):
+    with QuPathProject(project_with_removed_image, mode='r+') as qp:
+        entry = qp.images[0]
+        assert (entry.entry_path / "data.qpdata").is_file()
+
+
+def test_imagedata_saving_for_removed_images_without_type(project_with_removed_image_without_image_data):
+    with QuPathProject(project_with_removed_image_without_image_data, mode='r+') as qp:
+        entry = qp.images[0]
+        # todo: check if we actually want this behavior.
+        #   at least it's documented now
+        assert not (entry.entry_path / "data.qpdata").is_file()
+
+
+def test_readonly_recovery_hierarchy(project_with_removed_image_without_image_data):
+    with QuPathProject(project_with_removed_image_without_image_data, mode='r+') as qp:
+        entry = qp.images[0]
+        assert repr(entry.hierarchy)
+
+
 def test_readonly_recovery_image_server(project_with_removed_image):
     with QuPathProject(project_with_removed_image, mode='r+') as qp:
         image_entry = qp.images[0]
@@ -131,6 +159,8 @@ def test_readonly_recovery_image_server(project_with_removed_image):
         assert image_entry.num_timepoints
         assert image_entry.num_z_slices
         assert image_entry.downsample_levels
+
+        assert repr(image_entry.hierarchy)
 
 
 def test_properties_interface(image_entry):
