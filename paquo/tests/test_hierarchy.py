@@ -49,6 +49,7 @@ def test_attach_annotations(empty_hierarchy):
     assert len(h) == len(annotations)
     # contains
     assert annotations[3] in h.annotations
+    assert 123 not in h.annotations
     # discard
     h.annotations.discard(annotations[7])
     assert len(h) == len(annotations) - 1
