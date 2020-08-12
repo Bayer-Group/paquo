@@ -139,7 +139,7 @@ ProjectIOMode = Union[
 ]
 
 
-class QuPathProject(QuPathBase):
+class QuPathProject(QuPathBase[DefaultProject]):
 
     def __init__(self,
                  path: Union[str, pathlib.Path],
