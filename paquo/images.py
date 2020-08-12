@@ -117,7 +117,7 @@ class SimpleURIImageProvider:
     class URIString(str):
         """string uri's can differ in their string representation and still be identical"""
         # we need some way to normalize uris
-        def __eq__(self, other):
+        def __eq__(self, other):  # pragma: no cover
             return ImageProvider.compare_uris(self, other)
         __hash__ = str.__hash__  # fixme: this is not correct!
 
@@ -126,6 +126,8 @@ class SimpleURIImageProvider:
         if not isinstance(image_id, (Path, str, SimpleURIImageProvider.FilenamePathId)):
             raise TypeError("image_id not of correct format")  # pragma: no cover
         img_path = pathlib.Path(image_id).absolute().resolve()
+        if not img_path.is_file():
+            return None
         return SimpleURIImageProvider.URIString(img_path.as_uri())
 
     def id(self, uri: URIString) -> str:
