@@ -152,7 +152,7 @@ def create(args, subparser):
 
 @subcommand(
     argument('project_path', nargs='?', default=None, help="path to your qupath project file/folder"),
-    argument('--image-idx', '-i', required=True, type=int, help="index of a qupath image"),
+    argument('--image-idx', '-i', default=None, type=int, help="index of a qupath image"),
     argument(
         '-o', '--output',
         action='store',
@@ -163,7 +163,7 @@ def create(args, subparser):
 )
 def export(args, subparser):
     """export annotations of a qupath project image to geojson"""
-    if not args.project_path:
+    if args.project_path is None or args.image_idx is None:
         print(subparser.format_help())
         return 0
 
@@ -171,9 +171,8 @@ def export(args, subparser):
         if args.output is None:
             export_annotations(args.project_path, args.image_idx, args.pretty)
         else:
-            with Path(args.output).open('w') as f:
-                with redirect_stdout(f):
-                    export_annotations(args.project_path, args.image_idx, args.pretty)
+            with redirect_stdout(args.output):
+                export_annotations(args.project_path, args.image_idx, args.pretty)
     except IndexError:
         print(f"ERROR: image index {args.image_idx} out of range")
         return 1

@@ -27,9 +27,9 @@ except ImportError:
 def make_backup_filename(path, name, suffix='backup'):
     path = Path(path)
     if not path.is_dir():
-        raise ValueError("requires a directory")
+        raise ValueError("requires a directory")  # pragma: no cover
     now = datetime.now().strftime('%Y%m%d-%H%M%S')
     backup = path / f"{name}-{now}.{suffix}"
     if backup.is_file():
-        raise RuntimeError(f"the file {backup} should not exist!")
+        raise RuntimeError(f"the file {backup} should not exist!")  # pragma: no cover
     return backup
