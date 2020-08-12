@@ -90,6 +90,15 @@ def test_project_creation_mode(mode, tmp_path2, new_project):
         assert len(backups) == 0
 
 
+def test_backup_path_project_stash(tmp_path):
+    from paquo.projects import _stash_project_files
+    p = Path(tmp_path)
+    assert _stash_project_files(p) is None
+    f = p / "wrong.file"
+    f.touch()
+    assert _stash_project_files(f) is None
+
+
 # noinspection PyTypeChecker
 def test_unsupported_mode(tmp_path):
     with pytest.raises(ValueError):
@@ -196,6 +205,7 @@ def test_project_image_slicing(new_project):
 
 def test_project_image_incorrect_index(new_project):
     with pytest.raises(IndexError):
+        # noinspection PyTypeChecker
         _ = new_project.images["abc"]
 
 
