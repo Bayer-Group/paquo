@@ -1,11 +1,12 @@
 import json
+import pathlib
 import re
 from abc import ABC, abstractmethod
 from collections.abc import MutableMapping, Hashable
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
-from typing import Iterator, Optional, Any, List, Dict
+from typing import Iterator, Optional, Any, List, Dict, Union
 
 from paquo._base import QuPathBase
 from paquo._logging import redirect, get_logger
@@ -94,9 +95,24 @@ class ImageProvider(ABC):
         return NotImplemented
 
 
+SimpleFileImageId = Union[str, pathlib.Path]
+
+
 # noinspection PyMethodMayBeStatic
 class SimpleURIImageProvider:
     """simple image provider that uses the files uri as it's identifier"""
+
+    class FilenamePathId(str):
+        """an id that uses the filename as it's identifier"""
+        def __eq__(self, other):
+            return Path(self).name == Path(other).name
+
+        def __hash__(self):
+            return hash(Path(self).name)
+
+        def __repr__(self):  # pragma: no cover
+            p = Path(self)
+            return f'<FilenamePathId("{p.name}") @ "{p.parent}">'
 
     class URIString(str):
         """string uri's can differ in their string representation and still be identical"""
@@ -105,14 +121,18 @@ class SimpleURIImageProvider:
             return ImageProvider.compare_uris(self, other)
         __hash__ = str.__hash__  # fixme: this is not correct!
 
-    def uri(self, image_id: str) -> str:
-        # fixme: this is currently not being called and i think it
-        #   should in the default implementation... need to figure
-        #   out where this needs to be used in QuPathProject
-        return image_id
+    def uri(self, image_id: SimpleFileImageId) -> 'URIString':
+        """accepts a path and returns a URIString"""
+        if not isinstance(image_id, (Path, str, SimpleURIImageProvider.FilenamePathId)):
+            raise TypeError("image_id not of correct format")  # pragma: no cover
+        img_path = pathlib.Path(image_id).absolute().resolve()
+        return SimpleURIImageProvider.URIString(img_path.as_uri())
 
-    def id(self, uri: str) -> str:
-        return self.URIString(uri)
+    def id(self, uri: URIString) -> str:
+        """accepts a uri string and returns a FilenamePathId"""
+        if not isinstance(uri, (str, SimpleURIImageProvider.URIString)):
+            raise TypeError("uri not of correct format")  # pragma: no cover
+        return SimpleURIImageProvider.FilenamePathId(ImageProvider.path_from_uri(uri))
 
     def rebase(self, *uris: str, **kwargs) -> List[Optional[str]]:
         uri2uri = kwargs.pop('uri2uri', {})

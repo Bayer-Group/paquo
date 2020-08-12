@@ -224,7 +224,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
 
     @redirect(stderr=True, stdout=True)  # type: ignore
     def add_image(self,
-                  filename: Union[str, pathlib.Path],
+                  image_id: Any,  # this should actually be ID type of the image provider
                   image_type: Optional[QuPathImageType] = None,
                   *,
                   allow_duplicates: bool = False) -> QuPathProjectImageEntry:
@@ -232,8 +232,8 @@ class QuPathProject(QuPathBase[DefaultProject]):
 
         Parameters
         ----------
-        filename:
-            filename pointing to the image file
+        image_id:
+            image_id pointing to the image file (with default image_provider: filename)
         image_type:
             provide an image type for the image. If not provided the user will
             be prompted before opening the image in QuPath.
@@ -241,11 +241,13 @@ class QuPathProject(QuPathBase[DefaultProject]):
             check if file has already been added to the project.
 
         """
-        img_path = pathlib.Path(filename).absolute()
-
         # test if we may add:
-        img_uri = ImageProvider.uri_from_path(img_path)
+        img_uri = self._image_provider.uri(image_id)
         img_id = self._image_provider.id(img_uri)
+        if not img_id == image_id:
+            _log.warning(f"image_provider roundtrip error: '{image_id}' -> uri -> '{img_id}'")
+            raise RuntimeError("the image provider failed to roundtrip the image id correctly")
+
         if not allow_duplicates:
             for entry in self.images:
                 uri = self._image_provider.id(entry.uri)
@@ -256,10 +258,10 @@ class QuPathProject(QuPathBase[DefaultProject]):
         try:
             support = ImageServerProvider.getPreferredUriImageSupport(
                 BufferedImage,
-                String(str(img_path))
+                String(str(img_uri))
             )
         except IOException:
-            raise FileNotFoundError(filename)
+            raise FileNotFoundError(image_id)
         if not support:
             raise IOError("no preferred support found")  # pragma: no cover
         server_builders = list(support.getBuilders())
@@ -273,7 +275,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
                 server = server_builder.build()
             except IOException:
                 _, _, _sb = server_builder.__class__.__name__.rpartition(".")
-                raise IOError(f"{_sb} can't open {img_path}")
+                raise IOError(f"{_sb} can't open {str(image_id)}")
             j_entry.setImageName(ServerTools.getDisplayableImageName(server))
 
             # add some informative logging
