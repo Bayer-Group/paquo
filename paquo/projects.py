@@ -262,7 +262,10 @@ class QuPathProject(QuPathBase[DefaultProject]):
                 BufferedImage,
                 String(str(img_uri))
             )
-        except IOException:
+        except IOException:  # pragma: no cover
+            # it's possible that an image_provider returns an URI but that URI
+            # is not actually reachable. In that case catch the java IOException
+            # and raise a FileNotFoundError here
             raise FileNotFoundError(image_id)
         if not support:
             raise IOError("no preferred support found")  # pragma: no cover
