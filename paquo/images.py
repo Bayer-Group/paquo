@@ -121,7 +121,7 @@ class SimpleURIImageProvider:
             return ImageProvider.compare_uris(self, other)
         __hash__ = str.__hash__  # fixme: this is not correct!
 
-    def uri(self, image_id: SimpleFileImageId) -> 'URIString':
+    def uri(self, image_id: SimpleFileImageId) -> Optional['URIString']:
         """accepts a path and returns a URIString"""
         if not isinstance(image_id, (Path, str, SimpleURIImageProvider.FilenamePathId)):
             raise TypeError("image_id not of correct format")  # pragma: no cover
