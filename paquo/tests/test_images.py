@@ -1,4 +1,5 @@
 import platform
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -16,6 +17,26 @@ def image_entry(svs_small):
         qp = QuPathProject(tmpdir)
         entry = qp.add_image(svs_small)
         yield entry
+
+
+@pytest.fixture(scope='function')
+def removable_svs_small(svs_small):
+    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+        new_path = Path(tmpdir) / svs_small.name
+        shutil.copy(svs_small, new_path)
+        yield new_path
+
+
+@pytest.fixture(scope='function')
+def project_with_removed_image(removable_svs_small):
+    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+        qp = QuPathProject(tmpdir)
+        entry = qp.add_image(removable_svs_small)
+        entry.properties['a'] = '1'  # force image data to be written
+        qp.save()
+        removable_svs_small.unlink()
+        assert (entry.entry_path / "data.qpdata").is_file()
+        yield qp.path
 
 
 def test_image_entry_return_hierarchy(image_entry):
@@ -98,6 +119,18 @@ def test_metadata_non_str_items(image_entry):
 
     with pytest.raises(TypeError):
         image_entry.metadata["1"] = 123
+
+
+def test_readonly_recovery_image_server(project_with_removed_image):
+    with QuPathProject(project_with_removed_image, mode='r+') as qp:
+        image_entry = qp.images[0]
+
+        assert image_entry.height
+        assert image_entry.width
+        assert image_entry.num_channels
+        assert image_entry.num_timepoints
+        assert image_entry.num_z_slices
+        assert image_entry.downsample_levels
 
 
 def test_properties_interface(image_entry):
