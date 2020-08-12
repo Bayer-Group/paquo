@@ -98,11 +98,11 @@ class QuPathColor(NamedTuple):
     @classmethod
     def from_any(cls, value: ColorType) -> 'QuPathColor':
         """try creating a QuPathColor from all supported types"""
-        if isinstance(value, (tuple, list)):
+        if isinstance(value, QuPathColor):
+            return cls(*value.to_rgba())
+        elif isinstance(value, (tuple, list)):
             return cls(*value)
         elif isinstance(value, str):
             return cls.from_hex(value)
-        elif isinstance(value, QuPathColor):
-            return cls(*value.to_rgba())
         else:
             raise TypeError("can't convert to QuPathColor")
