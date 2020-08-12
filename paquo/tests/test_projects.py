@@ -244,7 +244,7 @@ def test_project_delete_image_file_when_opened(new_project, svs_small):
     #   we hardcode it here, so that the intention of this test stays clear
     qupath_uses = "OPENSLIDE"
 
-    if qupath_uses == "BIOFORMATS":
+    if qupath_uses == "BIOFORMATS":  # pragma: no cover
         if platform.system() == "Windows":
             # NOTE: on windows because you can't delete files that have open
             #   file handles. In this test we're deleting the file opened by
@@ -263,7 +263,7 @@ def test_project_delete_image_file_when_opened(new_project, svs_small):
 
         os.unlink(new_svs_small)
 
-    else:
+    else:  # pragma: no cover
         raise ValueError('...')
 
 
