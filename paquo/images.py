@@ -2,6 +2,7 @@ import json
 import re
 from abc import ABC, abstractmethod
 from collections.abc import MutableMapping, Hashable
+from copy import deepcopy
 from enum import Enum
 from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
 from typing import Iterator, Optional, Any, List, Dict
@@ -121,6 +122,34 @@ class SimpleURIImageProvider:
 # noinspection PyPep8Naming
 class _RecoveredReadOnlyImageServer:
     """internal. used to allow access to image server metadata recovered from project.qpproj"""
+
+    # noinspection PyMethodParameters,PyPep8Naming
+    class _FakeResolutionLevel:
+        def __init__(self_, _lvl):
+            self_._lvl = _lvl
+
+        def getDownsample(self_):
+            return self_._lvl['downsample']
+
+        def getHeight(self_):
+            return self_._lvl['height']
+
+        def getWidth(self_):
+            return self_._lvl['width']
+
+    # noinspection PyMethodParameters,PyPep8Naming
+    class _FakeMetadata:
+        def __init__(self_, _metadata):
+            self_._md = _metadata
+
+        def nLevels(self_):
+            return len(self_._md.get('levels', []))
+
+        def getLevel(self_, idx):
+            _rl = self_._md.get('levels')[idx]
+            # noinspection PyProtectedMember
+            return _RecoveredReadOnlyImageServer._FakeResolutionLevel(_rl)
+
     def __init__(self, entry_path: Path):
         server_json_f = Path(entry_path) / "server.json"
         with server_json_f.open('r') as f:
@@ -143,22 +172,9 @@ class _RecoveredReadOnlyImageServer:
 
     def getMetadata(self) -> Any:
         # fake the java metadata interface
-        _md = self._metadata.deepcopy()
-
-        def _nLevels(self_): return len(_md.get('levels', []))
-
-        def _getLevel(self_, idx):
-            r_lvl = object()
-            _rl = _md.get('levels')[idx]
-            r_lvl.getDownsample = lambda: _rl['downsample']
-            r_lvl.getHeight = lambda: _rl['height']
-            r_lvl.getWidth = lambda: _rl['width']
-            return r_lvl
-
-        md = object()
-        md.nLevels = _nLevels.__get__(md, None)
-        md.getLevel = _getLevel.__get__(md, None)
-        return md
+        _md = deepcopy(self._metadata)
+        # noinspection PyProtectedMember
+        return _RecoveredReadOnlyImageServer._FakeMetadata(_md)
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
