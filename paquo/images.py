@@ -141,8 +141,24 @@ class _RecoveredReadOnlyImageServer:
     def nTimepoints(self):
         return self._metadata['sizeT']
 
-    def getMetadata(self):
-        return self._metadata
+    def getMetadata(self) -> Any:
+        # fake the java metadata interface
+        _md = self._metadata.deepcopy()
+
+        def _nLevels(self_): return len(_md.get('levels', []))
+
+        def _getLevel(self_, idx):
+            r_lvl = object()
+            _rl = _md.get('levels')[idx]
+            r_lvl.getDownsample = lambda: _rl['downsample']
+            r_lvl.getHeight = lambda: _rl['height']
+            r_lvl.getWidth = lambda: _rl['width']
+            return r_lvl
+
+        md = object()
+        md.nLevels = _nLevels.__get__(md, None)
+        md.getLevel = _getLevel.__get__(md, None)
+        return md
 
 
 class _ProjectImageEntryMetadata(MutableMapping):
@@ -372,8 +388,6 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     @cached_property
     def downsample_levels(self) -> List[Dict[str, float]]:
         md = self._image_server.getMetadata()
-        if isinstance(md, dict):
-            return md['levels']  # type: ignore
         levels = []
         for level in range(int(md.nLevels())):
             resolution_level = md.getLevel(level)
