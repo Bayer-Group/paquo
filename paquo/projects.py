@@ -406,7 +406,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
             return str(version)
         if latest_version:
             return str(latest_version)
-        return None
+        return None  # pragma: no cover
 
     def __enter__(self):
         return self
