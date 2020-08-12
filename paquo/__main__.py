@@ -103,6 +103,7 @@ def list_(args, subparser):
     except FileNotFoundError as err:
         print(str(err), file=sys.stderr)
         return 1
+    return 0
 
 
 @subcommand(
