@@ -74,6 +74,37 @@ def test_list_cmd(project_with_data):
     assert run(main, ['list', str(project_with_data)]).return_code == 0
 
 
+def test_create_cmd_errors(tmpdir):
+    with tmpdir.as_cwd():
+        # test help
+        assert run(main, ['create']).return_code == 0
+        # test classes class_colors mismatch
+        assert run(main, ['create', 'test_project', '--classes', 'A', 'B', '--class-colors', '1']).return_code != 0
+        # test duplicate classes
+        assert run(main, ['create', 'test_project', '--classes', 'A', 'B', 'A']).return_code != 0
+        # test image not there
+        assert run(main, ['create', 'test_project', '--images', 'not-there.svs']).return_code != 0
+        # test project is there
+        p = Path(tmpdir) / "test_project"
+        p.mkdir()
+        qp = p / "project.qpproj"
+        qp.touch()
+        assert run(main, ['create', 'test_project', '--classes', 'A', 'B']).return_code != 0
+
+
+def test_create_cmd_works(tmpdir, svs_small):
+    with tmpdir.as_cwd():
+        options = [
+            'create',
+            'test_project',
+            '--classes', 'A',
+            '--remove-default-classes',
+            '--images', str(svs_small),
+        ]
+        assert run(main, options).return_code == 0
+        assert (Path(tmpdir) / "test_project" / "project.qpproj").is_file()
+
+
 def test_export_cmd(tmpdir, project_with_data):
     proj_path = project_with_data
     # help
