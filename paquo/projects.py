@@ -389,18 +389,24 @@ class QuPathProject(QuPathBase[DefaultProject]):
         return int(self.java_object.getModificationTimestamp())
 
     @property
-    def version(self) -> str:
+    def version(self) -> Optional[str]:
         """the project version. should be identical to the qupath version"""
         # for older projects this returns null.
         # for newer projects this will be set to DefaultProject.LATEST_VERSION
         # which is just GeneralTools.getVersion()...
         version = self.java_object.getVersion()
-        # fixme: this implicitly requires qupath versions >= 0.2.0-m3
-        latest_version = GeneralTools.getVersion()
+        try:
+            # note: this still implicitly requires a QuPath version that has GeneralTools
+            #   which is probably fine...
+            latest_version = GeneralTools.getVersion()
+        except AttributeError:  # pragma: no cover
+            latest_version = None
         # version is None, until we save a project to disk AND reload it!
-        if version is None:
+        if version:
+            return str(version)
+        if latest_version:
             return str(latest_version)
-        return str(version)
+        return None
 
     def __enter__(self):
         return self
