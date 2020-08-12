@@ -243,6 +243,8 @@ class QuPathProject(QuPathBase[DefaultProject]):
         """
         # test if we may add:
         img_uri = self._image_provider.uri(image_id)
+        if img_uri is None:
+            raise ValueError(f"image_provider can't provide URI for requested image_id: '{image_id}'")
         img_id = self._image_provider.id(img_uri)
         if not img_id == image_id:
             _log.warning(f"image_provider roundtrip error: '{image_id}' -> uri -> '{img_id}'")
