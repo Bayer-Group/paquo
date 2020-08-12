@@ -20,6 +20,9 @@ addopts = [
 ]
 
 
+[tool.coverage.run]
+source = ["paquo"]
+
 [tool.coverage.report]
 exclude_lines = [
   "pragma: no cover",
