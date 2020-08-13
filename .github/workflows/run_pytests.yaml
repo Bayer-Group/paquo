@@ -3,7 +3,7 @@ name: run pytests
 on: [push, pull_request]
 
 jobs:
-  # RUN PAUQO PYTESTS
+  # RUN PYTEST ON PAQUO SOURCE
   tests:
     name: paquo pytests on ${{ matrix.os }}::py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
@@ -96,11 +96,14 @@ jobs:
           --source
           --binary
           --out-dir dist/
+      # push all versions on master to test.pypi.org
       - name: Publish package to TestPyPI
+        if: github.ref == 'refs/heads/master'
         uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.test_pypi_password }}
           repository_url: https://test.pypi.org/legacy/
+      # push all tagged versions to pypi.org
       - name: Publish package to PyPI
         if: startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
