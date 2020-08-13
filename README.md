@@ -1,6 +1,8 @@
 PAQUO: PAthological QUpath Obsession
 ====================================
 
+[![PyPI Version](https://img.shields.io/pypi/v/paquo)](https://pypi.org/project/paquo/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paquo)](https://github.com/bayer-science-for-a-better-life/paquo)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bayer-science-for-a-better-life/paquo/run%20pytests?label=tests)](https://github.com/bayer-science-for-a-better-life/paquo/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/bayer-science-for-a-better-life/paquo)](https://codecov.io/gh/bayer-science-for-a-better-life/paquo)
 [![GitHub issues](https://img.shields.io/github/issues/bayer-science-for-a-better-life/paquo)](https://github.com/bayer-science-for-a-better-life/paquo/issues)
@@ -45,7 +47,6 @@ Contributing Guidelines
   - We allow 120 character long lines (try anyway to keep them short)
 - Please use [numpy docstrings](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard).
 - When contributing code, please try to use Pull Requests.
-- Please only use notebooks only when strictly necessary
 - tests go hand in hand with modules on ```tests``` packages at the same level. We use ```pytest```.
 
 You can setup your IDE to help you adhering to these guidelines.
