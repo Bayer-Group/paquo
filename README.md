@@ -3,7 +3,7 @@ PAQUO: PAthological QUpath Obsession
 
 [![PyPI Version](https://img.shields.io/pypi/v/paquo)](https://pypi.org/project/paquo/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paquo)](https://github.com/bayer-science-for-a-better-life/paquo)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bayer-science-for-a-better-life/paquo/run%20pytests?label=tests)](https://github.com/bayer-science-for-a-better-life/paquo/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bayer-science-for-a-better-life/paquo/paquo%20ci?label=tests)](https://github.com/bayer-science-for-a-better-life/paquo/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/bayer-science-for-a-better-life/paquo)](https://codecov.io/gh/bayer-science-for-a-better-life/paquo)
 [![GitHub issues](https://img.shields.io/github/issues/bayer-science-for-a-better-life/paquo)](https://github.com/bayer-science-for-a-better-life/paquo/issues)
 
