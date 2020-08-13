@@ -96,11 +96,13 @@ jobs:
           --source
           --binary
           --out-dir dist/
+          .
       # push all versions on master to test.pypi.org
       - name: Publish package to TestPyPI
         if: github.ref == 'refs/heads/master'
         uses: pypa/gh-action-pypi-publish@master
         with:
+          user: __token__
           password: ${{ secrets.test_pypi_password }}
           repository_url: https://test.pypi.org/legacy/
       # push all tagged versions to pypi.org
