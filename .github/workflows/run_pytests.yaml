@@ -51,7 +51,7 @@ jobs:
 
   # RUN MYPY STATIC TYPE ANALYSIS ON PAQUO SOURCE
   typing:
-    name: mypy
+    name: mypy type analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -68,12 +68,57 @@ jobs:
         run: |
           mypy paquo
 
+  # DEPLOY PAQUO TO TEST.PYPI ON SUCCESS
+  testdeploy:
+    needs: [tests, typing]
+    name: deploy to test.pypi
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install pep517
+        run: >-
+          python -m
+          pip install
+          pep517
+          --user
+      # we'll have to remove local_scheme for pushes to test.pypi pep440
+      - name: Get version without local_scheme
+        id: non_local_version
+        run: |
+          python setup.py --version | awk -F+ '{print "::set-output name=version::"$1}'
+      - name: Build a binary wheel and a source tarball
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.non_local_version.outputs.version }}
+        run: >-
+          python -m
+          pep517.build
+          --source
+          --binary
+          --out-dir dist/
+          .
+      # push all versions on master to test.pypi.org
+      - name: Publish package to TestPyPI
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.test_pypi_password }}
+          repository_url: https://test.pypi.org/legacy/
+
   # DEPLOY PAQUO TO PYPI ON SUCCESS
   deploy:
     needs: [tests, typing]
-    name: deploy
+    name: deploy to pypi
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
       - uses: actions/checkout@v1
       - name: Set up Python ${{ matrix.python-version }}
@@ -97,17 +142,8 @@ jobs:
           --binary
           --out-dir dist/
           .
-      # push all versions on master to test.pypi.org
-      - name: Publish package to TestPyPI
-        if: github.ref == 'refs/heads/master'
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.test_pypi_password }}
-          repository_url: https://test.pypi.org/legacy/
       # push all tagged versions to pypi.org
       - name: Publish package to PyPI
-        if: startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
