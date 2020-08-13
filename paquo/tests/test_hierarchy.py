@@ -143,3 +143,33 @@ def test_geojson_roundtrip_via_annotations(empty_hierarchy):
     assert h.load_geojson(TEST_ANNOTATION_POLYGON)
     output = h.to_geojson()
     assert output == TEST_ANNOTATION_POLYGON
+
+
+def test_add_to_existing_hierarchy(svs_small, tmp_path):
+    # create a project with an image and annotations
+    from shapely.geometry import Point
+    from paquo.projects import QuPathProject
+    from paquo.images import QuPathImageType
+
+    p = tmp_path / "my_project"
+    # prepare project
+    with QuPathProject(p, mode="x") as qp:
+        entry0 = qp.add_image(svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
+        entry0.hierarchy.add_annotation(
+            roi=Point(1, 1)
+        )
+
+        assert len(entry0.hierarchy) == 1
+    del qp
+
+    # read project
+    with QuPathProject(p, mode="a") as qp:
+        entry1 = qp.images[0]
+
+        assert len(entry1.hierarchy) == 1
+        entry1.hierarchy.add_annotation(
+            roi=Point(2, 2)
+        )
+        assert len(entry1.hierarchy) == 2
+
+    assert len(entry0.hierarchy) == 1
