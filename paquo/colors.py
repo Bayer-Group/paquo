@@ -95,6 +95,25 @@ class QuPathColor(NamedTuple):
             return f"<Color rgba{self.to_rgba()}>"
         return f"<Color rgb{self.to_rgb()}>"
 
+    def _repr_html_(self):
+        from paquo._repr import div, span
+        a = self.alpha / 255.
+        alpha = "alpha={:0.3f}".format(a) if self.alpha != 255 else ""
+        return div(
+            span(text=f"{self.__class__.__name__}: ", style={"font-weight": "bold"}),
+            div(style={
+                "display": "inline-block",
+                "vertical-align": "text-top",
+                "margin-right": "0.2em",
+                "width": "1em",
+                "height": "1em",
+                "border": "1px solid black",
+                "opacity": str(a),
+                "background": self.to_hex()
+            }),
+            span(text=f"{self.to_hex()} {alpha}"),
+        )
+
     @classmethod
     def from_any(cls, value: ColorType) -> 'QuPathColor':
         """try creating a QuPathColor from all supported types"""
