@@ -174,6 +174,13 @@ def test_project_add_image(new_project, svs_small):
     assert object() not in new_project.images
 
 
+def test_project_add_image_writes_project(tmp_path, svs_small):
+    qp = QuPathProject(tmp_path)
+    qp.add_image(svs_small)
+
+    assert qp.path.is_file()
+
+
 def test_project_add_image_twice(new_project, svs_small):
     new_project.add_image(svs_small)
     with pytest.raises(FileExistsError):
