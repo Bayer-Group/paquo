@@ -320,6 +320,8 @@ class QuPathProject(QuPathBase[DefaultProject]):
         py_entry = self._image_entries_proxy[-1]
         if image_type is not None:
             py_entry.image_type = image_type
+        # save project after adding image
+        self.save()
         return py_entry
 
     def is_readable(self) -> Dict[Hashable, bool]:
