@@ -470,7 +470,73 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
             return QuPathPathObjectHierarchy(self.java_object.readHierarchy(), _image_ref=self)
 
     def __repr__(self):
-        return f"<ImageEntry('{self.image_name}')>"
+        return f"<ImageEntry image_name='{self.image_name}'>"
+
+    def _repr_html_(self, compact=False, index=0, to_str=False):
+        from base64 import b64encode
+        from paquo._repr import br, h4, img, div, p, span
+
+        img_css = {
+            "max-width": "100px",
+            "max-height": "100px",
+            "border": "1px solid",
+            "margin": "auto",
+        }
+        header_css = {
+            "position": "absolute",
+            "top": "-1.6em",
+            "width": "100px",
+            "overflow": "hidden",
+            "text-overflow": "ellipsis",
+            "font-size": "0.75em",
+        }
+        container_css = {
+            "display": "flex",
+            "align-items": "center",
+            "justify-content": "center",
+            "position": "relative",
+            "width": "100px",
+            "height": "100px",
+            "background": "#ddd",
+            "margin": "2px",
+        }
+
+        try:
+            with (self.entry_path / "thumbnail.jpg").open(mode="rb") as f:
+                data = b64encode(f.read()).decode('utf-8')
+        except FileNotFoundError:
+            image = span(style={"font-size": "3em"}, text="?")
+        else:
+            image = img(title=self.image_name,
+                        src=f"data:image/jpeg;base64,{data}",
+                        style=img_css)
+        if compact:
+            container_css["margin-top"] = "1em"
+            return div(
+                span(text=f"[{index}]\xa0{self.image_name}", style=header_css),
+                image,
+                style=container_css
+            )
+
+        try:
+            uri = self.uri[5:]
+        except RuntimeError as err:
+            uri = f"N/A ({err})"
+        return div(
+            h4(text=f"Image: {self.image_name}", style={"margin-top": "0"}),
+            p(
+                span(text="path: ", style={"font-weight": "bold"}),
+                span(text=uri),
+                br(),
+                span(text="type: ", style={"font-weight": "bold"}),
+                span(text=str(self.image_type.value)),
+                style={"margin": "0.5em"},
+            ),
+            div(
+                image,
+                style=container_css,
+            )
+        )
 
     @property
     def uri(self):
