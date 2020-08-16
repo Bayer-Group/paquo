@@ -216,6 +216,53 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
     def measurements(self):
         return _MeasurementList(self.java_object.getMeasurementList())
 
+    def __repr__(self):
+        name = self.name
+        path_class = self.path_class
+        roi = self.roi
+        out = [self.__class__.__name__]
+        if name:
+            out.append(f"name='{name}'")
+        if path_class:
+            out.append(f"class='{path_class.name}'")
+        if roi:
+            out.append(f"roi={roi.type}")
+        return f"<{' '.join(out)}>"
+
+    def _repr_html_(self):
+        from paquo._repr import br, div, h4, p, span, rawhtml, repr_svg
+
+        obj_class_name = self.__class__.__name__
+        if obj_class_name.startswith('QuPath'):
+            obj_class_name = obj_class_name[6:]
+
+        name = self.name or "N/A"
+        path_class = self.path_class
+        path_class_name = path_class.name if path_class else "N/A"
+        roi = self.roi
+        if hasattr(roi, '_repr_svg_'):
+            roi_tag = span(rawhtml(repr_svg(roi)), style={"vertical-align": "text-top"})
+        else:
+            roi_tag = span(text=roi.wkt)
+
+        return div(
+            h4(text=f"{obj_class_name}:", style={"margin-top": "0"}),
+            p(
+                span(text="name: ", style={"font-weight": "bold"}),
+                span(text=name),
+                br(),
+                span(text="path_class: ", style={"font-weight": "bold"}),
+                span(text=path_class_name),
+                br(),
+                span(text="roi_type: ", style={"font-weight": "bold"}),
+                span(text=roi.type),
+                br(),
+                span(text="roi: ", style={"font-weight": "bold"}),
+                roi_tag,
+                style={"margin": "0.5em"},
+            ),
+        )
+
 
 class QuPathPathAnnotationObject(_PathROIObject[PathAnnotationObject]):
 
