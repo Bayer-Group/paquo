@@ -22,9 +22,13 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
         self._paquo_cls = paquo_cls
 
     def add(self, x: PathROIObjectType) -> None:
+        if not isinstance(x, self._paquo_cls):
+            raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
         self._hierarchy.addPathObject(x.java_object)
 
     def discard(self, x: PathROIObjectType) -> None:
+        if not isinstance(x, self._paquo_cls):
+            raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
         self._hierarchy.removeObject(x.java_object, True)
 
     def __contains__(self, x: object) -> bool:
@@ -43,7 +47,7 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
         return map(self._paquo_cls, self._hierarchy.getObjects(None, self._paquo_cls.java_class))  # type: ignore
 
     def __repr__(self):
-        return f"<{self._paquo_cls.__name__}Set(n={len(self)})>"
+        return f"<{self._paquo_cls.__name__}Set n={len(self)}>"
 
     # provide update
     update = collections_abc.MutableSet.__ior__
