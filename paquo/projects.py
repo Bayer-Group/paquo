@@ -163,16 +163,19 @@ class QuPathProject(QuPathBase[DefaultProject]):
         if not isinstance(image_provider, ImageProvider):
             raise TypeError("image_provider must quack like a paquo.images.ImageProvider")
 
-        p = pathlib.Path(path).expanduser().absolute()
+        self._path = pathlib.Path(path)
+        self._mode = str(mode)
+
         # guarantee p points to qpproj file (allow directory)
-        if not p.suffix:
-            p /= 'project.qpproj'
-        elif p.suffix != ".qpproj":
+        if not self._path.suffix:
+            self._path /= 'project.qpproj'
+        elif self._path.suffix != ".qpproj":
             raise ValueError("project file requires '.qpproj' suffix")
 
         if not re.match(r"^[rawx][+]?$", mode):
             raise ValueError(f"unsupported mode '{mode}'")
 
+        p = self._path.expanduser().absolute()
         _exists = p.is_file()
         self._READONLY = mode == "r"
         if self._READONLY:
@@ -379,11 +382,14 @@ class QuPathProject(QuPathBase[DefaultProject]):
     @property
     def name(self) -> str:
         """project name"""
-        return str(self.java_object.getName())
+        name = str(self.java_object.getName())
+        if name.endswith("/project.qpproj"):
+            name = name[:-15]
+        return name
 
     def __repr__(self) -> str:
-        name = self.java_object.getNameFromURI(self.java_object.getURI())
-        return f'<QuPathProject "{name}">'
+        # name = self.java_object.getNameFromURI(self.java_object.getURI())
+        return f"<QuPathProject path='{self._path}' mode='{self._mode}'>"
 
     @property
     def timestamp_creation(self) -> int:
