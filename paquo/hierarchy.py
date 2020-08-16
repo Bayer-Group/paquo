@@ -1,7 +1,8 @@
 import collections.abc as collections_abc
 import json
 import math
-from typing import Optional, Iterator, MutableSet, TypeVar, Type, Any
+import weakref
+from typing import Optional, Iterator, MutableSet, TypeVar, Type, Any, TYPE_CHECKING
 
 from shapely.geometry.base import BaseGeometry
 
@@ -10,6 +11,8 @@ from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools, PathObjectHierarchy
 from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
     QuPathPathTileObject
+if TYPE_CHECKING:
+    from paquo.images import QuPathProjectImageEntry
 
 PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
 
@@ -55,7 +58,8 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
 
 class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
 
-    def __init__(self, hierarchy: Optional[PathObjectHierarchy] = None) -> None:
+    def __init__(self, hierarchy: Optional[PathObjectHierarchy] = None,
+                 *, _image_ref: Optional['QuPathProjectImageEntry'] = None) -> None:
         """qupath hierarchy stores all annotation objects
 
         Parameters
@@ -69,6 +73,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         super().__init__(hierarchy)
         self._annotations = _PathObjectSetProxy(hierarchy, paquo_cls=QuPathPathAnnotationObject)  # type: ignore
         self._detections = _PathObjectSetProxy(hierarchy, paquo_cls=QuPathPathDetectionObject)  # type: ignore
+        self._image_ref = weakref.ref(_image_ref) if _image_ref else lambda: None
 
     def __len__(self) -> int:
         """Number of objects in hierarchy (all types)"""
@@ -168,4 +173,29 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         return changed
 
     def __repr__(self):
-        return f"<Hierarchy(n_annotations={len(self._annotations)})>"
+        img: Optional['QuPathProjectImageEntry'] = self._image_ref()
+        if img:
+            img_name = img.image_name
+        else:
+            img_name = 'N/A'
+        return f"<Hierarchy image={img_name} annotations={len(self._annotations)} detections={len(self._detections)}>"
+
+    def _repr_html_(self):
+        from paquo._repr import br, div, h4, p, span
+
+        img: Optional['QuPathProjectImageEntry'] = self._image_ref()
+        if img:
+            img_name = img.image_name
+        else:
+            img_name = 'N/A'
+        return div(
+            h4(text=f"Hierarchy: {img_name}", style={"margin-top": "0"}),
+            p(
+                span(text="annotations: ", style={"font-weight": "bold"}),
+                span(text=f"{len(self._annotations)}"),
+                br(),
+                span(text="detections: ", style={"font-weight": "bold"}),
+                span(text=f"{len(self._detections)}"),
+                style={"margin": "0.5em"},
+            ),
+        )

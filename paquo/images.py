@@ -464,10 +464,10 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def hierarchy(self) -> QuPathPathObjectHierarchy:
         """the image entry hierarchy. it contains all annotations"""
         try:
-            return QuPathPathObjectHierarchy(self._image_data.getHierarchy())
+            return QuPathPathObjectHierarchy(self._image_data.getHierarchy(), _image_ref=self)
         except OSError:
             _log.warning("could not open image data. loading annotation hierarchy from project.")
-            return QuPathPathObjectHierarchy(self.java_object.readHierarchy())
+            return QuPathPathObjectHierarchy(self.java_object.readHierarchy(), _image_ref=self)
 
     def __repr__(self):
         return f"<ImageEntry('{self.image_name}')>"
