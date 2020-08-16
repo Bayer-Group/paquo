@@ -173,3 +173,34 @@ def test_add_to_existing_hierarchy(svs_small, tmp_path):
         assert len(entry1.hierarchy) == 2
 
     assert len(entry0.hierarchy) == 1
+
+
+def test_add_duplicate_to_hierarchy(svs_small, tmp_path):
+    """adding duplicate annotations works"""
+    # create a project with an image and annotations
+    from shapely.geometry import Polygon
+    from paquo.projects import QuPathProject
+    from paquo.images import QuPathImageType
+
+    p = tmp_path / "my_project"
+    # prepare project
+    with QuPathProject(p, mode="x") as qp:
+        entry0 = qp.add_image(svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
+        annotation = entry0.hierarchy.add_annotation(
+            roi=Polygon.from_bounds(0, 0, 10, 10),
+        )
+        annotation.name = "abc"
+
+        assert len(entry0.hierarchy) == 1
+    del qp
+
+    # read project
+    with QuPathProject(p, mode="a") as qp:
+        entry1 = qp.images[0]
+
+        assert len(entry1.hierarchy) == 1
+        entry1.hierarchy.add_annotation(
+            roi=Polygon.from_bounds(0, 0, 10, 10)
+        )
+        annotation.name = "abc"
+        assert len(entry1.hierarchy) == 2
