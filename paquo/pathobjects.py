@@ -72,6 +72,9 @@ class _MeasurementList(MutableMapping):
     def __repr__(self):
         return f"<Measurements({repr(dict(self))})>"
 
+    def __str__(self):
+        return str(dict(self))
+
     def to_records(self):
         return [{'name': name, 'value': value} for name, value in self.items()]
 
