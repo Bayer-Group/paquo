@@ -79,6 +79,17 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
     def __repr__(self):
         return f"<ImageEntries({repr([entry.image_name for entry in self])})>"
 
+    def _repr_html_(self, compact=False) -> str:
+        from paquo._repr import div, h4, repr_html
+        images = [
+            repr_html(img, compact=True, index=idx) for idx, img in enumerate(self)
+        ]
+        header_css = {"margin-top": "0"} if not compact else {}
+        return div(
+            h4(text="Images:", style=header_css),
+            div(*images, style={"display": "flex"}),
+        )
+
     @overload
     def __getitem__(self, i: int) -> QuPathProjectImageEntry: ...
 
@@ -390,6 +401,21 @@ class QuPathProject(QuPathBase[DefaultProject]):
     def __repr__(self) -> str:
         # name = self.java_object.getNameFromURI(self.java_object.getURI())
         return f"<QuPathProject path='{self._path}' mode='{self._mode}'>"
+
+    def _repr_html_(self) -> str:
+        from paquo._repr import br, h3, div, p, span, repr_html
+        return div(
+            h3(style={"margin-top": "0"}, text=f"Project: {self.name}"),
+            p(
+                span(text="path: ", style={"font-weight": "bold"}),
+                span(text=str(self._path)),
+                br(),
+                span(text="mode: ", style={"font-weight": "bold"}),
+                span(text=self._mode),
+                style={"margin": "0.5em"},
+            ),
+            repr_html(self.images),
+        )
 
     @property
     def timestamp_creation(self) -> int:
