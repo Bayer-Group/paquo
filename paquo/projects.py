@@ -388,7 +388,10 @@ class QuPathProject(QuPathBase[DefaultProject]):
         """
         for entry in self.images:
             entry.save()
-        self.java_object.syncChanges()
+        try:
+            self.java_object.syncChanges()
+        except IOException:
+            raise IOError("occurred when trying to save the project")
 
     @property
     def name(self) -> str:
