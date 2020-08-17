@@ -212,7 +212,7 @@ def test_image_type(image_entry):
 @pytest.mark.parametrize(
     "uri,parts1n,exc", [
         ("\\\\SHARE\\site\\2020-01-01\\image 123-X,X.svs", None, ValueError),  # weird non-uri found in one project
-        ("file:////SHARE/site/image.svs", ('SHARE', 'site', 'image.svs'), None),  # share on win
+        ("file:////SHARE/site/ABC/image.svs", ('ABC', 'image.svs'), None),  # share on win
         ("file:/C:/ABC/image.svs", ('ABC', 'image.svs'), None),  # win-style uris
         ("file:/C:/ABC%20-%20ABC/image.svs", ('ABC - ABC', 'image.svs'), None),
         ("file:/C:/ABC,ABC/image.svs", ('ABC,ABC', 'image.svs'), None),
