@@ -56,8 +56,10 @@ class ImageProvider(ABC):
 
         # check if we encode a windows path
         # fixme: not sure if there's a better way to do this...
-        if re.match("/[A-Z]:/", path_str):
+        if re.match(r"/[A-Z]:/[^/]", path_str):
             return PureWindowsPath(path_str[1:])
+        elif re.match(r"//(?P<share>[^/]+)/(?P<directory>[^/]+)/", path_str):
+            return PureWindowsPath(path_str)
         else:
             return PurePosixPath(path_str)
 
