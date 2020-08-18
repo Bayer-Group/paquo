@@ -2,7 +2,7 @@ import platform
 import shutil
 import tempfile
 from operator import itemgetter
-from pathlib import Path
+from pathlib import Path, PureWindowsPath, PurePosixPath
 
 import pytest
 
@@ -220,55 +220,55 @@ TEST_URIS = {
     "network-share": {  # share on win
         "uri": "file:////SHARE/site/ABC/image.svs",
         "parts": ('ABC', 'image.svs'),
-        "path": None,
+        "path": PureWindowsPath("//SHARE/site/", 'ABC', 'image.svs'),
         "exception": None,
     },
     "win-simple": {  # win-style uris
         "uri": "file:/C:/ABC/image.svs",
         "parts": ('ABC', 'image.svs'),
-        "path": None,
+        "path": PureWindowsPath("C:/", 'ABC', 'image.svs'),
         "exception": None,
     },
     "win-spaces": {
         "uri": "file:/C:/ABC%20-%20ABC/image.svs",
         "parts": ('ABC - ABC', 'image.svs'),
-        "path": None,
+        "path": PureWindowsPath("C:/", 'ABC - ABC', 'image.svs'),
         "exception": None,
     },
     "win-commas": {
         "uri": "file:/C:/ABC,ABC/image.svs",
         "parts": ('ABC,ABC', 'image.svs'),
-        "path": None,
+        "path": PureWindowsPath("C:/", 'ABC,ABC', 'image.svs'),
         "exception": None,
     },
     "win-space-comma": {
         "uri": "file:/C:/ABC%20,%20ABC/image.svs",
         "parts": ('ABC , ABC', 'image.svs'),
-        "path": None,
+        "path": PureWindowsPath("C:/", 'ABC , ABC', 'image.svs'),
         "exception": None,
     },
     "win-comb-01": {
         "uri": "file:/D:/2020-01-01/image.svs",
         "parts": ('2020-01-01', 'image.svs'),
-        "path": None,
+        "path": PureWindowsPath("D:/", '2020-01-01', 'image.svs'),
         "exception": None,
     },
     "win-comb-02": {
         "uri": "file:/F:/2020-01-01/image-123-abc.svs",
         "parts": ('2020-01-01', 'image-123-abc.svs'),
-        "path": None,
+        "path": PureWindowsPath("F:/", '2020-01-01', 'image-123-abc.svs'),
         "exception": None,
     },
     "win-comb-03": {
         "uri": "file:/U:/site/ABC%20ABC/image.svs",
         "parts": ('site', 'ABC ABC', 'image.svs'),
-        "path": None,
+        "path": PureWindowsPath("U:/", 'site', 'ABC ABC', 'image.svs'),
         "exception": None,
     },
     "posix": {  # posix-style uri
         "uri": "file:/site/image.svs",
         "parts": ('site', 'image.svs'),
-        "path": None,
+        "path": PurePosixPath("/", 'site', 'image.svs'),
         "exception": None,
     },
 }
@@ -285,6 +285,17 @@ def test_image_provider_path_from_uri(uri, parts1n, exc):
         assert path.parts[1:] == parts1n
         new_uri = ImageProvider.uri_from_path(path)
         assert ImageProvider.compare_uris(uri, new_uri)
+
+
+@pytest.mark.parametrize(
+    "uri,path", [(x["uri"], x["path"]) for x in TEST_URIS.values() if x["exception"] is None],
+    ids=[k for k, x in TEST_URIS.items() if x["exception"] is None]
+)
+def test_image_provider_uri_to_path(uri: str, path: Path):
+    c_path = ImageProvider.path_from_uri(uri)
+    assert c_path.is_absolute()
+    assert type(c_path) is type(path)
+    assert c_path.parts == path.parts
 
 
 def test_image_provider_ducktyping():
