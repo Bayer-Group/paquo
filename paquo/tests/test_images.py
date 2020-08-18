@@ -1,6 +1,7 @@
 import platform
 import shutil
 import tempfile
+from operator import itemgetter
 from pathlib import Path
 
 import pytest
@@ -209,31 +210,73 @@ def test_image_type(image_entry):
     assert image_entry.image_type == QuPathImageType.BRIGHTFIELD_H_E
 
 
+TEST_URIS = {
+    "no-uri": {  # weird non-uri found in one project
+        "uri": "\\\\SHARE\\site\\2020-01-01\\image 123-X,X.svs",
+        "parts": None,
+        "path": None,
+        "exception": ValueError,
+    },
+    "network-share": {  # share on win
+        "uri": "file:////SHARE/site/ABC/image.svs",
+        "parts": ('ABC', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "win-simple": {  # win-style uris
+        "uri": "file:/C:/ABC/image.svs",
+        "parts": ('ABC', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "win-spaces": {
+        "uri": "file:/C:/ABC%20-%20ABC/image.svs",
+        "parts": ('ABC - ABC', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "win-commas": {
+        "uri": "file:/C:/ABC,ABC/image.svs",
+        "parts": ('ABC,ABC', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "win-space-comma": {
+        "uri": "file:/C:/ABC%20,%20ABC/image.svs",
+        "parts": ('ABC , ABC', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "win-comb-01": {
+        "uri": "file:/D:/2020-01-01/image.svs",
+        "parts": ('2020-01-01', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "win-comb-02": {
+        "uri": "file:/F:/2020-01-01/image-123-abc.svs",
+        "parts": ('2020-01-01', 'image-123-abc.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "win-comb-03": {
+        "uri": "file:/U:/site/ABC%20ABC/image.svs",
+        "parts": ('site', 'ABC ABC', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+    "posix": {  # posix-style uri
+        "uri": "file:/site/image.svs",
+        "parts": ('site', 'image.svs'),
+        "path": None,
+        "exception": None,
+    },
+}
+
+
 @pytest.mark.parametrize(
-    "uri,parts1n,exc", [
-        ("\\\\SHARE\\site\\2020-01-01\\image 123-X,X.svs", None, ValueError),  # weird non-uri found in one project
-        ("file:////SHARE/site/ABC/image.svs", ('ABC', 'image.svs'), None),  # share on win
-        ("file:/C:/ABC/image.svs", ('ABC', 'image.svs'), None),  # win-style uris
-        ("file:/C:/ABC%20-%20ABC/image.svs", ('ABC - ABC', 'image.svs'), None),
-        ("file:/C:/ABC,ABC/image.svs", ('ABC,ABC', 'image.svs'), None),
-        ("file:/C:/ABC%20,%20ABC/image.svs", ('ABC , ABC', 'image.svs'), None),
-        ("file:/D:/2020-01-01/image.svs", ('2020-01-01', 'image.svs'), None),
-        ("file:/F:/2020-01-01/image-123-abc.svs", ('2020-01-01', 'image-123-abc.svs'), None),
-        ("file:/U:/site/ABC%20ABC/image.svs", ('site', 'ABC ABC', 'image.svs'), None),
-        ("file:/site/image.svs", ('site', 'image.svs'), None),  # posix-style uri
-    ],
-    ids=[
-        "no-uri",
-        "network-share",
-        "win-simple",
-        "win-spaces",
-        "win-commas",
-        "win-space-comma",
-        "win-comb-01",
-        "win-comb-02",
-        "win-comb-03",
-        "posix",
-    ]
+    "uri,parts1n,exc", list(map(itemgetter("uri", "parts", "exception"), TEST_URIS.values())),
+    ids=list(TEST_URIS.keys())
 )
 def test_image_provider_path_from_uri(uri, parts1n, exc):
     cm = pytest.raises(exc) if exc else nullcontext()
