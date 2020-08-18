@@ -474,7 +474,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def __repr__(self):
         return f"<ImageEntry image_name='{self.image_name}'>"
 
-    def _repr_html_(self, compact=False, index=0, to_str=False):
+    def _repr_html_(self, compact=False, index=0):
         from base64 import b64encode
         from paquo._repr import br, h4, img, div, p, span
 
