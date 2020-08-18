@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
-...
+### Fixed
+- parse windows network share URIs correctly
 
 ## [0.1.1] - 2020-08-12
 ### Added
