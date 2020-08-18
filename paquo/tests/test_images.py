@@ -286,10 +286,12 @@ def test_image_provider_raise_if_invalid_uri(uri, exc):
 
 @pytest.mark.parametrize(
     "uri,path", [(x["uri"], x["path"]) for x in TEST_URIS.values() if x["exception"] is None],
-    ids = [k for k, x in TEST_URIS.items() if x["exception"] is None]
+    ids=[k for k, x in TEST_URIS.items() if x["exception"] is None]
 )
 def test_image_provider_path_from_uri(uri, path):
     new_uri = ImageProvider.uri_from_path(path)
+    assert uri == new_uri
+    # NOTE: the following test is of course weaker
     assert ImageProvider.compare_uris(uri, new_uri)
 
 
