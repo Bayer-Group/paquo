@@ -18,6 +18,28 @@ from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, I
 _log = get_logger(__name__)
 
 
+# [URI:java-python]
+# NOTE: pathlib handles URIs a little different to QuPath's java URIs
+#   having looked into it a little bit it seems neither are entirely
+#   rfc3986 compliant because they both try to be permissive with
+#   broken URIs...
+#   For the sake of moving forward we go with the workarounds below.
+#   This should all be replaced with rfc3986 compliant URI handling.
+def _normalize_pathlib_uris(uri):
+    """this will correctly unescape and normalize uri's received from pathlib.Path.as_uri()"""
+    # https://docs.oracle.com/javase/7/docs/api/java/net/URI.html section Identities
+    u = URI(uri)
+    return URI(
+        u.getScheme(),
+        u.getUserInfo(),
+        u.getHost(),
+        u.getPort(),
+        u.getPath(),
+        u.getQuery(),
+        u.getFragment()
+    )
+
+
 class ImageProvider(ABC):
     """Maps image ids to paths and paths to image ids."""
 
@@ -45,17 +67,18 @@ class ImageProvider(ABC):
         """
         Parses an URI representing a file system path into a Path.
         """
+        # TODO: needs way more tests... See note [URI:java-python]
         try:
             java_uri = URI(uri)
         except URISyntaxException:
             raise ValueError(f"not a valid uri '{uri}'")
-
+        # test current scheme support
         if str(java_uri.getScheme()) != "file":
             raise NotImplementedError("paquo only supports file:/ URIs as of now")
-        path_str = str(java_uri.getPath())
-
+        else:
+            path_str = str(java_uri.getPath())
+        # fixme: this should be replaced with something more reliable...
         # check if we encode a windows path
-        # fixme: not sure if there's a better way to do this...
         if re.match(r"/[A-Z]:/[^/]", path_str):
             return PureWindowsPath(path_str[1:])
         elif re.match(r"//(?P<share>[^/]+)/(?P<directory>[^/]+)/", path_str):
@@ -68,20 +91,28 @@ class ImageProvider(ABC):
         """
         Convert a python path object to an URI
         """
+        # TODO: needs way more tests... See note [URI:java-python]
         if not path.is_absolute():
             raise ValueError("uri_from_path requires an absolute path")
-        return str(URI(path.as_uri()).toString())
+        java_uri = str(_normalize_pathlib_uris(path.as_uri()).toString())
+        # fixme: this should be replaced with a rfc3896 compliant solution...
+        if re.match("file://([^/]|$)", java_uri):
+            uri = f"file:////{java_uri[7:]}"  # network shares have redundant authority on the java side
+        elif re.match("file:///([^/]|$)", java_uri):
+            uri = f"file:/{java_uri[8:]}"  # the local windows absolute paths don't
+        else:
+            uri = java_uri
+        return uri
 
     @staticmethod
     def compare_uris(a: str, b: str) -> bool:
-        # ... comma encoding is problematic
-        # python url encodes commas, but java doesn't
-        # need to add more tests
-        uri_a = URI(a)
-        uri_b = URI(b)
-        if any(str(uri.getScheme()) != "file" for uri in [uri_a, uri_b]):
-            raise NotImplementedError("currently untested ...")
-        return bool(uri_a.getPath() == uri_b.getPath())
+        """
+        Test if two URIs point two the same resource
+        """
+        # TODO: needs way more tests... See note [URI:java-python]
+        uri_a = _normalize_pathlib_uris(a)
+        uri_b = _normalize_pathlib_uris(b)
+        return bool(uri_a.equals(uri_b))
 
     @classmethod
     def __subclasshook__(cls, C):

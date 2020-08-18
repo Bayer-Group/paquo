@@ -288,7 +288,7 @@ def test_image_provider_raise_if_invalid_uri(uri, exc):
     "uri,path", [(x["uri"], x["path"]) for x in TEST_URIS.values() if x["exception"] is None],
     ids=[k for k, x in TEST_URIS.items() if x["exception"] is None]
 )
-def test_image_provider_path_from_uri(uri, path):
+def test_image_provider_uri_from_path(uri, path):
     new_uri = ImageProvider.uri_from_path(path)
     assert uri == new_uri
     # NOTE: the following test is of course weaker
@@ -299,7 +299,7 @@ def test_image_provider_path_from_uri(uri, path):
     "uri,path", [(x["uri"], x["path"]) for x in TEST_URIS.values() if x["exception"] is None],
     ids=[k for k, x in TEST_URIS.items() if x["exception"] is None]
 )
-def test_image_provider_uri_to_path(uri: str, path: Path):
+def test_image_provider_path_from_uri(uri: str, path: Path):
     c_path = ImageProvider.path_from_uri(uri)
     assert c_path.is_absolute()
     assert type(c_path) is type(path)
