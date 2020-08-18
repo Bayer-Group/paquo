@@ -275,16 +275,22 @@ TEST_URIS = {
 
 
 @pytest.mark.parametrize(
-    "uri,parts1n,exc", list(map(itemgetter("uri", "parts", "exception"), TEST_URIS.values())),
+    "uri,exc", list(map(itemgetter("uri", "exception"), TEST_URIS.values())),
     ids=list(TEST_URIS.keys())
 )
-def test_image_provider_path_from_uri(uri, parts1n, exc):
+def test_image_provider_raise_if_invalid_uri(uri, exc):
     cm = pytest.raises(exc) if exc else nullcontext()
     with cm:
-        path = ImageProvider.path_from_uri(uri)
-        assert path.parts[1:] == parts1n
-        new_uri = ImageProvider.uri_from_path(path)
-        assert ImageProvider.compare_uris(uri, new_uri)
+        ImageProvider.path_from_uri(uri)
+
+
+@pytest.mark.parametrize(
+    "uri,path", [(x["uri"], x["path"]) for x in TEST_URIS.values() if x["exception"] is None],
+    ids = [k for k, x in TEST_URIS.items() if x["exception"] is None]
+)
+def test_image_provider_path_from_uri(uri, path):
+    new_uri = ImageProvider.uri_from_path(path)
+    assert ImageProvider.compare_uris(uri, new_uri)
 
 
 @pytest.mark.parametrize(
