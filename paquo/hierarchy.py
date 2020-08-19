@@ -186,7 +186,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         img: Optional['QuPathProjectImageEntry'] = self._image_ref()
         if img:
             img_name = img.image_name
-        else:
+        else:  # pragma: no cover
             img_name = 'N/A'
         return div(
             h4(text=f"Hierarchy: {img_name}", style={"margin-top": "0"}),
