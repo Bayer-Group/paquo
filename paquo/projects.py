@@ -392,7 +392,8 @@ class QuPathProject(QuPathBase[DefaultProject]):
             entry.save()
         try:
             self.java_object.syncChanges()
-        except IOException:
+        # convert java land exception
+        except IOException:  # pragma: no cover
             raise IOError("occurred when trying to save the project")
 
     @property
