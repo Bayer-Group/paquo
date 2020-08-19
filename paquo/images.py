@@ -98,8 +98,9 @@ class ImageProvider(ABC):
         # fixme: this should be replaced with a rfc3896 compliant solution...
         if re.match("file://([^/]|$)", java_uri):
             uri = f"file:////{java_uri[7:]}"  # network shares have redundant authority on the java side
-        elif re.match("file:///([^/]|$)", java_uri):
-            uri = f"file:/{java_uri[8:]}"  # the local windows absolute paths don't
+        # vvv this would only be required if we wouldn't normalize the uri like above
+        # elif re.match("file:///([^/]|$)", java_uri):
+        #     uri = f"file:/{java_uri[8:]}"  # the local windows absolute paths don't
         else:
             uri = java_uri
         return uri
