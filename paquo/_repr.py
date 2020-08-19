@@ -7,16 +7,16 @@ __all__ = ["br", "div", "h3", "h4", "img", "p", "span", "css", "repr_html", "rep
 
 
 def repr_html(obj, *args, **kwargs):
-    # noinspection PyProtectedMember
     try:
+        # noinspection PyProtectedMember
         return obj._repr_html_(*args, **kwargs)
     except AttributeError:
         return repr(obj)
 
 
 def repr_svg(obj, *args, **kwargs):
-    # noinspection PyProtectedMember
     try:
+        # noinspection PyProtectedMember
         return obj._repr_svg_(*args, **kwargs)
     except AttributeError:
         return repr(obj)
