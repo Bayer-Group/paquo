@@ -11,7 +11,7 @@ from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools, PathObjectHierarchy
 from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
     QuPathPathTileObject
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from paquo.images import QuPathProjectImageEntry
 
 PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
@@ -176,7 +176,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         img: Optional['QuPathProjectImageEntry'] = self._image_ref()
         if img:
             img_name = img.image_name
-        else:
+        else:  # pragma: no cover
             img_name = 'N/A'
         return f"<Hierarchy image={img_name} annotations={len(self._annotations)} detections={len(self._detections)}>"
 

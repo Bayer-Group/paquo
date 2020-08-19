@@ -537,7 +537,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         try:
             with (self.entry_path / "thumbnail.jpg").open(mode="rb") as f:
                 data = b64encode(f.read()).decode('utf-8')
-        except FileNotFoundError:
+        except FileNotFoundError:  # pragma: no cover
             image = span(style={"font-size": "3em"}, text="?")
         else:
             image = img(title=self.image_name,
@@ -553,7 +553,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
         try:
             uri = self.uri[5:]
-        except RuntimeError as err:
+        except RuntimeError as err:  # pragma: no cover
             uri = f"N/A ({err})"
         return div(
             h4(text=f"Image: {self.image_name}", style={"margin-top": "0"}),

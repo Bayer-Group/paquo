@@ -58,7 +58,7 @@ class _NonEscapingString(str):
     def __contains__(self, item):
         if item in "&<>":
             return False
-        return super().__contains__(item)
+        return super().__contains__(item)  # pragma: no cover
 
 
 # noinspection PyPep8Naming
