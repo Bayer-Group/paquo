@@ -115,6 +115,8 @@ def test_annotation_object():
     assert ao.roi == pt
 
     # repr
+    ao.name = "abc"
+    ao.update_path_class(QuPathPathClass('myclass'))
     assert repr(ao)
 
 
