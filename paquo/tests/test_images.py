@@ -337,7 +337,7 @@ def test_image_provider_default_implementation():
     assert set(ip.rebase('file:/abc.svs', 'file:/efg.svs')) == {None}
 
 
-def test_image_provider_uri_from_path():
+def test_image_provider_uri_from_relpath_and_abspath():
     with pytest.raises(ValueError):
         ImageProvider.uri_from_path(Path('./abc.svs'))
 

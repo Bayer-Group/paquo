@@ -204,3 +204,13 @@ def test_add_duplicate_to_hierarchy(svs_small, tmp_path):
         )
         annotation.name = "abc"
         assert len(entry1.hierarchy) == 2
+
+
+def test_add_incorrect_to_hierarchy(empty_hierarchy):
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        empty_hierarchy.annotations.add("abc")
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        empty_hierarchy.annotations.discard("abc")
