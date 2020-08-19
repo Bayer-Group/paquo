@@ -243,7 +243,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         if hasattr(roi, '_repr_svg_'):
             roi_tag = span(rawhtml(repr_svg(roi)), style={"vertical-align": "text-top"})
         else:
-            roi_tag = span(text=roi.wkt)
+            roi_tag = span(text=roi.wkt)  # pragma: no cover
 
         return div(
             h4(text=f"{obj_class_name}:", style={"margin-top": "0"}),

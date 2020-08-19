@@ -114,6 +114,9 @@ def test_annotation_object():
     ao.update_roi(pt)
     assert ao.roi == pt
 
+    # repr
+    assert repr(ao)
+
 
 def test_measurements():
     ao = QuPathPathAnnotationObject.from_shapely(
@@ -127,6 +130,7 @@ def test_measurements():
     assert "measurement1" in ao.measurements
     assert len(ao.measurements) == 1
     assert repr(ao.measurements)
+    assert str(ao.measurements)
 
     # allow index access (note this depends on order of insertion)
     assert ao.measurements[0] == ao.measurements['measurement1']
