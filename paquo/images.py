@@ -600,5 +600,11 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def save(self):
         """save image entry"""
         with redirect(stdout=True, stderr=True):
-            if self.is_readable() and self.is_changed():
-                self.java_object.saveImageData(self._image_data)
+            if self.is_readable():
+                if self.is_changed():
+                    self.java_object.saveImageData(self._image_data)
+                    _log.info(f"Changes saved for '{self.image_name}'")
+                else:
+                    _log.info(f"Saving skipped for '{self.image_name}': no changes")
+            else:
+                _log.warning(f"Saving skipped for '{self.image_name}': uri '{self.uri}' not reachable")
