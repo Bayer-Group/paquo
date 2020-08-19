@@ -53,6 +53,8 @@ class _Tag(str):
 
 
 class _NonEscapingString(str):
+    # prevent raw html being escaped by:
+    # https://github.com/python/cpython/blob/0be7c216/Lib/xml/etree/ElementTree.py#L1033-L1047
     def __contains__(self, item):
         if item in "&<>":
             return False
