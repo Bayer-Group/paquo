@@ -1,47 +1,46 @@
-PAQUO: PAthological QUpath Obsession
-====================================
+# PAQUO: PAthological QUpath Obsession
 
 [![PyPI Version](https://img.shields.io/pypi/v/paquo)](https://pypi.org/project/paquo/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paquo)](https://github.com/bayer-science-for-a-better-life/paquo)
+[![Read the Docs](https://img.shields.io/readthedocs/paquo)](https://paquo.readthedocs.io)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bayer-science-for-a-better-life/paquo/paquo%20ci?label=tests)](https://github.com/bayer-science-for-a-better-life/paquo/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/bayer-science-for-a-better-life/paquo)](https://codecov.io/gh/bayer-science-for-a-better-life/paquo)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/paquo)](https://github.com/bayer-science-for-a-better-life/paquo)
 [![GitHub issues](https://img.shields.io/github/issues/bayer-science-for-a-better-life/paquo)](https://github.com/bayer-science-for-a-better-life/paquo/issues)
 
-Welcome to ```paquo``` :wave:, a library for interacting with [QuPath](https://qupath.github.io/)
-from python.
+Welcome to `paquo` :wave:, a library for interacting with [QuPath](https://qupath.github.io/)
+from [Python](https://www.python.org/).
 
-paquo [lives in github](https://github.com/bayer-science-for-a-better-life/paquo).
+`paquo`'s goal is to provide a pythonic interface to important features of
+QuPath, and to make creating and working with QuPath projects intuitive for
+Python programmers.
 
-Its goal is to provide a pythonic interface to important features of QuPath,
-and to make creating and working with QuPath projects intuitive for python
-programmers.
-
-We strive to make your lives as easy as possible: If `Paquo` is not pythonic,
+We strive to make your lives as easy as possible: If `paquo` is not pythonic,
 unintuitive, slow or if its documentation is confusing, it's a bug in
-`Paquo`. Feel free to report any issues or feature requests in the issue
+`paquo`. Feel free to report any issues or feature requests in the issue
 tracker!
 
+Development 
+[happens on github](https://github.com/bayer-science-for-a-better-life/paquo)
+:octocat:
 
-Documentation
--------------
+## Documentation
 
-You can find paquo's documentation at
+You can find `paquo`'s documentation at
 [paquo.readthedocs.io](https://paquo.readthedocs.io) :heart:
 
 
-Development Installation
-------------------------
+## Development Installation
 
 1. Install conda and git
-2. Clone paquo ```git clone https://github.com/bayer-science-for-a-better-life/paquo.git```
-3. Run ```conda env create -f environment.yaml```
-4. Activate the environment ```conda activate paquo```
+2. Clone paquo `git clone https://github.com/bayer-science-for-a-better-life/paquo.git`
+3. Run `conda env create -f environment.yaml`
+4. Activate the environment `conda activate paquo`
 
-Note that in this environment ```paquo``` is already installed in development mode,
+Note that in this environment `paquo` is already installed in development mode,
 so go ahead and hack.
 
-Contributing Guidelines
------------------------
+
+## Contributing Guidelines
 
 - Please follow [pep-8 conventions](https://www.python.org/dev/peps/pep-0008/) but:
   - We allow 120 character long lines (try anyway to keep them short)
