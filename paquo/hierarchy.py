@@ -20,34 +20,41 @@ PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
 class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
     """provides a python set interface for path objects"""
 
-    def __init__(self, hierarchy: PathObjectHierarchy, paquo_cls: Type[_PathROIObject[Any]]):
+    def __init__(self, hierarchy: 'QuPathPathObjectHierarchy', paquo_cls: Type[_PathROIObject[Any]]):
         self._hierarchy = hierarchy
+        self._java_hierarchy = hierarchy.java_object
         self._paquo_cls = paquo_cls
 
     def add(self, x: PathROIObjectType) -> None:
+        # noinspection PyProtectedMember
+        if self._hierarchy._readonly:
+            raise IOError("project in readonly mode")
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
-        self._hierarchy.addPathObject(x.java_object)
+        self._java_hierarchy.addPathObject(x.java_object)
 
     def discard(self, x: PathROIObjectType) -> None:
+        # noinspection PyProtectedMember
+        if self._hierarchy._readonly:
+            raise IOError("project in readonly mode")
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
-        self._hierarchy.removeObject(x.java_object, True)
+        self._java_hierarchy.removeObject(x.java_object, True)
 
     def __contains__(self, x: object) -> bool:
         # ... inHierarchy is private
-        # return bool(self._hierarchy.inHierarchy(x.java_object))
+        # return bool(self._java_hierarchy.inHierarchy(x.java_object))
         if not isinstance(x, self._paquo_cls):
             return False
         while x.parent is not None:
             x = x.parent
-        return bool(x.java_object == self._hierarchy.getRootObject())
+        return bool(x.java_object == self._java_hierarchy.getRootObject())
 
     def __len__(self) -> int:
-        return int(self._hierarchy.getObjects(None, self._paquo_cls.java_class).size())
+        return int(self._java_hierarchy.getObjects(None, self._paquo_cls.java_class).size())
 
     def __iter__(self) -> Iterator[PathROIObjectType]:
-        return map(self._paquo_cls, self._hierarchy.getObjects(None, self._paquo_cls.java_class))  # type: ignore
+        return map(self._paquo_cls, self._java_hierarchy.getObjects(None, self._paquo_cls.java_class))  # type: ignore
 
     def __repr__(self):
         return f"<{self._paquo_cls.__name__}Set n={len(self)}>"
@@ -71,14 +78,16 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         if hierarchy is None:
             hierarchy = PathObjectHierarchy()
         super().__init__(hierarchy)
-        self._annotations = _PathObjectSetProxy(hierarchy, paquo_cls=QuPathPathAnnotationObject)  # type: ignore
-        self._detections = _PathObjectSetProxy(hierarchy, paquo_cls=QuPathPathDetectionObject)  # type: ignore
         self._image_ref = weakref.ref(_image_ref) if _image_ref else lambda: None
+        self._annotations = _PathObjectSetProxy(self, paquo_cls=QuPathPathAnnotationObject)  # type: ignore
+        self._detections = _PathObjectSetProxy(self, paquo_cls=QuPathPathDetectionObject)  # type: ignore
 
     @property
     def _readonly(self):
         i = self._image_ref()
-        return getattr(i, "_readonly", False) if i else True
+        if i is None:
+            return False  # empty hierarchies can be modified!
+        return getattr(i, "_readonly", False)
 
     def __len__(self) -> int:
         """Number of objects in hierarchy (all types)"""
