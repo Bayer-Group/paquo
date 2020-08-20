@@ -76,6 +76,10 @@ def test_geojson_serialization(path_annotation):
 
 
 def test_annotation_object():
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        QuPathPathAnnotationObject.from_shapely(roi=123)
+
     ao = QuPathPathAnnotationObject.from_shapely(
         shapely.geometry.Point(1, 1),
         path_class=QuPathPathClass('myclass'),
