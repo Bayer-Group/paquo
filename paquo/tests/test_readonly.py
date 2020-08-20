@@ -95,6 +95,9 @@ class _Accessor:
 def test_project_attrs_and_methods(readonly_project, copy_svs_small):
     with assert_no_modification(readonly_project) as qp:
         a = _Accessor(qp)
+
+        assert qp._readonly
+
         # these are readonly anyways
         for ro_prop in iter_readonly_properties(qp):
             with pytest.raises(AttributeError):
@@ -162,3 +165,24 @@ def test_images_attrs_methods_readonly(readonly_project):
             i.callmethod("save")
 
         assert not i.unused_public_interface()
+
+
+def test_images_metadata_and_properties(readonly_project):
+
+    with assert_no_modification(readonly_project) as qp:
+        image = qp.images[0]
+        assert image._readonly
+
+        with pytest.raises(AttributeError):
+            image.metadata[12] = 3
+        with pytest.raises(AttributeError):
+            image.metadata.clear()
+        with pytest.raises(AttributeError):
+            del image.metadata[12]
+
+        with pytest.raises(AttributeError):
+            image.properties[12] = 3
+        with pytest.raises(AttributeError):
+            image.properties.clear()
+        with pytest.raises(AttributeError):
+            del image.properties[12]
