@@ -8,6 +8,7 @@ import shapely.geometry
 
 from paquo.images import ImageProvider
 from paquo.projects import QuPathProject
+from paquo._utils import cached_property
 
 
 @pytest.fixture(scope='module')
@@ -44,6 +45,16 @@ def readonly_project(project_and_changes):
     qp = QuPathProject(project_path, mode="r")
     qp.__changes = changes
     yield qp
+
+
+def iter_readonly_properties(obj):
+    cls = obj.__class__
+    for prop in dir(cls):
+        cls_prop = getattr(cls, prop)
+        if isinstance(cls_prop, property) and cls_prop.fset is None:
+            yield prop
+        if isinstance(cls_prop, cached_property):
+            yield prop
 
 
 @contextmanager
@@ -85,22 +96,11 @@ def test_project_attrs_and_methods(readonly_project, copy_svs_small):
     with assert_no_modification(readonly_project) as qp:
         a = _Accessor(qp)
         # these are readonly anyways
-        with pytest.raises(AttributeError):
-            a.setattr("path", "abc")
-        with pytest.raises(AttributeError):
-            a.setattr("version", "v123")
-        with pytest.raises(AttributeError):
-            a.setattr("java_object", 1)
-        with pytest.raises(AttributeError):
-            a.setattr("uri", "abc")
-        with pytest.raises(AttributeError):
-            a.setattr("timestamp_creation", "abc")
-        with pytest.raises(AttributeError):
-            a.setattr("timestamp_modification", "abc")
-        with pytest.raises(AttributeError):
-            a.setattr("images", [])
-        with pytest.raises(AttributeError):
-            a.setattr("name", "abc")
+        for ro_prop in iter_readonly_properties(qp):
+            with pytest.raises(AttributeError):
+                a.setattr(ro_prop, "abc")
+        #with pytest.raises(AttributeError):
+        #    a.setattr("images", [])
 
         # these dont do anything
         a.callmethod("is_readable")
@@ -125,3 +125,40 @@ def test_project_attrs_and_methods(readonly_project, copy_svs_small):
 
         # make sure everything is covered in case we extend the classes later
         assert not a.unused_public_interface()
+
+
+def test_images_attrs_methods_readonly(readonly_project):
+    with assert_no_modification(readonly_project) as qp:
+        image = qp.images[0]
+        i = _Accessor(image)
+
+        assert image._readonly
+
+        # readonly properties
+        for ro_prop in iter_readonly_properties(image):
+            with pytest.raises(AttributeError):
+                i.setattr(ro_prop, "abc")
+
+        # test writable properties
+        with pytest.raises(AttributeError):
+            i.setattr("description", "abc")
+        with pytest.raises(AttributeError):
+            i.setattr("image_name", "abc")
+        with pytest.raises(AttributeError):
+            i.setattr("image_type", "abc")
+
+        # these do nothing
+        i.callmethod("is_changed")
+        i.callmethod("is_readable")
+
+        # these need to be blocked
+        with pytest.raises(AttributeError):
+            i.setattr("metadata", {})
+        with pytest.raises(AttributeError):
+            i.setattr("properties", {})
+
+        # methods that are not allowed
+        with pytest.raises(IOError):
+            i.callmethod("save")
+
+        assert not i.unused_public_interface()
