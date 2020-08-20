@@ -75,6 +75,11 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         self._detections = _PathObjectSetProxy(hierarchy, paquo_cls=QuPathPathDetectionObject)  # type: ignore
         self._image_ref = weakref.ref(_image_ref) if _image_ref else lambda: None
 
+    @property
+    def _readonly(self):
+        i = self._image_ref()
+        return getattr(i, "_readonly", False) if i else True
+
     def __len__(self) -> int:
         """Number of objects in hierarchy (all types)"""
         return int(self.java_object.nObjects())
@@ -107,6 +112,8 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                        *,
                        path_class_probability: float = math.nan) -> QuPathPathAnnotationObject:
         """convenience method for adding annotations"""
+        if self._readonly:
+            raise IOError("project in readonly mode")
         obj = QuPathPathAnnotationObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
@@ -125,6 +132,8 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                       measurements: Optional[dict] = None,
                       *,
                       path_class_probability: float = math.nan) -> QuPathPathDetectionObject:
+        if self._readonly:
+            raise IOError("project in readonly mode")
         """convenience method for adding detections"""
         obj = QuPathPathDetectionObject.from_shapely(
             roi, path_class, measurements,
@@ -145,6 +154,8 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         -----
         these will be added to self.detections
         """
+        if self._readonly:
+            raise IOError("project in readonly mode")
         obj = QuPathPathTileObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
@@ -164,6 +175,8 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         returns True if new objects were added, False otherwise.
         """
         # todo: use geojson module for type checking?
+        if self._readonly:
+            raise IOError("project in readonly mode")
         if not isinstance(geojson, list):
             raise TypeError("requires a geojson list")
         changed = False
