@@ -33,7 +33,7 @@ with QuPathProject(EXAMPLE_PROJECT, mode='x') as qp:
     print("created", qp.name)
     # add an image
     entry = qp.add_image(
-        filename=EXAMPLE_IMAGE,
+        EXAMPLE_IMAGE,
         image_type=QuPathImageType.BRIGHTFIELD_H_E
     )
 

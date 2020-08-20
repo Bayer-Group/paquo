@@ -30,7 +30,7 @@ with QuPathProject(EXAMPLE_PROJECT, mode='x') as qp:
 
     for image_fn, metadata in METADATA.items():
         entry = qp.add_image(
-            filename=EXAMPLE_IMAGE_DIR / image_fn,
+            EXAMPLE_IMAGE_DIR / image_fn,
             image_type=QuPathImageType.BRIGHTFIELD_H_E
         )
         # entry.metadata is a dict-like proxy:
