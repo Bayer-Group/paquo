@@ -4,7 +4,12 @@ from pathlib import Path
 __all__ = ['cached_property', 'nullcontext', 'make_backup_filename']
 
 try:
-    from functools import cached_property  # type: ignore
+    from functools import cached_property as _cached_property # type: ignore
+
+    # noinspection PyPep8Naming
+    class cached_property(_cached_property):
+        def __set__(self, obj, value):
+            raise AttributeError(f"readonly attribute {self.attrname}")
 except ImportError:
     # noinspection PyPep8Naming
     class cached_property:  # type: ignore  # https://github.com/python/mypy/issues/1153
@@ -17,6 +22,9 @@ except ImportError:
                 return self  # pragma: no cover
             value = obj.__dict__[self.name] = self.getter(obj)
             return value
+
+        def __set__(self, obj, value):
+            raise AttributeError(f"readonly attribute {self.name}")
 
 try:
     from contextlib import nullcontext  # type: ignore
