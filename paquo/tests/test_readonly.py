@@ -55,7 +55,7 @@ def assert_no_modification(qp):
     assert files
     for file in files:
         p = str(file.absolute())
-        assert qp.__changes[p] == file.stat().st_mtime, f"{str(file.relative_to(project_path))} was modified"
+        assert qp.__changes.get(p, None) == file.stat().st_mtime, f"{str(file.relative_to(project_path))} was modified"
     assert qp.timestamp_creation == ctime
     assert qp.timestamp_modification == mtime
 
@@ -111,7 +111,7 @@ def test_project_attrs_and_methods(readonly_project, copy_svs_small):
 
         # These should raise an IOError when readonly
         with pytest.raises(IOError):
-            a.callmethod("add_image", "./image")
+            a.callmethod("add_image", copy_svs_small, allow_duplicates=True)
         with pytest.raises(IOError):
             a.callmethod("save")
 
