@@ -253,6 +253,9 @@ class QuPathProject(QuPathBase[DefaultProject]):
             check if file has already been added to the project.
 
         """
+        # readonly?
+        if self._READONLY:
+            raise IOError("project in readonly mode")
         # test if we may add:
         img_uri = self._image_provider.uri(image_id)
         if img_uri is None:
