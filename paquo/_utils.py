@@ -23,8 +23,8 @@ except ImportError:
             value = obj.__dict__[self.name] = self.getter(obj)
             return value
 
-        def __set__(self, obj, value):
-            raise AttributeError(f"readonly attribute {self.name}")
+        # def __set__(self, obj, value):
+        #     raise AttributeError(f"readonly attribute {self.name}")
 
 try:
     from contextlib import nullcontext  # type: ignore
