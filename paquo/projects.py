@@ -188,7 +188,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
 
         p = self._path.expanduser().absolute()
         _exists = p.is_file()
-        self._READONLY = mode == "r"
+        self._readonly = mode == "r"
 
         if mode in {"r", "r+"} and not _exists:
             raise FileNotFoundError(p)
@@ -254,7 +254,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
 
         """
         # readonly?
-        if self._READONLY:
+        if self._readonly:
             raise IOError("project in readonly mode")
         # test if we may add:
         img_uri = self._image_provider.uri(image_id)
@@ -375,7 +375,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
     @path_classes.setter
     def path_classes(self, path_classes: Iterable[QuPathPathClass]):
         """to add path_classes reassign all path_classes here"""
-        if self._READONLY:
+        if self._readonly:
             raise AttributeError("project in readonly mode")
         pcs = [pc.java_object for pc in path_classes]
         self.java_object.setPathClasses(pcs)
@@ -391,7 +391,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
 
         (writes path_classes and project data)
         """
-        if self._READONLY:
+        if self._readonly:
             raise IOError("project in readonly mode")
         for entry in self.images:
             entry.save()

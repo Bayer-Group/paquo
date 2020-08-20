@@ -371,7 +371,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     @property
     def _readonly(self):
         p = self._project_ref()
-        return getattr(p, "_READONLY", False) if p else True
+        return getattr(p, "_readonly", False) if p else True
 
     @cached_property
     def _image_data(self):
