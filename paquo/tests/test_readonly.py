@@ -186,3 +186,33 @@ def test_images_metadata_and_properties(readonly_project):
             image.properties.clear()
         with pytest.raises(AttributeError):
             del image.properties[12]
+
+
+def test_hierarchy(readonly_project):
+
+    with assert_no_modification(readonly_project) as qp:
+        image = qp.images[0]
+        hierarchy = image.hierarchy
+        assert hierarchy._readonly
+
+        h = _Accessor(hierarchy)
+
+        # readonly properties
+        for ro_prop in iter_readonly_properties(hierarchy):
+            with pytest.raises(AttributeError):
+                h.setattr(ro_prop, "abc")
+
+        # these do nothing
+        h.callmethod("to_geojson")
+
+        # these are not allowed in readonly
+        with pytest.raises(IOError):
+            h.callmethod("add_annotation", '--placeholder--')
+        with pytest.raises(IOError):
+            h.callmethod("add_detection", '--placeholder--')
+        with pytest.raises(IOError):
+            h.callmethod("add_tile", '--placeholder--')
+        with pytest.raises(IOError):
+            h.callmethod("load_geojson", '--placeholder--')
+
+        assert not h.unused_public_interface()
