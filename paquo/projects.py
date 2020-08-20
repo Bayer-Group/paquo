@@ -30,13 +30,13 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
     # todo: decide if this should be a mapping or not...
     #   maybe with key id? to simplify re-association
 
-    def __init__(self, project: DefaultProject):
-        if not isinstance(project, DefaultProject):
+    def __init__(self, project: 'QuPathProject'):
+        if not isinstance(project.java_object, DefaultProject):
             raise TypeError('requires DefaultProject instance')  # pragma: no cover
         self._project = project
         self._images = {
-            self._key_func(entry): QuPathProjectImageEntry(entry)
-            for entry in self._project.getImageList()
+            self._key_func(entry): QuPathProjectImageEntry(entry, _project_ref=self._project)
+            for entry in self._project.java_object.getImageList()
         }
 
     def _key_func(self, entry):
@@ -47,16 +47,16 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         # basically `DefaultProjectImageEntry.getFullProjectEntryID()`
         # but don't go via image_data
         return (
-            str(self._project.getPath().toAbsolutePath().toString()),
+            str(self._project.java_object.getPath().toAbsolutePath().toString()),
             str(entry.getID()),
         )
 
     def refresh(self):
         removed = set(self._images.keys())
-        for entry in self._project.getImageList():
+        for entry in self._project.java_object.getImageList():
             key = self._key_func(entry)
             if key not in self._images:
-                self._images[key] = QuPathProjectImageEntry(entry)
+                self._images[key] = QuPathProjectImageEntry(entry, _project_ref=self._project)
             else:
                 removed.discard(key)  # existing entry
         if removed:
@@ -212,7 +212,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
             project = Projects.createProject(File(str(p_dir)), BufferedImage)
 
         super().__init__(project)
-        self._image_entries_proxy = _ProjectImageEntriesProxy(project)
+        self._image_entries_proxy = _ProjectImageEntriesProxy(self)
         self._image_provider = image_provider
 
     @property

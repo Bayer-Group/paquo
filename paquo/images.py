@@ -1,12 +1,13 @@
 import json
 import pathlib
 import re
+import weakref
 from abc import ABC, abstractmethod
 from collections.abc import MutableMapping, Hashable
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
-from typing import Iterator, Optional, Any, List, Dict, Union
+from typing import Iterator, Optional, Any, List, Dict, Union, TYPE_CHECKING
 
 from paquo._base import QuPathBase
 from paquo._logging import redirect, get_logger
@@ -14,6 +15,8 @@ from paquo._utils import cached_property
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException, \
     PathIO, File, BufferedImage, FileNotFoundException
+if TYPE_CHECKING:
+    from paquo.projects import QuPathProject
 
 _log = get_logger(__name__)
 
@@ -353,7 +356,8 @@ class QuPathImageType(str, Enum):
 
 class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
-    def __init__(self, entry: DefaultProjectImageEntry) -> None:
+    def __init__(self, entry: DefaultProjectImageEntry,
+                 *, _project_ref: Optional['QuPathProject'] = None) -> None:
         """Wrapper for qupath image entries
 
         this is normally not instantiated by the user
@@ -362,6 +366,12 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
             raise ValueError("don't instantiate directly. use `QuPathProject.add_image`")
         super().__init__(entry)
         self._metadata = _ProjectImageEntryMetadata(entry)
+        self._project_ref = weakref.ref(_project_ref) if _project_ref else lambda: None
+
+    @property
+    def _readonly(self):
+        p = self._project_ref()
+        return getattr(p, "_READONLY", False) if p else True
 
     @cached_property
     def _image_data(self):
@@ -409,6 +419,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @image_name.setter
     def image_name(self, name: str) -> None:
+        if self._readonly:
+            raise AttributeError("project in readonly mode")
         self.java_object.setImageName(String(name))
 
     # remove until there's a good use case for this...
@@ -425,6 +437,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @image_type.setter
     def image_type(self, value: QuPathImageType) -> None:
+        if self._readonly:
+            raise AttributeError("project in readonly mode")
         if not isinstance(value, QuPathImageType):
             raise TypeError("requires a QuPathImageType enum")
         self._image_data.setImageType(value.java_enum)
@@ -439,6 +453,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @description.setter
     def description(self, text: str) -> None:
+        if self._readonly:
+            raise AttributeError("project in readonly mode")
         self.java_object.setDescription(text)
 
     @property
@@ -481,6 +497,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @metadata.setter
     def metadata(self, value: dict) -> None:
+        if self._readonly:
+            raise AttributeError("project in readonly mode")
         self._metadata.clear()
         self._metadata.update(value)
 
@@ -491,6 +509,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @properties.setter
     def properties(self, value):
+        if self._readonly:
+            raise AttributeError("project in readonly mode")
         self._properties.clear()
         self._properties.update(value)
 
@@ -601,6 +621,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def save(self):
         """save image entry"""
         with redirect(stdout=True, stderr=True):
+            if self._readonly:
+                raise IOError("project in readonly mode")
             if self.is_readable():
                 if self.is_changed():
                     self.java_object.saveImageData(self._image_data)
