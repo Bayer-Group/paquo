@@ -58,8 +58,7 @@ def test_project_creation_input_error(tmp_path):
 # noinspection PyTypeChecker
 @pytest.mark.parametrize(
     "mode", [
-        pytest.param('r', marks=pytest.mark.xfail),  # not implemented yet
-        'r+', 'w', 'w+', 'a', 'a+', 'x', 'x+'
+        'r', 'r+', 'w', 'w+', 'a', 'a+', 'x', 'x+'
     ]
 )
 def test_project_creation_mode(mode, tmp_path2, new_project):
@@ -76,7 +75,12 @@ def test_project_creation_mode(mode, tmp_path2, new_project):
     assert not any(p.parent.parent.glob('*.backup'))
 
     # test creating in existing dir
-    cm = pytest.raises(FileExistsError) if "x" in mode else nullcontext()
+    if "x" in mode:
+        cm = pytest.raises(FileExistsError)
+    elif "r" == mode:
+        cm = pytest.raises(IOError)  # can't save!
+    else:
+        cm = nullcontext()
     with cm:
         QuPathProject(p, mode=mode).save()
 
