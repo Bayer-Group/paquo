@@ -216,3 +216,19 @@ def test_hierarchy(readonly_project):
             h.callmethod("load_geojson", '--placeholder--')
 
         assert not h.unused_public_interface()
+
+
+def test_hierarchy_annotations_detections(readonly_project):
+    with assert_no_modification(readonly_project) as qp:
+        image = qp.images[0]
+        hierarchy = image.hierarchy
+        assert hierarchy._readonly
+
+        with pytest.raises(IOError):
+            hierarchy.annotations.add(1)
+        with pytest.raises(IOError):
+            hierarchy.annotations.discard(1)
+        with pytest.raises(IOError):
+            hierarchy.detections.add(1)
+        with pytest.raises(IOError):
+            hierarchy.detections.discard(1)
