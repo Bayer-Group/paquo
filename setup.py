@@ -13,6 +13,7 @@ setup(
     # providing the settings is required for `python setup.py develop`
     # to work correctly with setuptools_scm
     # > set to `True` if we only allow `pip install -e .`
+    # ^^^ `True` requires a pyproject.toml with the below config!
     use_scm_version={
         # duplicated config from pyproject.toml; keep in sync
         "write_to": "paquo/_version.py",
