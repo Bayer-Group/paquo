@@ -154,7 +154,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
 
     def __init__(self,
                  path: Union[str, pathlib.Path],
-                 mode: ProjectIOMode = 'x',
+                 mode: ProjectIOMode = 'r',
                  *,
                  image_provider: ImageProvider = DEFAULT_IMAGE_PROVIDER):
         """load or create a new qupath project
