@@ -14,7 +14,7 @@ from paquo._utils import cached_property
 @pytest.fixture(scope='module')
 def project_and_changes(svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir)
+        qp = QuPathProject(tmpdir, mode='x')
         entry = qp.add_image(svs_small)
         entry.hierarchy.add_annotation(
             roi=shapely.geometry.Point(1, 2)

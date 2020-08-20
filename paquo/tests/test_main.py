@@ -26,7 +26,7 @@ def project_with_data(svs_small):
     from paquo.projects import QuPathProject
 
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmp_path:
-        with QuPathProject(tmp_path) as qp:
+        with QuPathProject(tmp_path, mode='x') as qp:
             entry = qp.add_image(svs_small, image_type=QuPathImageType.BRIGHTFIELD_OTHER)
             entry.hierarchy.add_annotation(
                 roi=Point(500, 500)

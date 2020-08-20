@@ -462,4 +462,5 @@ class QuPathProject(QuPathBase[DefaultProject]):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.save()
+        if not self._readonly:
+            self.save()

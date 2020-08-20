@@ -53,7 +53,7 @@ def prepare_example_resources():
     shutil.rmtree(example_project_dir, ignore_errors=True)
 
     print(">>> creating project...")
-    with QuPathProject(example_project_dir) as qp:
+    with QuPathProject(example_project_dir, mode="x") as qp:
         for img_fn in images:
             qp.add_image(img_fn, image_type=QuPathImageType.BRIGHTFIELD_H_E)
         qp.path_classes = map(QuPathPathClass, ["myclass_0", "myclass_1", "myclass_2"])

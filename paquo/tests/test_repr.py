@@ -14,13 +14,13 @@ from paquo.projects import QuPathProject
 
 @pytest.fixture(scope='function')
 def new_project(tmp_path):
-    yield QuPathProject(tmp_path / "paquo-project")
+    yield QuPathProject(tmp_path / "paquo-project", mode='x')
 
 
 @pytest.fixture(scope='module')
 def image_entry(svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir)
+        qp = QuPathProject(tmpdir, mode='x')
         entry = qp.add_image(svs_small)
         yield entry
 

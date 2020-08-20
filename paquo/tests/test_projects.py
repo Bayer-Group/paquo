@@ -13,7 +13,7 @@ from paquo.projects import QuPathProject
 
 @pytest.fixture(scope='function')
 def new_project(tmp_path):
-    yield QuPathProject(tmp_path / "paquo-project")
+    yield QuPathProject(tmp_path / "paquo-project", mode='x')
 
 
 @pytest.fixture(scope='function')
@@ -23,7 +23,7 @@ def tmp_path2(tmp_path):
 
 def test_project_instance():
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        q = QuPathProject(tmpdir)
+        q = QuPathProject(tmpdir, mode='x')
         repr(q)
         q.save()
 
@@ -31,7 +31,7 @@ def test_project_instance():
 def test_project_create_no_dir():
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
         project_path = Path(tmpdir) / "new_project"
-        q = QuPathProject(project_path)
+        q = QuPathProject(project_path, mode='x')
         q.save()
 
 
@@ -52,7 +52,7 @@ def test_project_creation_input_error(tmp_path):
     with open(p / 'should-not-be-here', 'w') as f:
         f.write('project directories need to be empty')
     with pytest.raises(ValueError):
-        QuPathProject(p)
+        QuPathProject(p, mode='x')
 
 
 # noinspection PyTypeChecker
@@ -115,7 +115,7 @@ def test_project_open_with_filename(new_project):
 def test_project_name(tmp_path):
     p = Path(tmp_path) / "my_project_123"
     p.mkdir()
-    qp = QuPathProject(p)
+    qp = QuPathProject(p, mode='x')
     assert qp.name == "my_project_123"
 
 
@@ -175,7 +175,7 @@ def test_project_add_image(new_project, svs_small):
 
 
 def test_project_add_image_writes_project(tmp_path, svs_small):
-    qp = QuPathProject(tmp_path)
+    qp = QuPathProject(tmp_path, mode='x')
     qp.add_image(svs_small)
 
     assert qp.path.is_file()

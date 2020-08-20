@@ -91,7 +91,7 @@ def list_project(path):
     """print information about the project"""
     from paquo.projects import QuPathProject
 
-    with QuPathProject(path, mode='r+') as qp:
+    with QuPathProject(path, mode='r') as qp:
         print("Project:", qp.name)
         print("Classes: #", len(qp.path_classes), sep='')
         for path_class in qp.path_classes:
@@ -158,7 +158,7 @@ def export_annotations(path, image_idx, pretty=False):
     from paquo.projects import QuPathProject
     import pprint
 
-    with QuPathProject(path, mode='r+') as qp:
+    with QuPathProject(path, mode='r') as qp:
         image = qp.images[image_idx]
         data = image.hierarchy.to_geojson()
         if pretty:

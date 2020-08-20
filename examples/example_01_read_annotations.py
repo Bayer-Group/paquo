@@ -5,7 +5,7 @@ from paquo.projects import QuPathProject
 EXAMPLE_PROJECT = Path(__file__).parent.absolute() / "projects" / "example_01_project"
 
 # read the project and raise Exception if it's not there
-with QuPathProject(EXAMPLE_PROJECT, mode='r+') as qp:
+with QuPathProject(EXAMPLE_PROJECT, mode='r') as qp:
     print("opened", qp.name)
     # iterate over the images
     for image in qp.images:

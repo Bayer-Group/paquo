@@ -15,7 +15,7 @@ from paquo.projects import QuPathProject
 @pytest.fixture(scope='module')
 def image_entry(svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir)
+        qp = QuPathProject(tmpdir, mode='x')
         entry = qp.add_image(svs_small)
         yield entry
 
@@ -31,7 +31,7 @@ def removable_svs_small(svs_small):
 @pytest.fixture(scope='function')
 def project_with_removed_image(removable_svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir)
+        qp = QuPathProject(tmpdir, mode='x')
         _ = qp.add_image(removable_svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
         qp.save()
         removable_svs_small.unlink()
@@ -41,7 +41,7 @@ def project_with_removed_image(removable_svs_small):
 @pytest.fixture(scope='function')
 def project_with_removed_image_without_image_data(removable_svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir)
+        qp = QuPathProject(tmpdir, mode='x')
         _ = qp.add_image(removable_svs_small)
         qp.save()
         removable_svs_small.unlink()
@@ -151,7 +151,7 @@ def test_readonly_recovery_hierarchy(project_with_removed_image_without_image_da
 
 
 def test_readonly_recovery_image_server(project_with_removed_image):
-    with QuPathProject(project_with_removed_image, mode='r+') as qp:
+    with QuPathProject(project_with_removed_image, mode='r') as qp:
         image_entry = qp.images[0]
 
         assert image_entry.height
@@ -289,6 +289,7 @@ def test_image_provider_raise_if_invalid_uri(uri, exc):
     ids=[k for k, x in TEST_URIS.items() if x["exception"] is None]
 )
 def test_image_provider_uri_from_path(uri, path):
+    # noinspection PyTypeChecker
     new_uri = ImageProvider.uri_from_path(path)
     assert uri == new_uri
     # NOTE: the following test is of course weaker
