@@ -239,10 +239,14 @@ class _RecoveredReadOnlyImageServer:
 class _ProjectImageEntryMetadata(MutableMapping):
     """provides a python dict interface for image entry metadata"""
 
-    def __init__(self, entry: DefaultProjectImageEntry) -> None:
-        self._entry = entry
+    def __init__(self, image: 'QuPathProjectImageEntry') -> None:
+        self._image = image
+        self._entry = image.java_object
 
     def __setitem__(self, k: str, v: str) -> None:
+        # noinspection PyProtectedMember
+        if self._image._readonly:
+            raise AttributeError("project in readonly mode")
         if not isinstance(k, str):
             raise TypeError(f"key must be of type `str` got `{type(k)}`")
         if not isinstance(v, str):
@@ -250,6 +254,9 @@ class _ProjectImageEntryMetadata(MutableMapping):
         self._entry.putMetadataValue(String(str(k)), String(str(v)))
 
     def __delitem__(self, k: str) -> None:
+        # noinspection PyProtectedMember
+        if self._image._readonly:
+            raise AttributeError("project in readonly mode")
         if not isinstance(k, str):
             raise TypeError(f"key must be of type `str` got `{type(k)}`")
         self._entry.removeMetadataValue(String(str(k)))
@@ -272,6 +279,9 @@ class _ProjectImageEntryMetadata(MutableMapping):
         return bool(self._entry.containsMetadata(String(str(item))))
 
     def clear(self) -> None:
+        # noinspection PyProtectedMember
+        if self._image._readonly:
+            raise AttributeError("project in readonly mode")
         self._entry.clearMetadata()
 
     def __repr__(self):
@@ -281,15 +291,23 @@ class _ProjectImageEntryMetadata(MutableMapping):
 class _ImageDataProperties(MutableMapping):
     """provides a python dict interface for image data properties"""
 
-    def __init__(self, image_data: ImageData) -> None:
-        self._image_data = image_data
+    def __init__(self, image: 'QuPathProjectImageEntry') -> None:
+        self._image = image
+        # noinspection PyProtectedMember
+        self._image_data = image._image_data
 
     def __setitem__(self, k: str, v: Any) -> None:
+        # noinspection PyProtectedMember
+        if self._image._readonly:
+            raise AttributeError("project in readonly mode")
         if not isinstance(k, str):
             raise TypeError(f"key must be of type `str` got `{type(k)}`")
         self._image_data.setProperty(String(k), v)
 
     def __delitem__(self, k: str) -> None:
+        # noinspection PyProtectedMember
+        if self._image._readonly:
+            raise AttributeError("project in readonly mode")
         if not isinstance(k, str):
             raise TypeError(f"key must be of type `str` got `{type(k)}`")
         self._image_data.removeProperty(String(k))
@@ -365,8 +383,8 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         if not isinstance(entry, DefaultProjectImageEntry):
             raise ValueError("don't instantiate directly. use `QuPathProject.add_image`")
         super().__init__(entry)
-        self._metadata = _ProjectImageEntryMetadata(entry)
         self._project_ref = weakref.ref(_project_ref) if _project_ref else lambda: None
+        self._metadata = _ProjectImageEntryMetadata(self)
 
     @property
     def _readonly(self):
@@ -392,7 +410,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @cached_property
     def _properties(self):
-        return _ImageDataProperties(self._image_data)
+        return _ImageDataProperties(self)
 
     @cached_property
     def _image_server(self):
