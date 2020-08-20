@@ -112,6 +112,8 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
             (default NaN)
 
         """
+        if not isinstance(roi, BaseGeometry):
+            raise TypeError("roi needs to be an instance of shapely.geometry.base.BaseGeometry")
         qupath_roi = _shapely_geometry_to_qupath_roi(roi)
         qupath_path_class = path_class.java_object if path_class is not None else None
         # fixme: should create measurements here and pass instead of None
