@@ -99,13 +99,13 @@ def test_project_attrs_and_methods(readonly_project, copy_svs_small):
             a.setattr("timestamp_modification", "abc")
         with pytest.raises(AttributeError):
             a.setattr("images", [])
+        with pytest.raises(AttributeError):
+            a.setattr("name", "abc")
 
         # these dont do anything
         a.callmethod("is_readable")
 
         # modifiable: These should all raise AttributeError in readonly mode
-        with pytest.raises(AttributeError):
-            a.setattr("name", "abc")
         with pytest.raises(AttributeError):
             a.setattr("path_classes", ())
 
