@@ -59,7 +59,7 @@ The hierarchy is accessed via `QuPathProjectImageEntry.hierarchy`. It contains p
 allow you to access annotations and detections, as well as importing and exporting them to
 `geojson <https://geojson.org>`_.
 
-.. autoclass:: paquo.hierarchy
+.. autoclass:: paquo.hierarchy.QuPathPathObjectHierarchy
    :members:
 
 QuPathPathObjects
