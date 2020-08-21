@@ -36,6 +36,7 @@ author = 'Santiago Villalba, Andreas Poehlmann'
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinxemoji.sphinxemoji",

@@ -21,11 +21,10 @@ get's automatically called after you made changes:
 
     from paquo.projects import QuPathProject
 
-    with QuPathProject('./my_qupath_project') as qp:
-        ...  # science
+    qp = QuPathProject('./my_qupath_project/project.qpproj')
+    ...  # science
 
-    # qp.save() gets automatically called at the end of the with statement
-
+By default `paquo` opens projects in readonly mode.
 Images on a project are provided via a sequence-like proxy interface (basically a tuple) and they
 can be added via the projects :meth:`paquo.projects.QuPathProject.add_image` method.
 
@@ -33,10 +32,10 @@ can be added via the projects :meth:`paquo.projects.QuPathProject.add_image` met
 
     >>> from paquo.projects import QuPathProject
     >>> from paquo.images import QuPathImageType
-    >>> qp = QuPathProject('./my_qupath_project')
+    >>> qp = QuPathProject('./my_qupath_project', mode='a')  # open project for appending
     >>> qp.images  # <- access images via this
     <ImageEntries(['image_0.svs', 'image_1.svs', 'image_2.svs'])>
-    >>> qp.add_image(filename='/path/to/my/image.svs', image_type=QuPathImageType.OTHER)
+    >>> qp.add_image('/path/to/my/image.svs', image_type=QuPathImageType.OTHER)
 
 When you open an existing project, it might be possible that some of the images in the project
 have been moved around. (Maybe you send the project to a friend, and they have the same images on
@@ -47,7 +46,7 @@ and a boolean indicating if the file can be reached:
 .. code-block:: python
 
     >>> from paquo.projects import QuPathProject
-    >>> qp = QuPathProject('./my_qupath_project')
+    >>> qp = QuPathProject('./my_qupath_project', mode='r')
     >>> qp.images  # <- access images via this
     <ImageEntries(['image_0.svs', 'image_1.svs', 'image_2.svs'])>
     >>> qp.is_readable()
@@ -60,7 +59,7 @@ which takes a uri to uri mapping as an input:
 
 .. code-block:: python
 
-    with QuPathProject('./my_qupath_project') as qp:
+    with QuPathProject('./my_qupath_project', mode='r+') as qp:
         qp.update_image_paths(uri2uri={"file:/somewhere_else/image_1.svs": "file:/share/image_1.svs"})
         assert all(qp.is_readable().values())
 
@@ -77,7 +76,7 @@ Projects also serve as a container for classes. They are exposed via another seq
 .. code-block:: python
 
     >>> from paquo.projects import QuPathProject
-    >>> qp = QuPathProject('./my_qupath_project')
+    >>> qp = QuPathProject('./my_qupath_project', mode='r')
     >>> qp.path_classes  # <- access classes via this attribute
     (<QuPathPathClass 'myclass_0'>, <QuPathPathClass 'myclass_1'>, <QuPathPathClass 'myclass_2'>)
 
@@ -87,7 +86,7 @@ Refer to the class example :ref:`class example` for more details.
 Working with annotations
 ------------------------
 
-`Paquo` uses `shapely <https://shapely.readthedocs.io>`_ to provide a pythonic
+`paquo` uses `shapely <https://shapely.readthedocs.io>`_ to provide a pythonic
 interface to Qupath's annotations. It's recommended to make yourself familiar
 with shapely. Annotations are accessed on a hierarchy of a `QuPathProjectEntry`.
 You access them through a set-like readonly proxy object. If you want to add additional
@@ -96,7 +95,7 @@ annotations use the :meth:`paquo.hierarchy.QuPathPathObjectHierarchy.add_annotat
 
 .. code-block:: python
 
-    >>> qp = QuPathProject('./my_new_project/project.qpproj')  # open an existing project
+    >>> qp = QuPathProject('./my_new_project/project.qpproj', mode='r')  # open an existing project
     >>> image = qp.images[0]  # get the first image
     >>> image.hierarchy.annotations  # annotations are stored in a set like proxy object
     <QuPathPathAnnotationObjectSet(n=3)>
