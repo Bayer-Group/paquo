@@ -39,6 +39,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinxemoji.sphinxemoji",
+    "sphinx_autodoc_typehints",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -52,6 +53,7 @@ exclude_patterns = []
 
 autodoc_member_order = 'bysource'
 
+set_type_checking_flag = True
 
 # -- Options for HTML output -------------------------------------------------
 

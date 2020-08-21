@@ -143,7 +143,12 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                       path_class_probability: float = math.nan) -> QuPathPathDetectionObject:
         if self._readonly:
             raise IOError("project in readonly mode")
-        """convenience method for adding detections"""
+        """convenience method for adding detections
+
+        Notes
+        -----
+        these will be added to self.detections
+        """
         obj = QuPathPathDetectionObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
