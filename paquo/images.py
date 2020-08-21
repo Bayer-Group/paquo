@@ -16,7 +16,7 @@ from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException, \
     PathIO, File, BufferedImage, FileNotFoundException
 if TYPE_CHECKING:
-    from paquo.projects import QuPathProject
+    import paquo.projects
 
 _log = get_logger(__name__)
 
@@ -375,7 +375,7 @@ class QuPathImageType(str, Enum):
 class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     def __init__(self, entry: DefaultProjectImageEntry,
-                 *, _project_ref: Optional['QuPathProject'] = None) -> None:
+                 *, _project_ref: Optional['paquo.projects.QuPathProject'] = None) -> None:
         """Wrapper for qupath image entries
 
         this is normally not instantiated by the user

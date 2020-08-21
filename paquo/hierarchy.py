@@ -12,7 +12,7 @@ from paquo.java import GsonTools, PathObjectHierarchy
 from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
     QuPathPathTileObject
 if TYPE_CHECKING:  # pragma: no cover
-    from paquo.images import QuPathProjectImageEntry
+    import paquo.images
 
 PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
 
@@ -66,7 +66,7 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
 class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
 
     def __init__(self, hierarchy: Optional[PathObjectHierarchy] = None,
-                 *, _image_ref: Optional['QuPathProjectImageEntry'] = None) -> None:
+                 *, _image_ref: Optional['paquo.images.QuPathProjectImageEntry'] = None) -> None:
         """qupath hierarchy stores all annotation objects
 
         Parameters
@@ -200,7 +200,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         return changed
 
     def __repr__(self):
-        img: Optional['QuPathProjectImageEntry'] = self._image_ref()
+        img: Optional['paquo.images.QuPathProjectImageEntry'] = self._image_ref()
         if img:
             img_name = img.image_name
         else:  # pragma: no cover
@@ -210,7 +210,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
     def _repr_html_(self):
         from paquo._repr import br, div, h4, p, span
 
-        img: Optional['QuPathProjectImageEntry'] = self._image_ref()
+        img: Optional['paquo.images.QuPathProjectImageEntry'] = self._image_ref()
         if img:
             img_name = img.image_name
         else:  # pragma: no cover
