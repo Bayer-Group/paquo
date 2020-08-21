@@ -24,7 +24,7 @@ version = '{}.{}.{}'.format(*release.split('.')[:3])
 # -- Project information -----------------------------------------------------
 
 project = 'paquo'
-copyright = '2020, Santiago Villalba, Andreas Poehlmann'
+copyright = '2020 Bayer AG, Santiago Villalba, Andreas Poehlmann'
 author = 'Santiago Villalba, Andreas Poehlmann'
 
 

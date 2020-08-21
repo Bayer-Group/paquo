@@ -23,6 +23,11 @@ This page hosts the documentation for version "|version|".
     Paquo is undergoing heavy development right now and things might change
     frequently. Watch the github repository to stay up to date.
 
+.. sidebar:: Acknowledgements
+
+    Build with love by Santi Villalba and Andreas Poehlmann from the
+    *Machine Learning Research* group at Bayer. In collaboration with the
+    *Pathology Lab 2* and the *Mechanistic and Toxicologic Pathology* group.
 
 .. toctree::
    :maxdepth: 2

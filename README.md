@@ -51,3 +51,12 @@ so go ahead and hack.
 You can setup your IDE to help you adhering to these guidelines.
 <br>
 _([Santi](https://github.com/sdvillal) is happy to help you setting up pycharm in 5 minutes)_
+
+
+## Acknowledgements
+
+Build with love by Andreas Poehlmann and Santi Villalba from the _Machine
+Learning Research_ group at Bayer. In collaboration with the _Pathology Lab 2_
+and the _Mechanistic and Toxicologic Pathology_ group.
+
+`paquo`: copyright 2020 Bayer AG, licensed under [GPL-3.0](https://github.com/bayer-science-for-a-better-life/paquo/blob/master/LICENSE)
