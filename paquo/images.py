@@ -477,26 +477,38 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @property
     def width(self):
+        """image width in pixels"""
         return int(self._image_server.getWidth())
 
     @property
     def height(self):
+        """image height in pixels"""
         return int(self._image_server.getHeight())
 
     @property
     def num_channels(self):
+        """number of channels in the image"""
         return int(self._image_server.nChannels())
 
     @property
     def num_z_slices(self):
+        """number of z_slices in the image"""
         return int(self._image_server.nZSlices())
 
     @property
     def num_timepoints(self):
+        """number of time points in the image"""
         return int(self._image_server.nTimepoints())
 
     @cached_property
     def downsample_levels(self) -> List[Dict[str, float]]:
+        """downsample levels provided by the image
+
+        Notes
+        -----
+        The available downsample levels can differ dependent
+        on which image backend is used by QuPath
+        """
         md = self._image_server.getMetadata()
         levels = []
         for level in range(int(md.nLevels())):
