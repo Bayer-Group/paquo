@@ -8,7 +8,7 @@
 from pkg_resources import get_distribution
 
 release = get_distribution('paquo').version
-version = '{}.{}'.format(*release.split('.')[:2])
+version = '{}.{}.{}'.format(*release.split('.')[:3])
 
 # -- Path setup --------------------------------------------------------------
 

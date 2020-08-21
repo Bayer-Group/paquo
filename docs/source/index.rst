@@ -3,17 +3,18 @@
 Welcome to PAQUO
 ================
 
-`Paquo` (**PA**\ thological **QU**\ path **O**\ bsession) is a python library
-for interacting with `QuPath <https://qupath.github.io/>`_.
+`paquo` (**PA**\ thological **QU**\ path **O**\ bsession) is a
+`Python <https://www.python.org/>`_ library for interacting with
+`QuPath <https://qupath.github.io/>`_.
 
-Its goal is to provide a pythonic interface to important features of QuPath,
-and to make creating and working with QuPath projects intuitive for python
-programmers.
+`paquo`'s goal is to provide a pythonic interface to important features of
+QuPath, and to make creating and working with QuPath projects intuitive for
+Python programmers.
 
-We strive to make your lives as easy as possible: If `Paquo` is not pythonic,
+We strive to make your lives as easy as possible: If `paquo` is not pythonic,
 unintuitive, slow or if its documentation is confusing, it's a bug in
-`Paquo`. Feel free to report any issues or feature requests in the issue
-tracker on the
+`paquo`. Feel free to report any issues or feature requests in the issue
+tracker on
 `github <https://github.com/bayer-science-for-a-better-life/paquo>`_.
 
 This page hosts the documentation for version "|version|".
