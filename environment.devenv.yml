@@ -1,0 +1,31 @@
+#
+# Conda devenv environment for paquo
+#
+# Create the environment, do not install pado in development mode:
+#   conda devenv
+# equivalent to:
+#   PAQUO_DEVEL="" conda devenv
+# Create the environment, install pado in development mode:
+#   PAQUO_DEVEL=TRUE conda devenv
+#
+
+{% set PAQUO_DEVEL = os.environ.get('PAQUO_DEVEL', False) %}
+
+name: paquo
+
+channels:
+  - conda-forge
+  - sdvillal
+  - defaults
+
+dependencies:
+  - python>=3.6.1
+  - pip
+  - jpype1>=1.0.1
+  - shapely
+  - qupath
+  - pytest>=6
+  - pytest-cov
+  - pip:
+    - dynaconf>=3,!=3.1.0
+    - "-e ."  # [ PAQUO_DEVEL ]
