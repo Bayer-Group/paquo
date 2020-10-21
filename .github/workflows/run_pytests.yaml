@@ -26,7 +26,7 @@ jobs:
         python3 -m pip install --upgrade pip
         python3 -m pip install --upgrade setuptools
         python3 -m pip install git+https://github.com/ESSS/conda-devenv.git@2.1.1
-        python3 -m conda_devenv.devenv --file environment.devenv.yml --print > environment.yml
+        PAQUO_DEVEL=TRUE python3 -m conda_devenv.devenv --file environment.devenv.yml --print > environment.yml
     - name: Cache conda
       uses: actions/cache@v1
       env:
