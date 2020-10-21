@@ -24,9 +24,9 @@ jobs:
     - name: Create the environment.yml via conda-devenv
       run: |
         python -m pip install --upgrade pip
-        pip install --upgrade setuptools
-        pip install git+https://github.com/ESSS/conda-devenv.git@2.1.1
-        conda-devenv --file environment.devenv.yml --print > environment.yml
+        python -m pip install --upgrade setuptools
+        python -m pip install git+https://github.com/ESSS/conda-devenv.git@2.1.1
+        python -m conda_devenv.devenv --file environment.devenv.yml --print > environment.yml
     - name: Cache conda
       uses: actions/cache@v1
       env:
