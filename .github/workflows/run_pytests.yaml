@@ -21,12 +21,16 @@ jobs:
             python-version: 3.6
     steps:
     - uses: actions/checkout@v1
+    - name: Make python reference python3 because conda-devenv needs it
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
     - name: Create the environment.yml via conda-devenv
       run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install --upgrade setuptools
-        python3 -m pip install git+https://github.com/ESSS/conda-devenv.git@2.1.1
-        PAQUO_DEVEL=TRUE python3 -m conda_devenv.devenv --file environment.devenv.yml --print > environment.yml
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade setuptools
+        python -m pip install git+https://github.com/ESSS/conda-devenv.git@2.1.1
+        python -m conda_devenv.devenv --env PAQUO_DEVEL=TRUE --file environment.devenv.yml --print > environment.yml
     - name: Cache conda
       uses: actions/cache@v1
       env:
