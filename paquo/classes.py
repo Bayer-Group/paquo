@@ -148,4 +148,4 @@ class QuPathPathClass(QuPathBase[PathClass]):
         return bool(self.java_object.isDerivedClass())
 
     def __repr__(self) -> str:
-        return f"<QuPathPathClass '{self.id}'>"
+        return f"QuPathPathClass('{self.id}')"

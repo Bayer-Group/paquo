@@ -77,7 +77,7 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         return len(self._images)
 
     def __repr__(self):
-        return f"<ImageEntries({repr([entry.image_name for entry in self])})>"
+        return f"ImageEntries({repr([entry.image_name for entry in self])})"
 
     def _repr_html_(self, compact=False) -> str:
         from paquo._repr import div, h4, repr_html
@@ -411,7 +411,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
 
     def __repr__(self) -> str:
         # name = self.java_object.getNameFromURI(self.java_object.getURI())
-        return f"<QuPathProject path='{self._path}' mode='{self._mode}'>"
+        return f'{type(self).__name__}(path="{self._path}" mode="{self._mode}")'
 
     def _repr_html_(self) -> str:
         from paquo._repr import br, h3, div, p, span, repr_html

@@ -34,7 +34,7 @@ can be added via the projects :meth:`paquo.projects.QuPathProject.add_image` met
     >>> from paquo.images import QuPathImageType
     >>> qp = QuPathProject('./my_qupath_project', mode='a')  # open project for appending
     >>> qp.images  # <- access images via this
-    <ImageEntries(['image_0.svs', 'image_1.svs', 'image_2.svs'])>
+    ImageEntries(['image_0.svs', 'image_1.svs', 'image_2.svs'])
     >>> qp.add_image('/path/to/my/image.svs', image_type=QuPathImageType.OTHER)
 
 When you open an existing project, it might be possible that some of the images in the project
@@ -48,7 +48,7 @@ and a boolean indicating if the file can be reached:
     >>> from paquo.projects import QuPathProject
     >>> qp = QuPathProject('./my_qupath_project', mode='r')
     >>> qp.images  # <- access images via this
-    <ImageEntries(['image_0.svs', 'image_1.svs', 'image_2.svs'])>
+    ImageEntries(['image_0.svs', 'image_1.svs', 'image_2.svs'])
     >>> qp.is_readable()
     {'file:/share/image_0.svs': True,
      'file:/somewhere_else/image_1.svs': False,
@@ -78,7 +78,7 @@ Projects also serve as a container for classes. They are exposed via another seq
     >>> from paquo.projects import QuPathProject
     >>> qp = QuPathProject('./my_qupath_project', mode='r')
     >>> qp.path_classes  # <- access classes via this attribute
-    (<QuPathPathClass 'myclass_0'>, <QuPathPathClass 'myclass_1'>, <QuPathPathClass 'myclass_2'>)
+    (QuPathPathClass('myclass_0'), QuPathPathClass('myclass_1'), QuPathPathClass('myclass_2'))
 
 Refer to the class example :ref:`class example` for more details.
 
@@ -98,12 +98,12 @@ annotations use the :meth:`paquo.hierarchy.QuPathPathObjectHierarchy.add_annotat
     >>> qp = QuPathProject('./my_new_project/project.qpproj', mode='r')  # open an existing project
     >>> image = qp.images[0]  # get the first image
     >>> image.hierarchy.annotations  # annotations are stored in a set like proxy object
-    <QuPathPathAnnotationObjectSet(n=3)>
+    QuPathPathAnnotationObjectSet(n=3)
     >>> for annotation in image.hierarchy.annotations:
     ...     print(annotation.name, annotation.path_class, annotation.roi)
     ...
-    None <QuPathPathClass 'myclass_1'> POLYGON ((50 50, 50 150, 150 150, 150 50, 50 50))
-    MyAnnotation <QuPathPathClass 'myclass_2'> POLYGON ((50 650, 50 750, 150 750, 150 650, 50 650))
+    None QuPathPathClass('myclass_1') POLYGON ((50 50, 50 150, 150 150, 150 50, 50 50))
+    MyAnnotation QuPathPathClass('myclass_2') POLYGON ((50 650, 50 750, 150 750, 150 650, 50 650))
     Another None POLYGON ((650 650, 650 750, 750 750, 750 650, 650 650))
 
 

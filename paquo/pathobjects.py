@@ -70,7 +70,7 @@ class _MeasurementList(MutableMapping):
         self._measurement_list.clear()
 
     def __repr__(self):
-        return f"<Measurements({repr(dict(self))})>"
+        return f"Measurements({repr(dict(self))})"
 
     def __str__(self):
         return str(dict(self))
@@ -222,14 +222,14 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         name = self.name
         path_class = self.path_class
         roi = self.roi
-        out = [self.__class__.__name__]
+        out = []
         if name:
-            out.append(f"name='{name}'")
+            out.append(f'name="{name}"')
         if path_class:
-            out.append(f"class='{path_class.name}'")
+            out.append(f'class="{path_class.name}"')
         if roi:
-            out.append(f"roi={roi.type}")
-        return f"<{' '.join(out)}>"
+            out.append(f'roi={roi.type}')
+        return f"{type(self).__name__}({' '.join(out)})"
 
     def _repr_html_(self):
         from paquo._repr import br, div, h4, p, span, rawhtml, repr_svg

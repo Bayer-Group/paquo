@@ -57,7 +57,7 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
         return map(self._paquo_cls, self._java_hierarchy.getObjects(None, self._paquo_cls.java_class))  # type: ignore
 
     def __repr__(self):
-        return f"<{self._paquo_cls.__name__}Set n={len(self)}>"
+        return f"{self._paquo_cls.__name__}Set(n={len(self)})"
 
     # provide update
     update = collections_abc.MutableSet.__ior__
@@ -205,7 +205,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
             img_name = img.image_name
         else:  # pragma: no cover
             img_name = 'N/A'
-        return f"<Hierarchy image={img_name} annotations={len(self._annotations)} detections={len(self._detections)}>"
+        return f"Hierarchy(image={img_name}, annotations={len(self._annotations)}, detections={len(self._detections)})"
 
     def _repr_html_(self):
         from paquo._repr import br, div, h4, p, span
