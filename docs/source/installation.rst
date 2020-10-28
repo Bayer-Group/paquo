@@ -23,13 +23,14 @@ Install paquo's dev environment
 While we're rushing towards getting our
 `first official release <https://github.com/bayer-science-for-a-better-life/paquo/projects/1>`_ out, we're
 constantly changing and improving the way paquo operates. If you think you have what it takes to live on the
-bleeding edge of paquo development, the easiest way is to make sure you have `git` and `conda` installed and
-then run:
+bleeding edge of paquo development, the easiest way is to make sure you have `git` and `conda` and
+`conda-devenv <https://github.com/ESSS/conda-devenv>`_ installed and then run:
 
 .. code-block:: console
 
     user@computer:~$ git clone https://github.com/bayer-science-for-a-better-life/paquo.git
     user@computer:~$ cd paquo
+    user@computer:paquo$ conda devenv --env PAQUO_DEVEL=True --print > environment.yml
     user@computer:paquo$ conda env create -f environment.yml
 
 This will create a **paquo** conda environment with everything you need to get started. It installs a
