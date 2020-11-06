@@ -23,8 +23,6 @@ dependencies:
   - pip
   - jpype1>=1.0.1
   - shapely
-  # until this gets fixed: https://github.com/libgeos/geos/issues/329
-  - geos <3.8
   - qupath
   - pytest>=6
   - pytest-cov
