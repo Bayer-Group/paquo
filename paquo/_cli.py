@@ -1,3 +1,4 @@
+import platform
 import sys
 from argparse import ArgumentTypeError
 from collections import defaultdict
@@ -165,3 +166,57 @@ def export_annotations(path, image_idx, pretty=False):
             pprint.pprint(data)
         else:
             print(data)
+
+
+# -- open related commands ------------------------------------------
+
+def open_qupath(project_path):
+    """launch qupath with the provided project"""
+    import subprocess
+    from zipfile import ZipFile
+    from contextlib import contextmanager, ExitStack
+    from tempfile import TemporaryDirectory
+    from paquo._config import settings, to_kwargs
+    from paquo.jpype_backend import find_qupath
+
+    # retrieve the path of the qupath executable
+    app_dir, _, _, _ = find_qupath(**to_kwargs(settings))
+    system = platform.system()
+    if system == "Linux":
+        qupath, = Path(app_dir).parent.parent.joinpath("bin").glob("QuPath-*")
+
+    elif system == "Darwin":
+        qupath, = Path(app_dir).parent.joinpath("MacOS").glob("QuPath-*")
+
+    elif system == "Windows":
+        _qp_exes = list(Path(app_dir).parent.glob("QuPath-*.exe"))
+        assert len(_qp_exes) == 2, f"this should have returned two paths, got {_qp_exes}"
+        qupath, = (qp for qp in _qp_exes if "console" in qp.stem)
+
+    else:
+        raise ValueError(f"Unknown platform {system}")
+
+    @contextmanager
+    def prepare_dir(path: Path):
+        # unzip a qpzip file to a temporary directory
+        if path.is_file() and path.suffix == ".qpzip":
+            with ExitStack() as stack:
+                tmp_path = stack.enter_context(
+                    TemporaryDirectory(prefix="pado", suffix="qpzip")
+                )
+                with ZipFile(path) as qpzip:
+                    qpzip.extractall(tmp_path)
+                print(f"Extracted qpzip to {tmp_path}")
+                yield Path(tmp_path)
+                # dont clean up tmp if no errors were raised
+                stack.pop_all()
+        else:
+            yield path
+
+    with prepare_dir(Path(project_path)) as p:
+        if p.is_dir():
+            p /= "project.qpproj"
+        if not (p.is_file() and p.suffix == ".qpproj"):
+            raise ValueError(f"Not a qupath project: '{p}'")
+
+        subprocess.run([qupath, '-p', p.resolve()])
