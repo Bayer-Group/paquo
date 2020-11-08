@@ -220,3 +220,24 @@ def open_qupath(project_path):
             raise ValueError(f"Not a qupath project: '{p}'")
 
         subprocess.run([qupath, '-p', p.resolve()])
+
+
+# -- quzip related commands -------------------------------------------
+
+def qpzip_project(project_path):
+    """create a zip archive of a qupath project that can be used with `paquo open`"""
+    import shutil
+    from tempfile import TemporaryDirectory
+
+    p = Path(project_path).expanduser().absolute()
+    if p.is_dir():
+        p /= "project.qpproj"
+    if not (p.is_file() and p.suffix == ".qpproj"):
+        raise ValueError(f"Not a qupath project: '{p}'")
+
+    project_path = p.parent
+    with TemporaryDirectory() as tmpdir:
+        tmp_base_name = Path(tmpdir) / project_path.name
+        tmp_zip = shutil.make_archive(tmp_base_name, "zip", root_dir=project_path, base_dir=".")
+        qpzip = shutil.move(tmp_zip, project_path.with_suffix(".qpzip"))
+    print(f"created: {qpzip}")
