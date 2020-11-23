@@ -6,7 +6,8 @@ from itertools import repeat
 from pathlib import Path
 
 from paquo._cli import subcommand, argument, DirectoryType, \
-    config_print_settings, config_print_defaults, list_project, export_annotations, create_project
+    config_print_settings, config_print_defaults, list_project, export_annotations, create_project, open_qupath, \
+    qpzip_project
 from paquo._config import PAQUO_CONFIG_FILENAME, get_searchtree
 
 # noinspection PyTypeChecker
@@ -177,6 +178,32 @@ def export(args, subparser):
     except IndexError:
         print(f"ERROR: image index {args.image_idx} out of range")
         return 1
+    return 0
+
+
+@subcommand(
+    argument('project_path', nargs='?', default=None, help="path to your qupath project file/folder"),
+)
+def open_(args, subparser):
+    """open qupath with a specified project"""
+    if args.project_path is None:
+        print(subparser.format_help())
+        return 0
+
+    open_qupath(args.project_path)
+    return 0
+
+
+@subcommand(
+    argument('project_path', nargs='?', default=None, help="path to your qupath project file/folder"),
+)
+def qpzip(args, subparser):
+    """create a qpzip archive of a project"""
+    if args.project_path is None:
+        print(subparser.format_help())
+        return 0
+
+    qpzip_project(args.project_path)
     return 0
 
 
