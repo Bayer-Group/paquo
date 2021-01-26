@@ -197,7 +197,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         if not isinstance(geojson, list):
             raise TypeError("requires a geojson list")
         changed = False
-        skipped = collections.Counter()
+        skipped = collections.Counter()  # type: ignore
         for annotation in geojson:
             try:
                 ao = QuPathPathAnnotationObject.from_geojson(annotation)
