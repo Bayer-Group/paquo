@@ -127,12 +127,18 @@ def list_project(path):
 # -- create related commands -------------------------------------------
 
 def create_project(project_path, class_names_colors, images,
+                   annotations_json_func=None,
                    remove_default_classes=False, force_write=False):
     """create a qupath project"""
+    import json
     from paquo.classes import QuPathPathClass
     from paquo.projects import QuPathProject
+    from paquo._utils import load_json_from_path
 
     mode = 'x' if not force_write else 'w'
+
+    if annotations_json_func is not None and not callable(annotations_json_func):
+        raise ValueError("annotations_json_func should be callable")
 
     # noinspection PyTypeChecker
     with QuPathProject(project_path, mode=mode) as qp:
@@ -146,7 +152,12 @@ def create_project(project_path, class_names_colors, images,
         qp.path_classes = path_classes
 
         for image in images:
-            qp.add_image(image)
+            qp_image = qp.add_image(image)
+
+            if annotations_json_func:
+                annotations_json = annotations_json_func(Path(image).name)
+                geojson = load_json_from_path(annotations_json)
+                qp_image.hierarchy.load_geojson(geojson["annotations"])
 
         name = qp.name
     return name

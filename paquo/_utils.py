@@ -1,7 +1,9 @@
+import json
+import lzma
 from datetime import datetime
 from pathlib import Path
 
-__all__ = ['cached_property', 'nullcontext', 'make_backup_filename']
+__all__ = ['cached_property', 'nullcontext', 'make_backup_filename', 'load_json_from_path']
 
 try:
     from functools import cached_property as _cached_property # type: ignore
@@ -50,3 +52,21 @@ def make_backup_filename(path, name, suffix='backup'):
     if backup.is_file():
         raise RuntimeError(f"the file {backup} should not exist!")  # pragma: no cover
     return backup
+
+
+def load_json_from_path(path):
+    path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(str(path))  # pragma: no cover
+    if path.name.endswith(".geojson.xz"):
+        with lzma.open(path, 'rt') as fobj:
+            return json.load(fobj)
+
+    else:
+        try:
+            with path.open('r') as fobj:
+                return json.load(fobj)
+        except json.JSONDecodeError:
+            if not path.name.endswith(".geojson"):
+                raise NotImplementedError("expects geojson encoded file")
+            raise

@@ -211,6 +211,8 @@ def qpzip(args, subparser):
 
 @subcommand(
     argument('image', nargs='?', default=None, help="path to image"),
+    argument('--annotations', nargs=1, help="annotations for image"),
+    argument('--annotations-cmd', type=str, help="automatically choose annotations if available")
 )
 def quickview(args, subparser):
     """open an image in qupath"""
@@ -225,8 +227,33 @@ def quickview(args, subparser):
         print(f"ERROR: image {args.image} is not a file")
         return 1
 
+    if args.annotations and args.annotations_cmd:
+        print("ERROR: can't specify both --annotations and --annotations-cmd")
+        return 1
+
+    elif args.annotations:
+        def cmd(name):
+            if name != image.name:
+                return None
+            return args.annotations
+
+    elif args.annotations_cmd:
+        def cmd(name):
+            import shlex
+            _cmd = shlex.split(f"{args.annotations_cmd} {name}")
+            print("annotations", _cmd)
+            output = subprocess.run(_cmd, env=os.environ, check=True, capture_output=True)
+            results = [line for line in output.stdout.splitlines() if line.strip()]
+            assert len(results) <= 1, "matched multiple annotation files"
+            if not results:
+                return None
+            return results[0].decode()
+
+    else:
+        cmd = None
+
     with tempfile.TemporaryDirectory() as project_path:
-        create_project(project_path, class_names_colors={}, images=[image])
+        create_project(project_path, class_names_colors={}, images=[image], annotations_json_func=cmd)
         open_qupath(project_path)
 
     return 0
