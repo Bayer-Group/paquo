@@ -1,3 +1,4 @@
+import collections
 import collections.abc as collections_abc
 import json
 import math
@@ -7,14 +8,16 @@ from typing import Optional, Iterator, MutableSet, TypeVar, Type, Any, TYPE_CHEC
 from shapely.geometry.base import BaseGeometry
 
 from paquo._base import QuPathBase
+from paquo._logging import get_logger
 from paquo.classes import QuPathPathClass
-from paquo.java import GsonTools, PathObjectHierarchy
+from paquo.java import GsonTools, PathObjectHierarchy, IllegalArgumentException
 from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
     QuPathPathTileObject
 if TYPE_CHECKING:  # pragma: no cover
     import paquo.images
 
 PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
+_logger = get_logger(__name__)
 
 
 class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
@@ -194,9 +197,21 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         if not isinstance(geojson, list):
             raise TypeError("requires a geojson list")
         changed = False
+        skipped = collections.Counter()
         for annotation in geojson:
-            ao = QuPathPathAnnotationObject.from_geojson(annotation)
+            try:
+                ao = QuPathPathAnnotationObject.from_geojson(annotation)
+            except IllegalArgumentException as err:
+                _logger.debug(f"Annotation skipped: {err}")
+                class_ = annotation["properties"].get("classification", {}).get("name", "UNDEFINED")
+                skipped[class_] += 1
+                continue
             changed |= self.java_object.insertPathObject(ao.java_object, True)
+        if skipped:
+            _logger.error(
+                f"skipped {sum(skipped.values())} annotation objects: {skipped.most_common()}"
+            )
+
         return changed
 
     def __repr__(self):
