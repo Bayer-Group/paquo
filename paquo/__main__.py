@@ -1,6 +1,8 @@
 import argparse
 import functools
+import os
 import sys
+import tempfile
 from contextlib import redirect_stdout
 from itertools import repeat
 from pathlib import Path
@@ -204,6 +206,29 @@ def qpzip(args, subparser):
         return 0
 
     qpzip_project(args.project_path)
+    return 0
+
+
+@subcommand(
+    argument('image', nargs='?', default=None, help="path to image"),
+)
+def quickview(args, subparser):
+    """open an image in qupath"""
+    import subprocess
+
+    if not args.image:
+        print(subparser.format_help())
+        return 0
+
+    image = Path(args.image)
+    if not image.is_file():
+        print(f"ERROR: image {args.image} is not a file")
+        return 1
+
+    with tempfile.TemporaryDirectory() as project_path:
+        create_project(project_path, class_names_colors={}, images=[image])
+        open_qupath(project_path)
+
     return 0
 
 
