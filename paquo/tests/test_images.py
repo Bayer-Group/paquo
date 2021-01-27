@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from operator import itemgetter
 from pathlib import Path, PureWindowsPath, PurePosixPath
+from typing import Dict
 
 import pytest
 
@@ -210,7 +211,7 @@ def test_image_type(image_entry):
     assert image_entry.image_type == QuPathImageType.BRIGHTFIELD_H_E
 
 
-TEST_URIS = {
+TEST_URIS: Dict[str, Dict] = {
     "no-uri": {  # weird non-uri found in one project
         "uri": "\\\\SHARE\\site\\2020-01-01\\image 123-X,X.svs",
         "parts": None,
