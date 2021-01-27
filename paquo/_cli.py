@@ -155,9 +155,10 @@ def create_project(project_path, class_names_colors, images,
             qp_image = qp.add_image(image)
 
             if annotations_json_func:
-                annotations_json = annotations_json_func(Path(image).name)
-                geojson = load_json_from_path(annotations_json)
-                qp_image.hierarchy.load_geojson(geojson["annotations"])
+                annotations_jsons = annotations_json_func(Path(image).name)
+                for annotations_json in annotations_jsons:
+                    geojson = load_json_from_path(annotations_json)
+                    qp_image.hierarchy.load_geojson(geojson["annotations"])
 
         name = qp.name
     return name

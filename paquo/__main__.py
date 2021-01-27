@@ -234,8 +234,8 @@ def quickview(args, subparser):
     elif args.annotations:
         def cmd(name):
             if name != image.name:
-                return None
-            return args.annotations
+                return []
+            return [args.annotations]
 
     elif args.annotations_cmd:
         def cmd(name):
@@ -243,11 +243,7 @@ def quickview(args, subparser):
             _cmd = shlex.split(f"{args.annotations_cmd} {name}")
             print("annotations", _cmd)
             output = subprocess.run(_cmd, env=os.environ, check=True, capture_output=True)
-            results = [line for line in output.stdout.splitlines() if line.strip()]
-            assert len(results) <= 1, "matched multiple annotation files"
-            if not results:
-                return None
-            return results[0].decode()
+            return [line.decode() for line in output.stdout.splitlines() if line.strip()]
 
     else:
         cmd = None
