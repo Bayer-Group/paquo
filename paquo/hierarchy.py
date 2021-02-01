@@ -186,7 +186,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         geojson = gson.toJson(self.java_object.getAnnotationObjects())
         return list(json.loads(str(geojson)))
 
-    def load_geojson(self, geojson: list) -> bool:
+    def load_geojson(self, geojson: list, *, raise_on_skip: bool = False) -> bool:
         """load annotations into this hierarchy from a geojson list
 
         returns True if new objects were added, False otherwise.
@@ -196,7 +196,8 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
             raise IOError("project in readonly mode")
         if not isinstance(geojson, list):
             raise TypeError("requires a geojson list")
-        changed = False
+
+        aos = []
         skipped = collections.Counter()  # type: ignore
         for annotation in geojson:
             try:
@@ -206,12 +207,19 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                 class_ = annotation["properties"].get("classification", {}).get("name", "UNDEFINED")
                 skipped[class_] += 1
                 continue
-            changed |= self.java_object.insertPathObject(ao.java_object, True)
+            else:
+                aos.append(ao)
         if skipped:
+            n_skipped = sum(skipped.values())
+            if raise_on_skip:
+                raise ValueError(f"could not convert {n_skipped} annotations")
             _logger.error(
-                f"skipped {sum(skipped.values())} annotation objects: {skipped.most_common()}"
+                f"skipped {n_skipped} annotation objects: {skipped.most_common()}"
             )
 
+        changed = False
+        for ao in aos:
+            changed |= self.java_object.insertPathObject(ao.java_object, True)
         return changed
 
     def __repr__(self):
