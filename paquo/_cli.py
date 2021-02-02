@@ -130,8 +130,8 @@ def create_project(project_path, class_names_colors, images,
                    annotations_json_func=None,
                    remove_default_classes=False, force_write=False):
     """create a qupath project"""
-    import json
     from paquo.classes import QuPathPathClass
+    from paquo.images import QuPathImageType
     from paquo.projects import QuPathProject
     from paquo._utils import load_json_from_path
 
@@ -152,7 +152,7 @@ def create_project(project_path, class_names_colors, images,
         qp.path_classes = path_classes
 
         for image in images:
-            qp_image = qp.add_image(image)
+            qp_image = qp.add_image(image, image_type=QuPathImageType.BRIGHTFIELD_H_E)
 
             if annotations_json_func:
                 annotations_jsons = annotations_json_func(Path(image).name)
