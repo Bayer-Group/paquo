@@ -249,7 +249,7 @@ def quickview(args, subparser):
         cmd = None
 
     with tempfile.TemporaryDirectory() as project_path:
-        create_project(project_path, class_names_colors={}, images=[image], annotations_json_func=cmd)
+        create_project(project_path, class_names_colors=[], images=[image], annotations_json_func=cmd)
         open_qupath(project_path)
 
     return 0

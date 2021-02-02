@@ -37,7 +37,8 @@ def test_project_create_no_dir():
 
 def test_project_creation_input_error(tmp_path):
 
-    p = Path('.')
+    p = tmp_path / Path('somewhere')
+    p.mkdir()
 
     with pytest.raises(TypeError):
         # noinspection PyTypeChecker
