@@ -58,15 +58,20 @@ def load_json_from_path(path):
     path = Path(path)
     if not path.is_file():
         raise FileNotFoundError(str(path))  # pragma: no cover
-    if path.name.endswith(".geojson.xz"):
-        with lzma.open(path, 'rt') as fobj:
-            return json.load(fobj)
 
+    if path.name.endswith(".geojson.xz"):
+        ctx = lambda: lzma.open(path, 'rt')
+    elif path.name.endswith(('.geojson', '.json')):
+        ctx = lambda: path.open('r')
     else:
-        try:
-            with path.open('r') as fobj:
-                return json.load(fobj)
-        except json.JSONDecodeError:
-            if not path.name.endswith(".geojson"):
-                raise NotImplementedError("expects geojson encoded file")
-            raise
+        raise NotImplementedError(f"unsupported file format '{path}'")
+
+    with ctx() as fobj:
+        data = json.load(fobj)
+
+    if isinstance(data, dict):
+        return data
+    elif isinstance(data, list):
+        return {'annotations': data}
+    else:
+        raise ValueError("expected dict or list of annotations")
