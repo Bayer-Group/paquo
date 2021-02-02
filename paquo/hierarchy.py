@@ -5,6 +5,7 @@ import math
 import weakref
 from typing import Optional, Iterator, MutableSet, TypeVar, Type, Any, TYPE_CHECKING
 
+from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
 from paquo._base import QuPathBase
@@ -13,6 +14,7 @@ from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools, PathObjectHierarchy, IllegalArgumentException
 from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
     QuPathPathTileObject
+
 if TYPE_CHECKING:  # pragma: no cover
     import paquo.images
 
@@ -186,7 +188,10 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         geojson = gson.toJson(self.java_object.getAnnotationObjects())
         return list(json.loads(str(geojson)))
 
-    def load_geojson(self, geojson: list, *, raise_on_skip: bool = False) -> bool:
+    def load_geojson(
+            self, geojson: list,
+            *, raise_on_skip: bool = False, fix_invalid: bool = False,
+    ) -> bool:
         """load annotations into this hierarchy from a geojson list
 
         returns True if new objects were added, False otherwise.
@@ -201,14 +206,27 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         skipped = collections.Counter()  # type: ignore
         for annotation in geojson:
             try:
+                if fix_invalid:
+                    s = shape(annotation['geometry'])
+                    if not s.is_valid:
+                        # attempt to fix
+                        s = s.buffer(0, 1)
+                        if not s.is_valid:
+                            s = s.buffer(0, 1)
+                            if not s.is_valid:
+                                raise ValueError("invalid geometry")
+                    annotation['geometry'] = s.__geo_interface__
                 ao = QuPathPathAnnotationObject.from_geojson(annotation)
-            except IllegalArgumentException as err:
+
+            except (IllegalArgumentException, ValueError) as err:
                 _logger.debug(f"Annotation skipped: {err}")
                 class_ = annotation["properties"].get("classification", {}).get("name", "UNDEFINED")
                 skipped[class_] += 1
                 continue
+
             else:
-                aos.append(ao)
+                aos.append(ao.java_object)
+
         if skipped:
             n_skipped = sum(skipped.values())
             if raise_on_skip:
@@ -217,10 +235,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                 f"skipped {n_skipped} annotation objects: {skipped.most_common()}"
             )
 
-        changed = False
-        for ao in aos:
-            changed |= self.java_object.insertPathObject(ao.java_object, True)
-        return changed
+        return bool(self.java_object.insertPathObjects(aos))
 
     def __repr__(self):
         img: Optional['paquo.images.QuPathProjectImageEntry'] = self._image_ref()
