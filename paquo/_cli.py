@@ -133,7 +133,10 @@ def create_project(project_path, class_names_colors, images,
     from paquo.classes import QuPathPathClass
     from paquo.images import QuPathImageType
     from paquo.projects import QuPathProject
+    from paquo._logging import get_logger
     from paquo._utils import load_json_from_path
+
+    _logger = get_logger(__name__)
 
     mode = 'x' if not force_write else 'w'
 
@@ -157,6 +160,7 @@ def create_project(project_path, class_names_colors, images,
             if annotations_json_func:
                 annotations_jsons = annotations_json_func(Path(image).name)
                 for annotations_json in annotations_jsons:
+                    _logger.info(f"loading '{annotations_json}'")
                     geojson = load_json_from_path(annotations_json)
                     qp_image.hierarchy.load_geojson(geojson["annotations"])
 
