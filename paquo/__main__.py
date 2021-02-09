@@ -235,7 +235,7 @@ def quickview(args, subparser):
         def cmd(name):
             if name != image.name:
                 return []
-            return [args.annotations]
+            return [*args.annotations]
 
     elif args.annotations_cmd:
         def cmd(name):
