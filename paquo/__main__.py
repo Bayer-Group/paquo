@@ -211,7 +211,7 @@ def qpzip(args, subparser):
 
 @subcommand(
     argument('image', nargs='?', default=None, help="path to image"),
-    argument('--annotations', nargs=1, help="annotations for image"),
+    argument('--annotations', action="append", help="annotations for image"),
     argument('--annotations-cmd', type=str, help="automatically choose annotations if available")
 )
 def quickview(args, subparser):
@@ -235,7 +235,7 @@ def quickview(args, subparser):
         def cmd(name):
             if name != image.name:
                 return []
-            return [*args.annotations]
+            return list(args.annotations)
 
     elif args.annotations_cmd:
         def cmd(name):
