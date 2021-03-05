@@ -16,7 +16,6 @@ name: paquo
 channels:
   - sdvillal
   - conda-forge
-  - defaults
 
 dependencies:
   - python>=3.6.1
