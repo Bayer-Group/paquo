@@ -1,24 +1,39 @@
+import atexit
 import logging
 import re
 from contextlib import contextmanager, ExitStack, ContextDecorator, AbstractContextManager, suppress
 from typing import Iterable, Tuple, List
 
-from paquo import settings
 from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardCharsets, LogManager
 
-# log level settings
-LOG_LEVEL = settings.LOG_LEVEL.upper()
-logging.basicConfig(level=LOG_LEVEL)
-# set java log level
-with suppress(AttributeError, TypeError):
-    getattr(LogManager, f"set{LOG_LEVEL.title()}")()
+__all__ = ['get_logger', 'redirect']
 
-__all__ = ['LOG_LEVEL', 'get_logger', 'redirect']
+# === qupath logging setup ============================================
 
+# by default, silence the qupath java logging if nothing is configured
+# https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library
+logging.getLogger('qupath').addHandler(logging.NullHandler())
+
+# set the java log level to DEBUG
+# and filter in the 'qupath' logger on the python side
+LogManager.setDebug()
+
+
+@atexit.register
+def _java_log_cleanup():
+    # NOTE: qupath's ImageServer Threads provide debug output that's
+    #   only emitted once the interpreter is cleaned up. Since at
+    #   that point we've already left the contextmanager for log
+    #   redirection, we'll just switch the qupath loglevel to Warn
+    #   and emit a debug message on the python side.
+    LogManager.setWarn()
+    get_logger('qupath').debug("switching java logger to warn for silent thread cleanup")
+
+
+# --- logging methods -------------------------------------------------
 
 def get_logger(name):
     """return a logger instance"""
-    # using paquo._logging.get_logger ensures that basicConfig has been called
     return logging.getLogger(name)
 
 
@@ -31,7 +46,7 @@ class _JavaLoggingBase(AbstractContextManager):
     java_setter = None  # REQUIRED IN SUBCLASSES
     _count = 0
     _java_buffer = None
-    _logger = logging.getLogger("QUPATH")
+    _logger = logging.getLogger("qupath")
     _java_log_entry_match = re.compile(r"""^
         (?P<timestamp>[0-9:.]+)
         [ ]\[(?P<logger>[^]]+)]
@@ -87,14 +102,13 @@ class _JavaLoggingBase(AbstractContextManager):
         # assume JVM console output is one line per msg
         for (origin, level), entry in self.iter_logs(output):
             if "WARN" in level:
-                self._logger.warning("%s: %s", origin, entry)
+                self._logger.warning("[%s] [%s] - %s", origin, level, entry)
             elif "ERR" in level:
-                # FIXME: SHOULD THIS RAISE AN EXCEPTION?
-                self._logger.error("%s: %s", origin, entry)  # pragma: no cover
+                self._logger.error("[%s] [%s] - %s", origin, level, entry)  # pragma: no cover
             elif "DEBUG" in level:
-                self._logger.debug("%s: %s", origin, entry)  # pragma: no cover
+                self._logger.debug("[%s] [%s] - %s", origin, level, entry)
             else:
-                self._logger.info("%s: %s", origin, entry)
+                self._logger.info("[%s] [%s] - %s", origin, level, entry)
 
     def iter_logs(self, output: str) -> Iterable[Tuple[Tuple[str, str], str]]:
         """iterate the individual log messages"""
