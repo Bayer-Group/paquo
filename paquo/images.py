@@ -393,20 +393,20 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
 
     @cached_property
     def _image_data(self):
-        try:
-            with redirect(stdout=True, stderr=True):
-                return self.java_object.readImageData()
-        # from java land
-        except IOException:  # pragma: no cover
-            image_data_fn = self.entry_path / "data.qpdata"
+        with redirect(stdout=True, stderr=True):
             try:
-                image_data = PathIO.readImageData(
-                    File(str(image_data_fn)),
-                    None, None, BufferedImage
-                )
-            except FileNotFoundException:
-                raise FileNotFoundError("image_data missing")
-            return image_data
+                return self.java_object.readImageData()
+            # from java land
+            except IOException:  # pragma: no cover
+                image_data_fn = self.entry_path / "data.qpdata"
+                try:
+                    image_data = PathIO.readImageData(
+                        File(str(image_data_fn)),
+                        None, None, BufferedImage
+                    )
+                except FileNotFoundException:
+                    raise FileNotFoundError("image_data missing")
+                return image_data
 
     @cached_property
     def _properties(self):

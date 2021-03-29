@@ -202,14 +202,16 @@ class QuPathProject(QuPathBase[DefaultProject]):
             _exists = False
 
         if _exists:
-            project = ProjectIO.loadProject(File(str(p)), BufferedImage)
+            with redirect(stderr=True, stdout=True):
+                project = ProjectIO.loadProject(File(str(p)), BufferedImage)
         else:
             p_dir = p.parent
             p_dir.mkdir(parents=True, exist_ok=True)
             for f in p_dir.iterdir():
                 if not f.match("*.backup"):
                     raise ValueError("will only create projects in empty directories")
-            project = Projects.createProject(File(str(p_dir)), BufferedImage)
+            with redirect(stderr=True, stdout=True):
+                project = Projects.createProject(File(str(p_dir)), BufferedImage)
 
         super().__init__(project)
         self._image_entries_proxy = _ProjectImageEntriesProxy(self)
