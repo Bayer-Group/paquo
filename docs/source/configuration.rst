@@ -52,9 +52,6 @@ Environment variables
 All `paquo` settings can also be overridden by environment variables. Just prefix the particular
 setting with :code:`PAQUO_` and set the environment variable to what you want it to be.
 
-    PAQUO_LOG_LEVEL = :code:`WARNING`
-        valid: `DEBUG`, `INFO`, `WARNING`, `ERROR`
-
     PAQUO_QUPATH_DIR = :code:`""`
         if set will skip search and try to use qupath from this folder
 
@@ -90,7 +87,6 @@ which will output something like the following to the console, and represents yo
     # current paquo configuration
     # ===========================
     # format: TOML
-    log_level = "INFO"
     qupath_dir = ""
     qupath_search_dirs = [ "/usr/local",]
     qupath_search_dir_regex = "(?i)qupath.*"
@@ -105,3 +101,11 @@ which will output something like the following to the console, and represents yo
     .. code-block:: console
 
         user@computer:~$ dynaconf -i paquo.settings list
+
+
+Logging
+-------
+
+Paquo uses Python's :code:`logging` for console debug output. There's two logger namespaces for paquo:
+"paquo" and "qupath". "paquo" logs :code:`paquo` internal things and the java loggers are reroutet through
+the "qupath" logger.

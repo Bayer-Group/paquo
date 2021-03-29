@@ -2,9 +2,6 @@
 # =============================
 # format: TOML
 
-# valid: debug, info, warning, error
-log_level = "WARNING"
-
 # if set will skip search and try to use qupath from there:
 qupath_dir = ""
 
