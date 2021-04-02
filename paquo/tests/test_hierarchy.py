@@ -206,6 +206,40 @@ def test_add_duplicate_to_hierarchy(svs_small, tmp_path):
         assert len(entry1.hierarchy) == 2
 
 
+def test_hierarchy_update_on_annotation_update(svs_small, tmp_path):
+    """updating annotation or detection objects triggers is_changed on hierarchy"""
+    # create a project with an image and annotations
+    from shapely.geometry import Polygon
+    from paquo.projects import QuPathProject
+    from paquo.images import QuPathImageType
+    from paquo.classes import QuPathPathClass
+
+    p = tmp_path / "my_project"
+    # prepare project
+    with QuPathProject(p, mode="x") as qp:
+        entry0 = qp.add_image(svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
+        annotation = entry0.hierarchy.add_annotation(
+            roi=Polygon.from_bounds(0, 0, 10, 10),
+            path_class=QuPathPathClass("abc")
+        )
+        annotation.name = "abc"
+        assert len(entry0.hierarchy) == 1
+    del qp
+
+    # test update
+    with QuPathProject(p, mode="a") as qp:
+        entry1 = qp.images[0]
+
+        assert len(entry1.hierarchy) == 1
+
+        for annotation in entry1.hierarchy.annotations:
+            annotation.update_path_class(QuPathPathClass("new"))
+
+        assert entry1.is_changed()
+        assert len(entry1.hierarchy) == 1
+        assert next(iter(entry1.hierarchy.annotations)).path_class.name == "new"
+
+
 def test_add_incorrect_to_hierarchy(empty_hierarchy):
     with pytest.raises(TypeError):
         # noinspection PyTypeChecker
