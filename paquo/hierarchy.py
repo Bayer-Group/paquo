@@ -25,7 +25,7 @@ _logger = get_logger(__name__)
 class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
     """provides a python set interface for path objects"""
 
-    def __init__(self, hierarchy: 'QuPathPathObjectHierarchy', paquo_cls: Type[_PathROIObject[Any]]):
+    def __init__(self, hierarchy: 'QuPathPathObjectHierarchy', paquo_cls: Type[PathROIObjectType]):
         self._hierarchy = hierarchy
         self._java_hierarchy = hierarchy.java_object
         self._paquo_cls = paquo_cls
@@ -46,7 +46,7 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
         self._java_hierarchy.removeObject(x.java_object, True)
 
-    def __contains__(self, x: object) -> bool:
+    def __contains__(self, x: Any) -> bool:
         # ... inHierarchy is private
         # return bool(self._java_hierarchy.inHierarchy(x.java_object))
         if not isinstance(x, self._paquo_cls):

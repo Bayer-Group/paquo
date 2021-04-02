@@ -3,7 +3,7 @@ import math
 import weakref
 from collections.abc import MutableMapping
 from functools import wraps
-from typing import Optional, Union, Iterator, TypeVar, Callable, Type
+from typing import Optional, Union, Iterator, TypeVar, Callable, Type, TYPE_CHECKING
 
 from shapely.geometry.base import BaseGeometry
 from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
@@ -13,6 +13,9 @@ from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
 from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryTools, PathAnnotationObject, GsonTools, \
     PathROIObject, PathDetectionObject, PathTileObject
+
+if TYPE_CHECKING:
+    from paquo.hierarchy import _PathObjectSetProxy
 
 
 def _shapely_geometry_to_qupath_roi(geometry: BaseGeometry, image_plane=None) -> ROI:
@@ -117,7 +120,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
             return self._wrapper.__get__(instance, owner)
 
     def __init__(self, java_object, *,
-                 _proxy_ref: Optional['paquo.hierarchy._PathObjectSetProxy'] = None):
+                 _proxy_ref: Optional['_PathObjectSetProxy'] = None):
         super().__init__(java_object=java_object)
         # used in the _propagate_update decorator.
         # keeps a weak reference to the hierarchy proxy
@@ -200,7 +203,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         """lock state of the annotation"""
         return bool(self.java_object.isLocked())
 
-    @locked.setter
+    @locked.setter  # type: ignore
     @_propagate_update
     def locked(self, value: bool) -> None:
         self.java_object.setLocked(value)
@@ -223,7 +226,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
             return None
         return str(name)
 
-    @name.setter
+    @name.setter  # type: ignore
     @_propagate_update
     def name(self, name: Union[str, None]):
         if name is not None:
