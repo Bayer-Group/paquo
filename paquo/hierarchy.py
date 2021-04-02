@@ -59,7 +59,8 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
         return int(self._java_hierarchy.getObjects(None, self._paquo_cls.java_class).size())
 
     def __iter__(self) -> Iterator[PathROIObjectType]:
-        return map(self._paquo_cls, self._java_hierarchy.getObjects(None, self._paquo_cls.java_class))  # type: ignore
+        for obj in self._java_hierarchy.getObjects(None, self._paquo_cls.java_class):
+            yield self._paquo_cls(obj, _proxy_ref=self)
 
     def __repr__(self):
         return f"{self._paquo_cls.__name__}Set(n={len(self)})"
