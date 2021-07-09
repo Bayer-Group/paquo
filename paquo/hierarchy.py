@@ -12,6 +12,7 @@ from paquo._base import QuPathBase
 from paquo._logging import get_logger
 from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools, PathObjectHierarchy, IllegalArgumentException
+from paquo.java import qupath_version
 from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
     QuPathPathTileObject
 
@@ -217,10 +218,28 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                             if not s.is_valid:
                                 raise ValueError("invalid geometry")
                     annotation['geometry'] = s.__geo_interface__
+
+                # compatibility layer
+                if qupath_version <= "0.2.3" and 'id' not in annotation:
+                    object_type = annotation['properties'].get("object_type", "unknown")
+                    object_id = {
+                        'annotation': "PathAnnotationObject",
+                        'detection': "PathDetectionObject",
+                        'tile': "PathTileObject",
+                        'cell': "PathCellObject",
+                        'tma_core': "TMACoreObject",
+                        'root': "PathRootObject",
+                        'unknown': "PathAnnotationObject",
+                    }.get(object_type, None)
+                    if object_id is None:
+                        _logger.warn(f"annotation has incompatible object_type: '{object_type}'")
+                        object_id = "PathAnnotationObject"
+                    annotation['id'] = object_id
+
                 ao = QuPathPathAnnotationObject.from_geojson(annotation)
 
             except (IllegalArgumentException, ValueError) as err:
-                _logger.debug(f"Annotation skipped: {err}")
+                _logger.warn(f"Annotation skipped: {err}")
                 class_ = annotation["properties"].get("classification", {}).get("name", "UNDEFINED")
                 skipped[class_] += 1
                 continue
