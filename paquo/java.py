@@ -52,6 +52,7 @@ GsonTools = JClass('qupath.lib.io.GsonTools')
 ImageData = JClass('qupath.lib.images.ImageData')
 ImageType = JClass('qupath.lib.images.ImageData.ImageType')
 ImageServer = JClass('qupath.lib.images.servers.ImageServer')
+ImageServers = JClass('qupath.lib.images.servers.ImageServers')  # NOTE: this is needed to make QuPath v0.3.0-rc1 work
 ImageServerProvider = JClass('qupath.lib.images.servers.ImageServerProvider')
 LogManager = JClass('qupath.lib.gui.logging.LogManager')
 PathAnnotationObject = JClass("qupath.lib.objects.PathAnnotationObject")
