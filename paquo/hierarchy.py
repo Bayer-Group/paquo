@@ -220,7 +220,10 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                     annotation['geometry'] = s.__geo_interface__
 
                 # compatibility layer
-                if qupath_version <= "0.2.3" and 'id' not in annotation:
+                # todo: should maybe test at the beginnign of this method
+                #   if the version supports id or not, instead of checking
+                #   the version number...
+                if qupath_version and qupath_version <= "0.2.3" and 'id' not in annotation:
                     object_type = annotation['properties'].get("object_type", "unknown")
                     object_id = {
                         'annotation': "PathAnnotationObject",
