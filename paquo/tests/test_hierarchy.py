@@ -166,7 +166,7 @@ TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus = [{
 
 @pytest.fixture
 def example_annotation(qupath_version):
-    if qupath_version < LooseVersion("0.3.0-rc1"):
+    if qupath_version <= LooseVersion("0.2.3"):
         yield TEST_ANNOTATION_POLYGON_VERSION_0_2_3
     else:
         yield TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus

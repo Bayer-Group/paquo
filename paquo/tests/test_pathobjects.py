@@ -1,3 +1,5 @@
+from distutils.version import LooseVersion
+
 import pytest
 import shapely.geometry
 
@@ -55,11 +57,17 @@ def path_annotation(request):
     yield ao
 
 
-def test_geojson_serialization(path_annotation):
+def test_geojson_serialization(path_annotation, qupath_version):
     geo_json = path_annotation.to_geojson()
 
     assert geo_json["type"] == "Feature"
-    assert geo_json["id"] == "PathAnnotationObject"
+
+    # bad practice
+    if qupath_version <= LooseVersion("0.2.3"):
+        assert geo_json["id"] == "PathAnnotationObject"
+    else:
+        assert geo_json["properties"]["object_type"] == "annotation"
+
     assert "geometry" in geo_json
     geom = geo_json["geometry"]
 
@@ -70,7 +78,17 @@ def test_geojson_serialization(path_annotation):
     prop = geo_json["properties"]
 
     assert prop["isLocked"] == path_annotation.locked
-    assert prop["measurements"] == path_annotation.measurements.to_records()
+
+    # bad practice
+    if qupath_version <= LooseVersion("0.2.3"):
+        assert prop["measurements"] == path_annotation.measurements.to_records()
+    else:
+        measurements = path_annotation.measurements.to_records()
+        if not measurements:
+            assert "measurements" not in prop
+        else:
+            assert prop["measurements"] == measurements
+
     assert prop["classification"]["name"] == path_annotation.path_class.name
     assert prop["classification"]["colorRGB"] == path_annotation.path_class.color.to_java_rgba()
 
