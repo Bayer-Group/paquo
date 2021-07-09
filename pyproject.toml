@@ -20,6 +20,11 @@ addopts = [
 ]
 
 
+[tool.isort]
+profile = "black"
+multi_line_output = 7
+force_single_line = true
+
 [tool.coverage.run]
 source = ["paquo"]
 

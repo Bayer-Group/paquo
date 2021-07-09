@@ -4,8 +4,16 @@ import pathlib
 import re
 import shutil
 from contextlib import contextmanager
-from typing import Union, Iterable, Tuple, Optional, Iterator, \
-    Dict, overload, Sequence, Hashable, Any
+from typing import Any
+from typing import Dict
+from typing import Hashable
+from typing import Iterable
+from typing import Iterator
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import Union
+from typing import overload
 
 try:
     from typing import Literal  # type: ignore
@@ -14,13 +22,27 @@ except ImportError:
 
 from paquo import settings
 from paquo._base import QuPathBase
-from paquo._logging import redirect, get_logger
+from paquo._logging import get_logger
+from paquo._logging import redirect
 from paquo._utils import make_backup_filename
 from paquo.classes import QuPathPathClass
-from paquo.images import QuPathProjectImageEntry, ImageProvider, SimpleURIImageProvider, QuPathImageType
-from paquo.java import ImageServerProvider, BufferedImage, ProjectImportImagesCommand, \
-    ProjectIO, File, Projects, String, ServerTools, DefaultProject, URI, GeneralTools, IOException, \
-    NegativeArraySizeException
+from paquo.images import ImageProvider
+from paquo.images import QuPathImageType
+from paquo.images import QuPathProjectImageEntry
+from paquo.images import SimpleURIImageProvider
+from paquo.java import URI
+from paquo.java import BufferedImage
+from paquo.java import DefaultProject
+from paquo.java import File
+from paquo.java import GeneralTools
+from paquo.java import ImageServerProvider
+from paquo.java import IOException
+from paquo.java import NegativeArraySizeException
+from paquo.java import ProjectImportImagesCommand
+from paquo.java import ProjectIO
+from paquo.java import Projects
+from paquo.java import ServerTools
+from paquo.java import String
 
 _log = get_logger(__name__)
 
@@ -80,7 +102,9 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         return f"ImageEntries({repr([entry.image_name for entry in self])})"
 
     def _repr_html_(self, compact=False) -> str:
-        from paquo._repr import div, h4, repr_html
+        from paquo._repr import div
+        from paquo._repr import h4
+        from paquo._repr import repr_html
         images = [
             repr_html(img, compact=True, index=idx) for idx, img in enumerate(self)
         ]
@@ -416,7 +440,12 @@ class QuPathProject(QuPathBase[DefaultProject]):
         return f'{type(self).__name__}(path="{self._path}" mode="{self._mode}")'
 
     def _repr_html_(self) -> str:
-        from paquo._repr import br, h3, div, p, span, repr_html
+        from paquo._repr import br
+        from paquo._repr import div
+        from paquo._repr import h3
+        from paquo._repr import p
+        from paquo._repr import repr_html
+        from paquo._repr import span
         return div(
             h3(style={"margin-top": "0"}, text=f"Project: {self.name}"),
             p(
