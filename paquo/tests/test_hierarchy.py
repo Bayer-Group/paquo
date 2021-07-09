@@ -1,3 +1,4 @@
+from distutils.version import LooseVersion
 from functools import partial
 from typing import Type
 
@@ -114,7 +115,7 @@ def test_geojson_roundtrip_via_geojson(empty_hierarchy):
     assert len(h) == 10
 
 
-TEST_ANNOTATION_POLYGON = [{
+TEST_ANNOTATION_POLYGON_VERSION_0_2_3 = [{
     'type': 'Feature',
     'id': 'PathAnnotationObject',
     'geometry': {
@@ -124,7 +125,7 @@ TEST_ANNOTATION_POLYGON = [{
             [1011, 1420],
             [1120, 1430],
             [1060, 1380],
-            [1000, 1300]
+            [1000, 1300],
         ]]
     },
     'properties': {
@@ -137,12 +138,50 @@ TEST_ANNOTATION_POLYGON = [{
     }
 }]
 
+# qupath version v0.3.0-rc1 made a few changes to the geojson format
+# 1. the 'id' key is removed and replaced by a property key 'object_type'
+# 2. the property key 'measurements' is omitted if empty
+TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus = [{
+    'type': 'Feature',
+    'geometry': {
+        'type': 'Polygon',
+        'coordinates': [[
+            [1000, 1300],
+            [1011, 1420],
+            [1120, 1430],
+            [1060, 1380],
+            [1000, 1300],
+        ]]
+    },
+    'properties': {
+        'classification': {
+            'name': 'Tumor',
+            'colorRGB': -3670016
+        },
+        'isLocked': False,
+        'object_type': 'annotation',
+    }
+}]
 
-def test_geojson_roundtrip_via_annotations(empty_hierarchy):
+
+@pytest.fixture
+def example_annotation(qupath_version):
+    if qupath_version < LooseVersion("0.3.0-rc1"):
+        yield TEST_ANNOTATION_POLYGON_VERSION_0_2_3
+    else:
+        yield TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus
+
+@pytest.mark.parametrize(
+    "input_annotation", [
+        pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_2_3, id='v0.2.3'),
+        pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus, id='v0.3.0rc1')
+    ]
+)
+def test_geojson_roundtrip_via_annotations(empty_hierarchy, example_annotation, input_annotation):
     h = empty_hierarchy
-    assert h.load_geojson(TEST_ANNOTATION_POLYGON)
+    assert h.load_geojson(input_annotation)
     output = h.to_geojson()
-    assert output == TEST_ANNOTATION_POLYGON
+    assert output == example_annotation
 
 
 def test_add_to_existing_hierarchy(svs_small, tmp_path):

@@ -38,3 +38,9 @@ def svs_small():
         pytest.fail("incorrect md5")
     else:
         yield img_fn.absolute()
+
+
+@pytest.fixture(scope='session')
+def qupath_version():
+    from paquo.java import qupath_version
+    yield qupath_version
