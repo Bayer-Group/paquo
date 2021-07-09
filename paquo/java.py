@@ -76,6 +76,7 @@ WKBWriter = JClass("org.locationtech.jts.io.WKBWriter")
 WKBReader = JClass("org.locationtech.jts.io.WKBReader")
 
 IOException = JClass("java.io.IOException")
+ExceptionInInitializerError = JClass("java.lang.ExceptionInInitializerError")
 URISyntaxException = JClass("java.net.URISyntaxException")
 NegativeArraySizeException = JClass('java.lang.NegativeArraySizeException')
 IllegalArgumentException = JClass('java.lang.IllegalArgumentException')

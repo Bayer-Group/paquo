@@ -33,6 +33,7 @@ from paquo.images import SimpleURIImageProvider
 from paquo.java import URI
 from paquo.java import BufferedImage
 from paquo.java import DefaultProject
+from paquo.java import ExceptionInInitializerError
 from paquo.java import File
 from paquo.java import GeneralTools
 from paquo.java import ImageServerProvider
@@ -308,6 +309,8 @@ class QuPathProject(QuPathBase[DefaultProject]):
             # is not actually reachable. In that case catch the java IOException
             # and raise a FileNotFoundError here
             raise FileNotFoundError(image_id)
+        except ExceptionInInitializerError:
+            raise IOError("no preferred support found")
         if not support:
             raise IOError("no preferred support found")  # pragma: no cover
         server_builders = list(support.getBuilders())
