@@ -13,6 +13,7 @@ from paquo._base import QuPathBase
 from paquo._logging import redirect, get_logger
 from paquo._utils import cached_property
 from paquo.hierarchy import QuPathPathObjectHierarchy
+from paquo.java import NoSuchFileException
 from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException, \
     PathIO, File, BufferedImage, FileNotFoundException
 if TYPE_CHECKING:
@@ -404,7 +405,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
                         File(str(image_data_fn)),
                         None, None, BufferedImage
                     )
-                except FileNotFoundException:
+                except (FileNotFoundException, NoSuchFileException):
                     raise FileNotFoundError("image_data missing")
                 return image_data
 
