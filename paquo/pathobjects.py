@@ -107,7 +107,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
                 # update if this instance belongs to a hierarchy
                 # todo: we should provide a contextmanager on the hierarchy to allow bulk updating
                 h_set_proxy = instance._proxy_ref()
-                if h_set_proxy:
+                if h_set_proxy is not None:
                     h_set_proxy.add(instance)
                 return value
 
@@ -124,7 +124,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         super().__init__(java_object=java_object)
         # used in the _propagate_update decorator.
         # keeps a weak reference to the hierarchy proxy
-        self._proxy_ref = weakref.ref(_proxy_ref) if _proxy_ref else lambda: None
+        self._proxy_ref = weakref.ref(_proxy_ref) if _proxy_ref is not None else lambda: None
 
     @classmethod
     def from_shapely(cls: Type[PathROIObjectType],
