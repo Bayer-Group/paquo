@@ -64,12 +64,12 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
             raise TypeError(f"mask can be slice, or Sequence[int] or None. Got: {type(mask)!r}")
         self._mask: Optional[Union[slice, Sequence[int]]] = mask
 
-    @cached_property
+    @property
     def _readonly(self) -> bool:
         # noinspection PyProtectedMember
         return self._hierarchy._readonly or self._mask is not None
 
-    @cached_property
+    @property
     def _java_hierarchy(self):
         return self._hierarchy.java_object
 
@@ -86,9 +86,6 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
     def _list_invalidate_cache(self):
         with suppress(AttributeError):
             delattr(self, "_list")
-
-    def _update_callback(self, path_object: PathROIObjectType) -> None:
-        self.add(path_object)
 
     @classmethod
     def _from_iterable(cls, it):
@@ -183,7 +180,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
 
     def __iter__(self) -> Iterator[PathROIObjectType]:
         for obj in self._list:
-            yield self._paquo_cls(obj, update_callback=self._update_callback)
+            yield self._paquo_cls(obj, update_callback=self.add)
 
     @overload
     def __getitem__(self, i: int) -> PathROIObjectType: ...
@@ -194,7 +191,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
 
     def __getitem__(self, i):
         if isinstance(i, int):
-            return self._paquo_cls(self._list[i], update_callback=self._update_callback)
+            return self._paquo_cls(self._list[i], update_callback=self.add)
         elif isinstance(i, slice):
             if self._mask is None:
                 mask = i
