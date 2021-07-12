@@ -2,20 +2,41 @@ import json
 import pathlib
 import re
 import weakref
-from abc import ABC, abstractmethod
-from collections.abc import MutableMapping, Hashable
+from abc import ABC
+from abc import abstractmethod
+from collections.abc import Hashable
+from collections.abc import MutableMapping
 from copy import deepcopy
 from enum import Enum
-from pathlib import Path, PureWindowsPath, PurePath, PurePosixPath
-from typing import Iterator, Optional, Any, List, Dict, Union, TYPE_CHECKING
+from pathlib import Path
+from pathlib import PurePath
+from pathlib import PurePosixPath
+from pathlib import PureWindowsPath
+from typing import Any
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Union
 
 from paquo._base import QuPathBase
-from paquo._logging import redirect, get_logger
+from paquo._logging import get_logger
+from paquo._logging import redirect
 from paquo._utils import cached_property
 from paquo.hierarchy import QuPathPathObjectHierarchy
+from paquo.java import BufferedImage
+from paquo.java import DefaultProjectImageEntry
+from paquo.java import File
+from paquo.java import FileNotFoundException
+from paquo.java import IOException
+from paquo.java import ImageType
 from paquo.java import NoSuchFileException
-from paquo.java import String, DefaultProjectImageEntry, ImageType, ImageData, IOException, URI, URISyntaxException, \
-    PathIO, File, BufferedImage, FileNotFoundException
+from paquo.java import PathIO
+from paquo.java import String
+from paquo.java import URI
+from paquo.java import URISyntaxException
+
 if TYPE_CHECKING:
     import paquo.projects
 
@@ -549,10 +570,12 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
     def hierarchy(self) -> QuPathPathObjectHierarchy:
         """the image entry hierarchy. it contains all annotations"""
         try:
-            return QuPathPathObjectHierarchy(self._image_data.getHierarchy(), _image_ref=self)
+            h = self._image_data.getHierarchy()
         except OSError:
             _log.warning("could not open image data. loading annotation hierarchy from project.")
-            return QuPathPathObjectHierarchy(self.java_object.readHierarchy(), _image_ref=self)
+            h = self.java_object.readHierarchy()
+
+        return QuPathPathObjectHierarchy(h, readonly=self._readonly, image_name=self.image_name)
 
     def __repr__(self):
         return f"ImageEntry(image_name='{self.image_name}')"
