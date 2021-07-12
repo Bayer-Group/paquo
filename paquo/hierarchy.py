@@ -12,7 +12,6 @@ from typing import Optional
 from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import Type
-from typing import TypeVar
 from typing import Union
 from typing import overload
 
@@ -27,15 +26,15 @@ from paquo.java import GsonTools
 from paquo.java import IllegalArgumentException
 from paquo.java import PathObjectHierarchy
 from paquo.java import qupath_version
+from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
 from paquo.pathobjects import QuPathPathDetectionObject
 from paquo.pathobjects import QuPathPathTileObject
-from paquo.pathobjects import _PathROIObject
 
 if TYPE_CHECKING:  # pragma: no cover
     import paquo.images
 
-PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
+__all__ = ["QuPathPathObjectHierarchy"]
 _logger = get_logger(__name__)
 
 

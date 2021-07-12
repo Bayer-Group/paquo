@@ -3,19 +3,44 @@ import math
 import weakref
 from collections.abc import MutableMapping
 from functools import wraps
-from typing import Optional, Union, Iterator, TypeVar, Callable, Type, TYPE_CHECKING
+from typing import Any
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Type
+from typing import TypeVar
+from typing import Union
 
 from shapely.geometry.base import BaseGeometry
-from shapely.wkb import loads as shapely_wkb_loads, dumps as shapely_wkb_dumps
+from shapely.wkb import dumps as shapely_wkb_dumps
+from shapely.wkb import loads as shapely_wkb_loads
 
 from paquo._base import QuPathBase
 from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
-from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryTools, PathAnnotationObject, GsonTools, \
-    PathROIObject, PathDetectionObject, PathTileObject
+from paquo.java import GeometryTools
+from paquo.java import GsonTools
+from paquo.java import PathAnnotationObject
+from paquo.java import PathDetectionObject
+from paquo.java import PathObjects
+from paquo.java import PathROIObject
+from paquo.java import PathTileObject
+from paquo.java import ROI
+from paquo.java import String
+from paquo.java import WKBReader
+from paquo.java import WKBWriter
 
 if TYPE_CHECKING:
+    # noinspection PyProtectedMember
     from paquo.hierarchy import PathObjectProxy
+
+__all__ = [
+    "PathROIObjectType",
+    "QuPathPathAnnotationObject",
+    "QuPathPathDetectionObject",
+    "QuPathPathTileObject",
+]
 
 
 def _shapely_geometry_to_qupath_roi(geometry: BaseGeometry, image_plane=None) -> ROI:
@@ -92,9 +117,11 @@ JPathROIObjectType = TypeVar('JPathROIObjectType', bound=PathROIObject)
 class _PathROIObject(QuPathBase[JPathROIObjectType]):
     """internal base class for PathObjects"""
 
-    java_class: Optional[JPathROIObjectType] = None
-    java_class_factory: Callable = lambda *x: None
+    # must be provided in subclass
+    java_class: Optional[JPathROIObjectType]
+    java_class_factory: Callable[..., Any]
 
+    # noinspection PyPep8Naming,PyProtectedMember
     class _propagate_update:
         # decorator for propagating instance updates to the parent hierarchy
 
@@ -153,9 +180,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         qupath_roi = _shapely_geometry_to_qupath_roi(roi)
         qupath_path_class = path_class.java_object if path_class is not None else None
         # fixme: should create measurements here and pass instead of None
-        java_obj = cls.java_class_factory(
-            qupath_roi, qupath_path_class, None
-        )
+        java_obj = cls.java_class_factory(qupath_roi, qupath_path_class, None)
         if not math.isnan(path_class_probability):
             java_obj.setPathClass(java_obj.getPathClass(), path_class_probability)
         obj = cls(java_obj)
