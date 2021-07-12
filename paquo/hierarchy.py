@@ -3,9 +3,9 @@ import json
 import math
 import reprlib
 import weakref
-from collections.abc import MutableSet as MutableSetABC
 from contextlib import suppress
 from typing import Any
+from typing import Iterable
 from typing import Iterator
 from typing import MutableSet
 from typing import Optional
@@ -91,6 +91,41 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         with suppress(AttributeError):
             delattr(self, "_list")
 
+    @classmethod
+    def _from_iterable(cls, it):
+        raise NotImplementedError(f"{cls.__name__} only supports inplace operations: '|=', '-='")
+
+    def __iand__(self, other):
+        raise NotImplementedError(f"{type(self).__name__} only supports inplace operations: '|=', '-='")
+
+    def __ixor__(self, other):
+        raise NotImplementedError(f"{type(self).__name__} only supports inplace operations: '|=', '-='")
+
+    def __ior__(self, other: Iterable[PathROIObjectType]) -> "PathObjectProxy":
+        if self._mask:
+            raise IOError("cannot modify view")
+        if self._readonly:
+            raise IOError("project in readonly mode")
+        path_objects = [x.java_object for x in other]
+        try:
+            self._java_hierarchy.addPathObjects(path_objects)
+        finally:
+            self._list_invalidate_cache()
+        return self
+    update = __ior__
+
+    def __isub__(self, other: Iterable[PathROIObjectType]) -> "PathObjectProxy":
+        if self._mask:
+            raise IOError("cannot modify view")
+        if self._readonly:
+            raise IOError("project in readonly mode")
+        path_objects = [x.java_object for x in other]
+        try:
+            self._java_hierarchy.removeObjects(path_objects, True)
+        finally:
+            self._list_invalidate_cache()
+        return self
+
     def add(self, x: PathROIObjectType) -> None:
         """adds a new path object to the proxy"""
         if self._mask:
@@ -124,7 +159,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         if self._readonly:
             raise IOError("project in readonly mode")
         try:
-            self._java_hierarchy.getRootObject().removePathObjects(self._list)
+            self._java_hierarchy.removeObjects(self._list, True)
         finally:
             self._list_invalidate_cache()
 
@@ -185,9 +220,6 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         if m is None:
             return f"<{c} hierarchy={h} paquo_cls={p} at {i}>"
         return f"<{c} hierarchy={h} paquo_cls={p} mask={m} at {i}>"
-
-    # provide update
-    update = MutableSetABC.__ior__
 
 
 class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
