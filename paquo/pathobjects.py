@@ -15,7 +15,7 @@ from paquo.java import String, PathObjects, ROI, WKBWriter, WKBReader, GeometryT
     PathROIObject, PathDetectionObject, PathTileObject
 
 if TYPE_CHECKING:
-    from paquo.hierarchy import _PathObjectSetProxy
+    from paquo.hierarchy import PathObjectProxy
 
 
 def _shapely_geometry_to_qupath_roi(geometry: BaseGeometry, image_plane=None) -> ROI:
@@ -120,7 +120,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
             return self._wrapper.__get__(instance, owner)
 
     def __init__(self, java_object, *,
-                 _proxy_ref: Optional['_PathObjectSetProxy'] = None):
+                 _proxy_ref: Optional['PathObjectProxy'] = None):
         super().__init__(java_object=java_object)
         # used in the _propagate_update decorator.
         # keeps a weak reference to the hierarchy proxy

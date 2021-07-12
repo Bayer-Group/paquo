@@ -1,20 +1,36 @@
 import collections
-import collections.abc as collections_abc
 import json
 import math
+import reprlib
 import weakref
-from typing import Optional, Iterator, MutableSet, TypeVar, Type, Any, TYPE_CHECKING
+from collections.abc import MutableSet as MutableSetABC
+from contextlib import suppress
+from typing import Any
+from typing import Iterator
+from typing import MutableSet
+from typing import Optional
+from typing import Sequence
+from typing import TYPE_CHECKING
+from typing import Type
+from typing import TypeVar
+from typing import Union
+from typing import overload
 
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
 from paquo._base import QuPathBase
 from paquo._logging import get_logger
+from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
-from paquo.java import GsonTools, PathObjectHierarchy, IllegalArgumentException
+from paquo.java import GsonTools
+from paquo.java import IllegalArgumentException
+from paquo.java import PathObjectHierarchy
 from paquo.java import qupath_version
-from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject, \
-    QuPathPathTileObject
+from paquo.pathobjects import QuPathPathAnnotationObject
+from paquo.pathobjects import QuPathPathDetectionObject
+from paquo.pathobjects import QuPathPathTileObject
+from paquo.pathobjects import _PathROIObject
 
 if TYPE_CHECKING:  # pragma: no cover
     import paquo.images
@@ -23,31 +39,98 @@ PathROIObjectType = TypeVar("PathROIObjectType", bound=_PathROIObject)
 _logger = get_logger(__name__)
 
 
-class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
-    """provides a python set interface for path objects"""
+class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]):
+    """set interface for path objects with support for access by index and slicing
 
-    def __init__(self, hierarchy: 'QuPathPathObjectHierarchy', paquo_cls: Type[PathROIObjectType]):
+    *not meant to be instantiated by the user*
+
+    Notes
+    -----
+    Access this proxy via the `QuPathPathObjectHierarchy.annotations` or
+    `QuPathPathObjectHierarchy.detections` properties. It acts just like
+    a python set, but also supports access by index and slicing.
+
+    """
+
+    def __init__(
+        self,
+        hierarchy: 'QuPathPathObjectHierarchy',
+        paquo_cls: Type[PathROIObjectType],
+        mask: Optional[Union[slice, Sequence[int]]] = None,
+    ) -> None:
+        """internal: not meant to be instantiated by the user"""
         self._hierarchy = hierarchy
-        self._java_hierarchy = hierarchy.java_object
         self._paquo_cls = paquo_cls
+        if not (
+            mask is None
+            or isinstance(mask, slice)
+            or (all(isinstance(x, int) for x in mask) and len(mask) > 0)
+        ):
+            raise TypeError(f"mask can be slice, or Sequence[int] or None. Got: {type(mask)!r}")
+        self._mask: Optional[Union[slice, Sequence[int]]] = mask
+
+    @cached_property
+    def _readonly(self) -> bool:
+        # noinspection PyProtectedMember
+        return self._hierarchy._readonly or self._mask is not None
+
+    @cached_property
+    def _java_hierarchy(self):
+        return self._hierarchy.java_object
+
+    @cached_property
+    def _list(self):
+        _list = self._java_hierarchy.getObjects(None, self._paquo_cls.java_class)
+        if self._mask:
+            if isinstance(self._mask, slice):
+                _list = _list[self._mask]
+            else:
+                _list = [_list[x] for x in self._mask]
+        return _list
+
+    def _list_invalidate_cache(self):
+        with suppress(AttributeError):
+            delattr(self, "_list")
 
     def add(self, x: PathROIObjectType) -> None:
-        # noinspection PyProtectedMember
-        if self._hierarchy._readonly:
+        """adds a new path object to the proxy"""
+        if self._mask:
+            raise IOError("cannot modify view")
+        if self._readonly:
             raise IOError("project in readonly mode")
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
-        self._java_hierarchy.addPathObject(x.java_object)
+        try:
+            self._java_hierarchy.addPathObject(x.java_object)
+        finally:
+            self._list_invalidate_cache()
 
     def discard(self, x: PathROIObjectType) -> None:
-        # noinspection PyProtectedMember
-        if self._hierarchy._readonly:
+        """discard a path object from the proxy"""
+        if self._mask:
+            raise IOError("cannot modify view")
+        if self._readonly:
             raise IOError("project in readonly mode")
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
-        self._java_hierarchy.removeObject(x.java_object, True)
+        try:
+            self._java_hierarchy.removeObject(x.java_object, True)
+        finally:
+            self._list_invalidate_cache()
+
+    def clear(self) -> None:
+        """clear all path objects from the proxy"""
+        if self._mask:
+            raise IOError("cannot modify view")
+        if self._readonly:
+            raise IOError("project in readonly mode")
+        try:
+            self._java_hierarchy.getRootObject().removePathObjects(self._list)
+        finally:
+            self._list_invalidate_cache()
 
     def __contains__(self, x: Any) -> bool:
+        """test if path object is in proxy"""
         # ... inHierarchy is private
         # return bool(self._java_hierarchy.inHierarchy(x.java_object))
         if not isinstance(x, self._paquo_cls):
@@ -57,17 +140,55 @@ class _PathObjectSetProxy(MutableSet[PathROIObjectType]):
         return bool(x.java_object == self._java_hierarchy.getRootObject())
 
     def __len__(self) -> int:
-        return int(self._java_hierarchy.getObjects(None, self._paquo_cls.java_class).size())
+        return len(self._list)
 
     def __iter__(self) -> Iterator[PathROIObjectType]:
-        for obj in self._java_hierarchy.getObjects(None, self._paquo_cls.java_class):
+        for obj in self._list:
             yield self._paquo_cls(obj, _proxy_ref=self)
 
+    @overload
+    def __getitem__(self, i: int) -> PathROIObjectType: ...
+    @overload
+    def __getitem__(self, i: slice) -> "PathObjectProxy": ...
+    @overload
+    def __getitem__(self, i: Sequence[int]) -> "PathObjectProxy": ...
+
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            return self._paquo_cls(self._list[i], _proxy_ref=self)
+        elif isinstance(i, slice):
+            if self._mask is None:
+                mask = i
+            elif isinstance(self._mask, slice):
+                _r = range(self._java_hierarchy.nObjects())
+                _s = _r[self._mask][i]
+                mask = slice(_s.start, _s.stop, _s.step)
+            else:
+                mask = self._mask[i]
+            return PathObjectProxy(self._hierarchy, self._paquo_cls, mask)
+        else:
+            if self._mask is None:
+                mask = i
+            elif isinstance(self._mask, slice):
+                _r = range(self._java_hierarchy.nObjects())
+                _s = _r[self._mask]
+                mask = [_s[idx] for idx in i]
+            else:
+                mask = [self._mask[idx] for idx in i]
+            return PathObjectProxy(self._hierarchy, self._paquo_cls, mask)
+
     def __repr__(self):
-        return f"{self._paquo_cls.__name__}Set(n={len(self)})"
+        c = type(self).__name__
+        h = repr(self._hierarchy)
+        p = self._paquo_cls.__name__
+        m = reprlib.repr(self._mask)
+        i = f"0x{hex(id(self))}"
+        if m is None:
+            return f"<{c} hierarchy={h} paquo_cls={p} at {i}>"
+        return f"<{c} hierarchy={h} paquo_cls={p} mask={m} at {i}>"
 
     # provide update
-    update = collections_abc.MutableSet.__ior__
+    update = MutableSetABC.__ior__
 
 
 class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
@@ -86,8 +207,8 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
             hierarchy = PathObjectHierarchy()
         super().__init__(hierarchy)
         self._image_ref = weakref.ref(_image_ref) if _image_ref else lambda: None
-        self._annotations = _PathObjectSetProxy(self, paquo_cls=QuPathPathAnnotationObject)  # type: ignore
-        self._detections = _PathObjectSetProxy(self, paquo_cls=QuPathPathDetectionObject)  # type: ignore
+        self._annotations = PathObjectProxy(self, paquo_cls=QuPathPathAnnotationObject)
+        self._detections = PathObjectProxy(self, paquo_cls=QuPathPathDetectionObject)
 
     @property
     def _readonly(self):
@@ -117,7 +238,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         return QuPathPathAnnotationObject(root)  # todo: specialize...
 
     @property
-    def annotations(self) -> _PathObjectSetProxy[QuPathPathAnnotationObject]:
+    def annotations(self) -> PathObjectProxy[QuPathPathAnnotationObject]:
         """all annotations provided as a flattened set-like proxy"""
         return self._annotations
 
@@ -138,7 +259,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         return obj
 
     @property
-    def detections(self) -> _PathObjectSetProxy[QuPathPathDetectionObject]:
+    def detections(self) -> PathObjectProxy[QuPathPathDetectionObject]:
         """all detections provided as a flattened set-like proxy"""
         return self._detections
 
@@ -220,7 +341,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
                     annotation['geometry'] = s.__geo_interface__
 
                 # compatibility layer
-                # todo: should maybe test at the beginnign of this method
+                # todo: should maybe test at the beginning of this method
                 #   if the version supports id or not, instead of checking
                 #   the version number...
                 if qupath_version and qupath_version <= "0.2.3" and 'id' not in annotation:

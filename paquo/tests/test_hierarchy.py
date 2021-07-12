@@ -1,12 +1,19 @@
 from distutils.version import LooseVersion
 from functools import partial
+from typing import List
 from typing import Type
+from typing import TypeVar
 
 import pytest
 import shapely.geometry
+from shapely.geometry import Polygon
 
+import paquo
+from paquo.classes import QuPathPathClass
 from paquo.hierarchy import QuPathPathObjectHierarchy
+from paquo.images import QuPathImageType
 from paquo.pathobjects import QuPathPathAnnotationObject, _PathROIObject, QuPathPathDetectionObject
+from paquo.projects import QuPathProject
 
 
 @pytest.fixture(scope="function")
@@ -22,7 +29,10 @@ def test_initial_state(empty_hierarchy: QuPathPathObjectHierarchy):
     assert len(h) == 0
 
 
-def _make_polygons(obj_cls: Type[_PathROIObject], amount: int):
+_T = TypeVar('_T', bound=_PathROIObject)
+
+
+def _make_polygons(obj_cls: Type[_T], amount: int) -> List[_T]:
     """returns a list of amount Path Objects"""
     path_objects = []
     for x in range(0, 10 * amount, 10):
@@ -171,6 +181,7 @@ def example_annotation(qupath_version):
     else:
         yield TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus
 
+
 @pytest.mark.parametrize(
     "input_annotation", [
         pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_2_3, id='v0.2.3'),
@@ -184,99 +195,127 @@ def test_geojson_roundtrip_via_annotations(empty_hierarchy, example_annotation, 
     assert output == example_annotation
 
 
-def test_add_to_existing_hierarchy(svs_small, tmp_path):
+@pytest.fixture(scope='function')
+def new_project(tmp_path):
+    yield QuPathProject(tmp_path / "paquo-project", mode='x')
+
+
+@pytest.fixture(scope='function')
+def project_with_classes(new_project):
+    new_project.path_classes = [
+        QuPathPathClass("class0", color="#ff0000"),
+        QuPathPathClass("class1", color="#00ff00"),
+        QuPathPathClass("class2", color="#0000ff"),
+    ]
+    assert (
+        new_project.path_classes
+        and all(c.name.startswith('class') for c in new_project.path_classes)
+    )
+    yield new_project
+
+
+NUM_ANNOTATIONS = 4
+
+@pytest.fixture(scope='function')
+def project_with_annotations(project_with_classes, svs_small):
+    pth_cls, *_ = project_with_classes.path_classes
+
+    num_annotations = NUM_ANNOTATIONS
+
+    with project_with_classes as qp:
+        entry = qp.add_image(
+            svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E
+        )
+
+        for x in range(num_annotations):
+            entry.hierarchy.add_annotation(
+                roi=Polygon.from_bounds(0 + x, 0 + x, 1 + x, 1 + x),
+                path_class=pth_cls,
+            )
+        assert len(entry.hierarchy.annotations) == num_annotations
+    yield project_with_classes
+
+
+def test_hierarchy_annotation_proxy_getitem(project_with_annotations):
+    h = project_with_annotations.images[0].hierarchy
+
+    assert len(h.annotations) == NUM_ANNOTATIONS
+    assert len(h.annotations[NUM_ANNOTATIONS//2:]) == NUM_ANNOTATIONS//2
+    assert len(h.annotations[[0, 3]]) == 2
+    for idx in range(len(h.annotations)):
+        _ = h.annotations[idx]
+
+
+def test_add_to_existing_hierarchy(project_with_annotations):
     # create a project with an image and annotations
     from shapely.geometry import Point
     from paquo.projects import QuPathProject
-    from paquo.images import QuPathImageType
 
-    p = tmp_path / "my_project"
-    # prepare project
-    with QuPathProject(p, mode="x") as qp:
-        entry0 = qp.add_image(svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
-        entry0.hierarchy.add_annotation(
-            roi=Point(1, 1)
-        )
-
-        assert len(entry0.hierarchy) == 1
-    del qp
+    p = project_with_annotations.path
+    num_annotations = len(project_with_annotations.images[0].hierarchy)
+    del project_with_annotations
 
     # read project
     with QuPathProject(p, mode="a") as qp:
         entry1 = qp.images[0]
 
-        assert len(entry1.hierarchy) == 1
+        assert len(entry1.hierarchy) == num_annotations
         entry1.hierarchy.add_annotation(
             roi=Point(2, 2)
         )
-        assert len(entry1.hierarchy) == 2
-
-    assert len(entry0.hierarchy) == 1
+        assert len(entry1.hierarchy) == num_annotations + 1
 
 
-def test_add_duplicate_to_hierarchy(svs_small, tmp_path):
+def test_add_duplicate_to_hierarchy(project_with_annotations):
     """adding duplicate annotations works"""
     # create a project with an image and annotations
-    from shapely.geometry import Polygon
     from paquo.projects import QuPathProject
-    from paquo.images import QuPathImageType
 
-    p = tmp_path / "my_project"
-    # prepare project
-    with QuPathProject(p, mode="x") as qp:
-        entry0 = qp.add_image(svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
-        annotation = entry0.hierarchy.add_annotation(
-            roi=Polygon.from_bounds(0, 0, 10, 10),
-        )
-        annotation.name = "abc"
-
-        assert len(entry0.hierarchy) == 1
-    del qp
+    p = project_with_annotations.path
+    num_annotations = len(project_with_annotations.images[0].hierarchy)
+    annotation = next(iter(project_with_annotations.images[0].hierarchy.annotations))
+    del project_with_annotations
 
     # read project
     with QuPathProject(p, mode="a") as qp:
         entry1 = qp.images[0]
-
-        assert len(entry1.hierarchy) == 1
         entry1.hierarchy.add_annotation(
-            roi=Polygon.from_bounds(0, 0, 10, 10)
+            roi=annotation.roi
         )
-        annotation.name = "abc"
-        assert len(entry1.hierarchy) == 2
+        assert len(entry1.hierarchy) == num_annotations + 1
 
 
-def test_hierarchy_update_on_annotation_update(svs_small, tmp_path):
+def test_hierarchy_update_on_annotation_update(project_with_annotations):
     """updating annotation or detection objects triggers is_changed on hierarchy"""
     # create a project with an image and annotations
-    from shapely.geometry import Polygon
     from paquo.projects import QuPathProject
-    from paquo.images import QuPathImageType
     from paquo.classes import QuPathPathClass
 
-    p = tmp_path / "my_project"
-    # prepare project
-    with QuPathProject(p, mode="x") as qp:
-        entry0 = qp.add_image(svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
-        annotation = entry0.hierarchy.add_annotation(
-            roi=Polygon.from_bounds(0, 0, 10, 10),
-            path_class=QuPathPathClass("abc")
-        )
-        annotation.name = "abc"
-        assert len(entry0.hierarchy) == 1
-    del qp
+    p = project_with_annotations.path
+    num_annotations = len(project_with_annotations.images[0].hierarchy)
+    del project_with_annotations
 
     # test update
     with QuPathProject(p, mode="a") as qp:
         entry1 = qp.images[0]
 
-        assert len(entry1.hierarchy) == 1
+        assert len(entry1.hierarchy) == num_annotations
 
         for annotation in entry1.hierarchy.annotations:
             annotation.update_path_class(QuPathPathClass("new"))
+            assert entry1.is_changed()  # every update changes
+            assert len(entry1.hierarchy) == num_annotations
 
-        assert entry1.is_changed()
-        assert len(entry1.hierarchy) == 1
-        assert next(iter(entry1.hierarchy.annotations)).path_class.name == "new"
+        assert all(a.path_class.name == "new" for a in entry1.hierarchy.annotations)
+
+
+@pytest.fixture(scope='function')
+def entry_with_annotations(project_with_annotations):
+    # test update
+    with project_with_annotations as qp:
+        yield qp.images[0]
+
+
 
 
 def test_add_incorrect_to_hierarchy(empty_hierarchy):
