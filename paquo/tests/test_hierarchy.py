@@ -309,13 +309,26 @@ def test_hierarchy_update_on_annotation_update(project_with_annotations):
         assert all(a.path_class.name == "new" for a in entry1.hierarchy.annotations)
 
 
+def test_hierarchy_no_autoflush_annotation_update(project_with_annotations):
+    """updating annotation or detection objects doesn't immediately trigger update"""
+    from paquo.classes import QuPathPathClass
+
+    with project_with_annotations as qp:
+        entry1 = qp.images[0]
+        with entry1.hierarchy.no_autoflush():
+            for annotation in entry1.hierarchy.annotations:
+                annotation.update_path_class(QuPathPathClass("new"))
+                assert not entry1.is_changed()
+
+        assert entry1.is_changed()
+        assert all(a.path_class.name == "new" for a in entry1.hierarchy.annotations)
+
+
 @pytest.fixture(scope='function')
 def entry_with_annotations(project_with_annotations):
     # test update
     with project_with_annotations as qp:
         yield qp.images[0]
-
-
 
 
 def test_add_incorrect_to_hierarchy(empty_hierarchy):

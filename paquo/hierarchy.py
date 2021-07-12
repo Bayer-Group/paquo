@@ -2,6 +2,7 @@ import collections
 import json
 import math
 import reprlib
+from contextlib import contextmanager
 from contextlib import suppress
 from typing import Any
 from typing import Iterable
@@ -133,7 +134,10 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
         try:
-            self._java_hierarchy.addPathObject(x.java_object)
+            if self._hierarchy.autoflush:
+                self._java_hierarchy.addPathObject(x.java_object)
+            else:
+                self._java_hierarchy.addPathObjectWithoutUpdate(x.java_object)
         finally:
             self._list_invalidate_cache()
 
@@ -146,7 +150,10 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
         try:
-            self._java_hierarchy.removeObject(x.java_object, True)
+            if self._hierarchy.autoflush:
+                self._java_hierarchy.removeObject(x.java_object, True)
+            else:
+                self._java_hierarchy.removeObjectWithoutUpdate(x.java_object, True)
         finally:
             self._list_invalidate_cache()
 
@@ -228,6 +235,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         *,
         readonly: bool = False,
         image_name: str = "N/A",
+        autoflush: bool = True,
     ) -> None:
         """qupath hierarchy stores all annotation objects
 
@@ -240,10 +248,13 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         if hierarchy is None:
             hierarchy = PathObjectHierarchy()
         super().__init__(hierarchy)
+        # internals
         self._image_name = str(image_name)
         self._readonly = bool(readonly)
         self._annotations = PathObjectProxy(self, paquo_cls=QuPathPathAnnotationObject)
         self._detections = PathObjectProxy(self, paquo_cls=QuPathPathDetectionObject)
+        # attrs
+        self.autoflush = bool(autoflush)
 
     def __len__(self) -> int:
         """Number of objects in hierarchy (all types)"""
@@ -253,6 +264,25 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
     def is_empty(self) -> bool:
         """a hierarchy is empty if it only contains the root object"""
         return bool(self.java_object.isEmpty())
+
+    @contextmanager
+    def no_autoflush(self):
+        """prevent updates to the hierarchy to trigger an internal update event"""
+        _autoflush, self.autoflush = self.autoflush, False
+        try:
+            yield self
+        finally:
+            self.flush(invalidate_proxy_cache=True)
+            self.autoflush = _autoflush
+
+    # noinspection PyProtectedMember
+    def flush(self, invalidate_proxy_cache: bool = False):
+        """flush changes to the hierarchy"""
+        root = self.java_object.getRootObject()
+        self.java_object.fireHierarchyChangedEvent(root)
+        if invalidate_proxy_cache:
+            self._annotations._list_invalidate_cache()
+            self._detections._list_invalidate_cache()
 
     @property
     def root(self) -> QuPathPathAnnotationObject:

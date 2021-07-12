@@ -215,6 +215,11 @@ def test_hierarchy(readonly_project):
         with pytest.raises(IOError):
             h.callmethod("load_geojson", '--placeholder--')
 
+        # autoflush has no influence
+        h.setattr("autoflush", False)
+        h.callmethod("no_autoflush")
+        h.callmethod("flush")
+
         assert not h.unused_public_interface()
 
 
