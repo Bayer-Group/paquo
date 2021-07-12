@@ -2,7 +2,6 @@ import collections
 import json
 import math
 import reprlib
-import weakref
 from contextlib import suppress
 from typing import Any
 from typing import Iterable
@@ -10,7 +9,6 @@ from typing import Iterator
 from typing import MutableSet
 from typing import Optional
 from typing import Sequence
-from typing import TYPE_CHECKING
 from typing import Type
 from typing import Union
 from typing import overload
@@ -30,9 +28,6 @@ from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
 from paquo.pathobjects import QuPathPathDetectionObject
 from paquo.pathobjects import QuPathPathTileObject
-
-if TYPE_CHECKING:  # pragma: no cover
-    import paquo.images
 
 __all__ = ["QuPathPathObjectHierarchy"]
 _logger = get_logger(__name__)
@@ -90,6 +85,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
     def _list_invalidate_cache(self):
         with suppress(AttributeError):
             delattr(self, "_list")
+
+    def _update_callback(self, path_object: PathROIObjectType) -> None:
+        self.add(path_object)
 
     @classmethod
     def _from_iterable(cls, it):
@@ -178,7 +176,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
 
     def __iter__(self) -> Iterator[PathROIObjectType]:
         for obj in self._list:
-            yield self._paquo_cls(obj, _proxy_ref=self)
+            yield self._paquo_cls(obj, update_callback=self._update_callback)
 
     @overload
     def __getitem__(self, i: int) -> PathROIObjectType: ...
@@ -189,7 +187,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
 
     def __getitem__(self, i):
         if isinstance(i, int):
-            return self._paquo_cls(self._list[i], _proxy_ref=self)
+            return self._paquo_cls(self._list[i], update_callback=self._update_callback)
         elif isinstance(i, slice):
             if self._mask is None:
                 mask = i

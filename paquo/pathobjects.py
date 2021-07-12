@@ -1,13 +1,10 @@
 import json
 import math
-import weakref
 from collections.abc import MutableMapping
-from functools import wraps
 from typing import Any
 from typing import Callable
 from typing import Iterator
 from typing import Optional
-from typing import TYPE_CHECKING
 from typing import Type
 from typing import TypeVar
 from typing import Union
@@ -30,10 +27,6 @@ from paquo.java import ROI
 from paquo.java import String
 from paquo.java import WKBReader
 from paquo.java import WKBWriter
-
-if TYPE_CHECKING:
-    # noinspection PyProtectedMember
-    from paquo.hierarchy import PathObjectProxy
 
 __all__ = [
     "PathROIObjectType",
@@ -121,37 +114,15 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
     java_class: Optional[JPathROIObjectType]
     java_class_factory: Callable[..., Any]
 
-    # noinspection PyPep8Naming,PyProtectedMember
-    class _propagate_update:
-        # decorator for propagating instance updates to the parent hierarchy
-
-        def __init__(self, method):
-            self._method = method
-
-            @wraps(method)
-            def wrapper(instance, *args, **kwargs):
-                value = method(instance, *args, **kwargs)
-                # update if this instance belongs to a hierarchy
-                # todo: we should provide a contextmanager on the hierarchy to allow bulk updating
-                h_set_proxy = instance._proxy_ref()
-                if h_set_proxy is not None:
-                    h_set_proxy.add(instance)
-                return value
-
-            self._wrapper = wrapper
-
-        def __call__(self, instance, *args, **kwargs):
-            return self._wrapper(instance, *args, **kwargs)
-
-        def __get__(self, instance, owner):
-            return self._wrapper.__get__(instance, owner)
-
-    def __init__(self, java_object, *,
-                 _proxy_ref: Optional['PathObjectProxy'] = None):
+    def __init__(
+        self,
+        java_object,
+        *,
+        update_callback: Optional[Callable[[PathROIObjectType], None]] = None
+    ) -> None:
+        """instantiate using classmethods: `from_shapely`, `from_geojson`"""
         super().__init__(java_object=java_object)
-        # used in the _propagate_update decorator.
-        # keeps a weak reference to the hierarchy proxy
-        self._proxy_ref = weakref.ref(_proxy_ref) if _proxy_ref is not None else lambda: None
+        self._update_callback = update_callback
 
     @classmethod
     def from_shapely(cls: Type[PathROIObjectType],
@@ -214,7 +185,6 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         """the annotation path class probability"""
         return float(self.java_object.getClassProbability())
 
-    @_propagate_update
     def update_path_class(self, pc: Optional[QuPathPathClass], probability: float = math.nan) -> None:
         """updating the class or probability has to be done via this method"""
         if not (pc is None or isinstance(pc, QuPathPathClass)):
@@ -222,6 +192,8 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         else:
             pc = pc if pc is None else pc.java_object
         self.java_object.setPathClass(pc, probability)
+        if self._update_callback:
+            self._update_callback(self)
 
     @property
     def locked(self) -> bool:
@@ -229,9 +201,10 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         return bool(self.java_object.isLocked())
 
     @locked.setter  # type: ignore
-    @_propagate_update
     def locked(self, value: bool) -> None:
         self.java_object.setLocked(value)
+        if self._update_callback:
+            self._update_callback(self)
 
     @property
     def is_editable(self) -> bool:
@@ -252,11 +225,12 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         return str(name)
 
     @name.setter  # type: ignore
-    @_propagate_update
     def name(self, name: Union[str, None]):
         if name is not None:
             name = String(name)
         self.java_object.setName(name)
+        if self._update_callback:
+            self._update_callback(self)
 
     @property
     def parent(self: PathROIObjectType) -> Optional[PathROIObjectType]:
@@ -273,11 +247,12 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         roi = self.java_object.getROI()
         return _qupath_roi_to_shapely_geometry(roi)
 
-    @_propagate_update
     def update_roi(self, geometry: BaseGeometry) -> None:
         """update the roi of the annotation"""
         roi = _shapely_geometry_to_qupath_roi(geometry)
         self.java_object.setROI(roi)
+        if self._update_callback:
+            self._update_callback(self)
 
     @cached_property
     def measurements(self):
