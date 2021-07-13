@@ -1,13 +1,16 @@
 from typing import Optional
 
-from paquo._base import QuPathBase
-from paquo.colors import QuPathColor, ColorType
-from paquo.java import PathClass, PathClassFactory, String
+from paquo.colors import ColorType
+from paquo.colors import QuPathColor
+from paquo.java import PathClass
+from paquo.java import PathClassFactory
+from paquo.java import String
 
 __all__ = ['QuPathPathClass']
 
 
-class QuPathPathClass(QuPathBase[PathClass]):
+class QuPathPathClass:
+    java_object: PathClass
 
     @classmethod
     def from_java(cls, path_class: PathClass) -> 'QuPathPathClass':
@@ -48,7 +51,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
         # internal: check if a java path class was already provided
         _java_path_class = _kwargs.pop('_java_path_class', None)
         if _java_path_class is not None:
-            super().__init__(_java_path_class)
+            self.java_object = _java_path_class
             return
 
         # called by user
@@ -80,7 +83,7 @@ class QuPathPathClass(QuPathBase[PathClass]):
             java_color = QuPathColor.from_any(color).to_java_rgba()  # use rgba?
 
         path_class = PathClassFactory.getDerivedPathClass(java_parent, name, java_color)
-        super().__init__(path_class)
+        self.java_object = path_class
 
     @property
     def name(self) -> str:

@@ -1,7 +1,6 @@
 import json
 import math
 from collections.abc import MutableMapping
-from typing import Any
 from typing import Callable
 from typing import Iterator
 from typing import Optional
@@ -13,7 +12,6 @@ from shapely.geometry.base import BaseGeometry
 from shapely.wkb import dumps as shapely_wkb_dumps
 from shapely.wkb import loads as shapely_wkb_loads
 
-from paquo._base import QuPathBase
 from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
 from paquo.java import GeometryTools
@@ -104,24 +102,23 @@ class _MeasurementList(MutableMapping):
 
 # noinspection PyTypeChecker
 PathROIObjectType = TypeVar('PathROIObjectType', bound='_PathROIObject')
-JPathROIObjectType = TypeVar('JPathROIObjectType', bound=PathROIObject)
 
 
-class _PathROIObject(QuPathBase[JPathROIObjectType]):
+class _PathROIObject:
     """internal base class for PathObjects"""
 
     # must be provided in subclass
-    java_class: Optional[JPathROIObjectType]
-    java_class_factory: Callable[..., Any]
+    java_class: Type[PathROIObject]
+    java_class_factory: Callable[..., PathROIObject]
 
     def __init__(
         self,
-        java_object,
+        java_object: PathROIObject,
         *,
         update_callback: Optional[Callable[[PathROIObjectType], None]] = None
     ) -> None:
         """instantiate using classmethods: `from_shapely`, `from_geojson`"""
-        super().__init__(java_object=java_object)
+        self.java_object = java_object
         self._update_callback = update_callback
 
     @classmethod
@@ -185,7 +182,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         """the annotation path class probability"""
         return float(self.java_object.getClassProbability())
 
-    def update_path_class(self, pc: Optional[QuPathPathClass], probability: float = math.nan) -> None:
+    def update_path_class(self: PathROIObjectType, pc: Optional[QuPathPathClass], probability: float = math.nan) -> None:
         """updating the class or probability has to be done via this method"""
         if not (pc is None or isinstance(pc, QuPathPathClass)):
             raise TypeError("requires QuPathPathClass")
@@ -201,7 +198,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         return bool(self.java_object.isLocked())
 
     @locked.setter  # type: ignore
-    def locked(self, value: bool) -> None:
+    def locked(self: PathROIObjectType, value: bool) -> None:
         self.java_object.setLocked(value)
         if self._update_callback:
             self._update_callback(self)
@@ -225,7 +222,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         return str(name)
 
     @name.setter  # type: ignore
-    def name(self, name: Union[str, None]):
+    def name(self: PathROIObjectType, name: Union[str, None]) -> None:
         if name is not None:
             name = String(name)
         self.java_object.setName(name)
@@ -247,7 +244,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         roi = self.java_object.getROI()
         return _qupath_roi_to_shapely_geometry(roi)
 
-    def update_roi(self, geometry: BaseGeometry) -> None:
+    def update_roi(self: PathROIObjectType, geometry: BaseGeometry) -> None:
         """update the roi of the annotation"""
         roi = _shapely_geometry_to_qupath_roi(geometry)
         self.java_object.setROI(roi)
@@ -306,7 +303,7 @@ class _PathROIObject(QuPathBase[JPathROIObjectType]):
         )
 
 
-class QuPathPathAnnotationObject(_PathROIObject[PathAnnotationObject]):
+class QuPathPathAnnotationObject(_PathROIObject):
 
     java_class = PathAnnotationObject
     java_class_factory = PathObjects.createAnnotationObject
@@ -324,7 +321,7 @@ class QuPathPathAnnotationObject(_PathROIObject[PathAnnotationObject]):
         self.java_object.setDescription(String(value))
 
 
-class QuPathPathDetectionObject(_PathROIObject[PathDetectionObject]):
+class QuPathPathDetectionObject(_PathROIObject):
 
     java_class = PathDetectionObject
     java_class_factory = PathObjects.createDetectionObject

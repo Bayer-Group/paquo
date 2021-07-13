@@ -20,7 +20,6 @@ from typing import Optional
 from typing import TYPE_CHECKING
 from typing import Union
 
-from paquo._base import QuPathBase
 from paquo._logging import get_logger
 from paquo._logging import redirect
 from paquo._utils import cached_property
@@ -394,7 +393,8 @@ class QuPathImageType(str, Enum):
     UNSET = ("Not set", ImageType.UNSET)
 
 
-class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
+class QuPathProjectImageEntry:
+    java_object: DefaultProjectImageEntry
 
     def __init__(self, entry: DefaultProjectImageEntry,
                  *, _project_ref: Optional['paquo.projects.QuPathProject'] = None) -> None:
@@ -404,7 +404,7 @@ class QuPathProjectImageEntry(QuPathBase[DefaultProjectImageEntry]):
         """
         if not isinstance(entry, DefaultProjectImageEntry):
             raise ValueError("don't instantiate directly. use `QuPathProject.add_image`")
-        super().__init__(entry)
+        self.java_object = entry
         self._project_ref = weakref.ref(_project_ref) if _project_ref else lambda: None
         self._metadata = _ProjectImageEntryMetadata(self)
 

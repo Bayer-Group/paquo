@@ -21,7 +21,6 @@ except ImportError:
     from typing_extensions import Literal
 
 from paquo import settings
-from paquo._base import QuPathBase
 from paquo._logging import get_logger
 from paquo._logging import redirect
 from paquo._utils import make_backup_filename
@@ -175,7 +174,8 @@ ProjectIOMode = Union[
 ]
 
 
-class QuPathProject(QuPathBase[DefaultProject]):
+class QuPathProject:
+    java_object: DefaultProject
 
     def __init__(self,
                  path: Union[str, pathlib.Path],
@@ -238,7 +238,7 @@ class QuPathProject(QuPathBase[DefaultProject]):
             with redirect(stderr=True, stdout=True):
                 project = Projects.createProject(File(str(p_dir)), BufferedImage)
 
-        super().__init__(project)
+        self.java_object = project
         self._image_entries_proxy = _ProjectImageEntriesProxy(self)
         self._image_provider = image_provider
 

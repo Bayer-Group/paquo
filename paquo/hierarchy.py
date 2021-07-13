@@ -17,7 +17,6 @@ from typing import overload
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
-from paquo._base import QuPathBase
 from paquo._logging import get_logger
 from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
@@ -87,17 +86,12 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         with suppress(AttributeError):
             delattr(self, "_list")
 
-    @classmethod
-    def _from_iterable(cls, it):
-        raise NotImplementedError(f"{cls.__name__} only supports inplace operations: '|=', '-='")
-
-    def __iand__(self, other):
+    def _disabled(self, other: Any) -> Any:
         raise NotImplementedError(f"{type(self).__name__} only supports inplace operations: '|=', '-='")
+    __and__ = __or__ = __sub__ = __xor__ = __iand__ = __ixor__ = _disabled
+    del _disabled
 
-    def __ixor__(self, other):
-        raise NotImplementedError(f"{type(self).__name__} only supports inplace operations: '|=', '-='")
-
-    def __ior__(self, other: Iterable[PathROIObjectType]) -> "PathObjectProxy":
+    def __ior__(self, other: Any) -> "PathObjectProxy":  # type: ignore
         if self._mask:
             raise IOError("cannot modify view")
         if self._readonly:
@@ -110,7 +104,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         return self
     update = __ior__
 
-    def __isub__(self, other: Iterable[PathROIObjectType]) -> "PathObjectProxy":
+    def __isub__(self, other: Iterable[PathROIObjectType]) -> "PathObjectProxy":  # type: ignore
         if self._mask:
             raise IOError("cannot modify view")
         if self._readonly:
@@ -178,7 +172,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
     def __len__(self) -> int:
         return len(self._list)
 
-    def __iter__(self) -> Iterator[PathROIObjectType]:
+    def __iter__(self: "PathObjectProxy") -> Iterator[PathROIObjectType]:
         for obj in self._list:
             yield self._paquo_cls(obj, update_callback=self.add)
 
@@ -224,7 +218,8 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         return f"<{c} hierarchy={h} paquo_cls={p} mask={m} at {i}>"
 
 
-class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
+class QuPathPathObjectHierarchy:
+    java_object: PathObjectHierarchy
 
     def __init__(
         self,
@@ -244,7 +239,7 @@ class QuPathPathObjectHierarchy(QuPathBase[PathObjectHierarchy]):
         """
         if hierarchy is None:
             hierarchy = PathObjectHierarchy()
-        super().__init__(hierarchy)
+        self.java_object = hierarchy
         # internals
         self._image_name = str(image_name)
         self._readonly = bool(readonly)
