@@ -351,7 +351,8 @@ class QuPathProject:
         if image_type is not None:
             py_entry.image_type = image_type
         # save project after adding image
-        self.save()
+        py_entry.save()
+        self.save(images=False)
         return py_entry
 
     def is_readable(self) -> Dict[Hashable, bool]:
@@ -415,15 +416,16 @@ class QuPathProject:
         return pathlib.Path(str(self.java_object.getPath()))
 
     @redirect(stderr=True, stdout=True)
-    def save(self) -> None:
+    def save(self, images=True) -> None:
         """flush changes in the project to disk
 
         (writes path_classes and project data)
         """
         if self._readonly:
             raise IOError("project in readonly mode")
-        for entry in self.images:
-            entry.save()
+        if images:
+            for entry in self.images:
+                entry.save()
         try:
             self.java_object.syncChanges()
         # convert java land exception
