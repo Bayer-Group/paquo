@@ -27,7 +27,8 @@ parser = argparse.ArgumentParser(
 )
 subparsers = parser.add_subparsers(dest="cmd", title="paquo command")
 subcommand = functools.partial(subcommand, parent=subparsers)
-parser.add_argument('--version', action='store_true', help="print version")
+parser.add_argument('--version', action='store_true', help="print paquo version")
+parser.add_argument('--qupath-version', action='store_true', help="print qupath version")
 
 
 def main(commandline=None):
@@ -37,7 +38,10 @@ def main(commandline=None):
         if args.version:
             from paquo import __version__
             print(f"{__version__}")
-        else:
+        if args.qupath_version:
+            from paquo.java import qupath_version
+            print(f"{qupath_version!s}")
+        if not (args.version or args.qupath_version):
             parser.print_help()
     else:
         from paquo import settings
