@@ -247,26 +247,31 @@ def quickview(args, subparser):
         print(f"ERROR: image {args.image} is not a file")
         return 1
 
-    if args.annotations and args.annotations_cmd:
-        print("ERROR: can't specify both --annotations and --annotations-cmd")
-        return 1
-
-    elif args.annotations:
-        def cmd(name):
+    f_annotations = None
+    if args.annotations:
+        def f_annotations(name):
             if name != image.name:
                 return []
             return list(args.annotations)
 
-    elif args.annotations_cmd:
-        def cmd(name):
+    f_annotations_cmd = None
+    if args.annotations_cmd:
+        def f_annotations_cmd(name):
             import shlex
             _cmd = shlex.split(f"{args.annotations_cmd} {name}")
             print("annotations", _cmd)
             output = subprocess.run(_cmd, env=os.environ, check=True, capture_output=True)
             return [line.decode() for line in output.stdout.splitlines() if line.strip()]
 
-    else:
-        cmd = None
+    cmd = None
+    if f_annotations_cmd or f_annotations:
+        def cmd(name):
+            l = []
+            if f_annotations:
+                l.extend(f_annotations(name))
+            if f_annotations_cmd:
+                l.extend(f_annotations_cmd(name))
+            return l
 
     with tempfile.TemporaryDirectory() as project_path:
         create_project(project_path, class_names_colors=[], images=[image], annotations_json_func=cmd)
