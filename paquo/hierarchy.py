@@ -83,8 +83,8 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         return _list
 
     def _list_invalidate_cache(self):
-        with suppress(AttributeError):
-            delattr(self, "_list")
+        with suppress(KeyError):
+            del self.__dict__["_list"]
 
     def _disabled(self, other: Any) -> Any:
         raise NotImplementedError(f"{type(self).__name__} only supports inplace operations: '|=', '-='")
