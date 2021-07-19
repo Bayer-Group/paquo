@@ -34,6 +34,7 @@ from paquo.java import BufferedImage
 from paquo.java import DefaultProject
 from paquo.java import ExceptionInInitializerError
 from paquo.java import File
+from paquo.java import Files
 from paquo.java import GeneralTools
 from paquo.java import ImageServerProvider
 from paquo.java import IOException
@@ -365,20 +366,55 @@ class QuPathProject:
             readability_map[image_id] = image.is_readable()
         return readability_map
 
-    def update_image_paths(self, **rebase_kwargs):
-        """update image path uris if image files moved"""
-        # allow rebasing all image uris in a single call to rebase
-        old_uris = [image.uri for image in self.images]
-        new_uris = self._image_provider.rebase(*old_uris, **rebase_kwargs)
+    def update_image_paths(self, *, try_relative: bool = False, **rebase_kwargs) -> None:
+        """update image path uris if image files moved
 
-        # build the java URI to URI mapping
+        Parameters
+        ----------
+        try_relative: bool
+            if try_relative is True, update_image_paths tries to use relative paths
+            to resolve missing image entries. This is useful in case you move the
+            the project together with its images directory, or in case you remount
+            at a different location.
+        **rebase_kwargs:
+            keyword arguments are handed over to the image provider instance.
+            The default image provider is a paquo.images.SimpleURIImageProvider
+            which uses the uri2uri keyword argument. (A mapping from old URI to new
+            URI: Mapping[str, str])
+
+        """
+        if not isinstance(try_relative, bool):
+            raise TypeError(f"try_relative requires bool, got: {type(try_relative).__name__!r}")
+
+        # get the current image URIs
+        old_uris = [image.uri for image in self.images]
+
+        # the uri to uri mapping
         uri2uri = {}
-        for old_uri, new_uri in zip(old_uris, new_uris):
-            if new_uri is None:
-                continue
-            elif ImageProvider.compare_uris(new_uri, old_uri):
-                continue
-            uri2uri[URI(old_uri)] = URI(new_uri)
+
+        if try_relative:
+            assert not rebase_kwargs, "no other kwargs supported when try_relative=True"
+            # test if project was moved (or mounted somewhere else...)
+            prev_pth = GeneralTools.toPath(self.java_object.getPreviousURI()).getParent()
+            proj_pth = GeneralTools.toPath(self.java_object.getURI()).getParent()
+            if prev_pth and proj_pth and not prev_pth.equals(proj_pth):
+                for old_uri in map(URI, old_uris):
+                    img_pth = GeneralTools.toPath(old_uri)
+                    new_pth = proj_pth.resolve(prev_pth.relativize(img_pth)).normalize()
+                    if Files.exists(new_pth):
+                        uri2uri[old_uri] = new_pth.normalize().toUri().normalize()
+
+        else:
+            # allow rebasing all image uris in a single call to rebase
+            new_uris = self._image_provider.rebase(*old_uris, **rebase_kwargs)
+
+            # build the java URI to URI mapping
+            for old_uri, new_uri in zip(old_uris, new_uris):
+                if new_uri is None:
+                    continue
+                elif ImageProvider.compare_uris(new_uri, old_uri):
+                    continue
+                uri2uri[URI(old_uri)] = URI(new_uri)
 
         # update uris if possible
         for image in self.images:

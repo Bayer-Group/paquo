@@ -322,3 +322,46 @@ def test_project_image_uri_update(tmp_path, svs_small):
         # test that entry can be read
         assert entry.is_readable()
         assert all(qp.is_readable().values())
+
+
+def test_project_image_uri_update_try_relative(tmp_path, svs_small):
+
+    # prepare initial location
+    location_0 = tmp_path / "location_0"
+    location_0.mkdir()
+
+    # prepare a project and images at location_0
+    image_path = location_0 / "images" / "image0.svs"
+    image_path.parent.mkdir(parents=True)
+    shutil.copy(svs_small, image_path)
+    assert image_path.is_file()
+
+    # create a project
+    with QuPathProject(location_0 / "project", mode='x') as qp:
+        entry = qp.add_image(image_path)
+        assert entry.is_readable()
+        assert all(qp.is_readable().values())
+
+    # cleanup
+    del entry
+    del qp
+
+    # NOW move the location
+    location_1 = tmp_path / "location_1"
+    shutil.move(location_0, location_1)
+
+    with QuPathProject(location_1 / "project", mode='r') as qp:
+        entry, = qp.images
+        assert not entry.is_readable()
+        assert not all(qp.is_readable().values())
+        assert 'location_1' in str(qp.path)
+        assert 'location_0' in entry.uri  # still points to the old location
+
+        # fixme: testing private api
+        assert 'location_0' in str(qp.java_object.getPreviousURI().toString())
+
+        qp.update_image_paths(try_relative=True)
+
+        # test that entry can be read
+        assert entry.is_readable()
+        assert all(qp.is_readable().values())
