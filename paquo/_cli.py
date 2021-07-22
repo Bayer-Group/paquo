@@ -199,13 +199,13 @@ def open_qupath(project_path):
     app_dir, _, _, _ = find_qupath(**to_kwargs(settings))
     system = platform.system()
     if system == "Linux":
-        qupath, = Path(app_dir).parent.parent.joinpath("bin").glob("QuPath-*")
+        qupath, = Path(app_dir).parent.parent.joinpath("bin").glob("QuPath*")
 
     elif system == "Darwin":
-        qupath, = Path(app_dir).parent.joinpath("MacOS").glob("QuPath-*")
+        qupath, = Path(app_dir).parent.joinpath("MacOS").glob("QuPath*")
 
     elif system == "Windows":
-        _qp_exes = list(Path(app_dir).parent.glob("QuPath-*.exe"))
+        _qp_exes = list(Path(app_dir).parent.glob("QuPath*.exe"))
         assert len(_qp_exes) == 2, f"this should have returned two paths, got {_qp_exes}"
         qupath, = (qp for qp in _qp_exes if "console" in qp.stem)
 
