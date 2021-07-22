@@ -431,7 +431,10 @@ class QuPathPathObjectHierarchy:
                 f"skipped {n_skipped} annotation objects: {skipped.most_common()}"
             )
 
-        return bool(self.java_object.insertPathObjects(aos))
+        updated = bool(self.java_object.insertPathObjects(aos))
+        if updated:
+            self.flush(invalidate_proxy_cache=True)
+        return updated
 
     def to_ome_xml(self, prefix="paquo", fill_alpha=0.0) -> str:
         """return all annotations in ome xml format"""
