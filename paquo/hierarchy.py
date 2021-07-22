@@ -2,6 +2,7 @@ import collections
 import json
 import math
 import reprlib
+import struct
 from contextlib import contextmanager
 from contextlib import suppress
 from typing import Any
@@ -13,6 +14,7 @@ from typing import Sequence
 from typing import Type
 from typing import Union
 from typing import overload
+from warnings import warn
 
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
@@ -430,6 +432,172 @@ class QuPathPathObjectHierarchy:
             )
 
         return bool(self.java_object.insertPathObjects(aos))
+
+    def to_ome_xml(self, prefix="paquo") -> str:
+        """return all annotations in ome xml format"""
+        # this
+        try:
+            from ome_types import to_xml
+            from ome_types.model import AnnotationRef
+            from ome_types.model import Ellipse as OmeEllipse
+            from ome_types.model import Line as OmeLine
+            from ome_types.model import Map
+            from ome_types.model import MapAnnotation
+            from ome_types.model import OME
+            from ome_types.model import Point as OmePoint
+            from ome_types.model import Polygon as OmePolygon
+            from ome_types.model import Polyline as OmePolyline
+            from ome_types.model import Rectangle as OmeRectangle
+            from ome_types.model import ROI
+            from ome_types.model.map import M
+            from ome_types.model.shape import FillRule
+        except ImportError:
+            raise RuntimeError(f"{type(self).__name__}.to_ome_xml requires 'ome-types' python module")
+
+        from paquo.java import EllipseROI
+        from paquo.java import GeometryROI
+        from paquo.java import LineROI
+        from paquo.java import PointsROI
+        from paquo.java import PolygonROI
+        from paquo.java import PolylineROI
+        from paquo.java import RectangleROI
+
+        ome = OME()
+
+        for ao in self.annotations:
+
+            if ao.path_class:
+                class_name = ao.path_class.name
+            else:
+                class_name = None
+
+            # --- create the map_annotation
+
+            _m = {
+                f"{prefix}:object_type": {
+                    "PathAnnotationObject": 'annotation',
+                    "PathDetectionObject": 'detection',
+                    "PathTileObject": 'tile',
+                    "PathCellObject": 'cell',
+                    "TMACoreObject": 'tma_core',
+                    "PathRootObject": 'root',
+                }.get(type(ao.java_object).__name__.rpartition(".")[2], "unknown")
+            }
+            if class_name:
+                _m[f"{prefix}:path_class"] = class_name
+            if ao.name:
+                _m[f"{prefix}:name"] = ao.name
+            for k, v in ao.measurements.items():
+                _m[f"{prefix}:measurement:{k}"] = v
+            map_annotation = MapAnnotation(value=Map(m=[
+                M(k=_key, value=str(_value))
+                for _key, _value in _m.items()
+            ]))
+
+            # --- prepare common kwargs for ome Shape
+
+            if ao.path_class and ao.path_class.color:
+                # https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome_xsd.html#Color
+                r, g, b, a = ao.path_class.color.to_rgba()
+                stroke_color, = struct.unpack("<i", bytes([r, g, b, a]))
+                fill_color, = struct.unpack("<i", bytes([r, g, b, int(0.5*a)]))
+            else:
+                stroke_color = None
+                fill_color = None
+            # https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome_xsd.html#Shape_FillRule
+            fill_rule = FillRule.EVEN_ODD
+
+            qp_roi = ao.java_object.getROI()
+            the_c = int(qp_roi.getC())
+            the_t = int(qp_roi.getT())
+            the_z = int(qp_roi.getZ())
+
+            shape_kwargs = dict(
+                # id=...,
+                # annotation_ref=...,
+                fill_color=fill_color,
+                fill_rule=fill_rule,
+                # font_family=None,
+                # font_size=None,
+                # font_size_unit=UnitsLength("pt"),
+                # font_style=None,
+                locked=ao.locked,
+                stroke_color=stroke_color,
+                stroke_dash_array=None,
+                stroke_width=2,  # 2px is the QuPath default gui setting
+                # stroke_width_unit=UnitsLength("pixel"),
+                text=ao.description,
+                the_c=the_c if the_c >= 0 else None,
+                the_t=the_t,
+                the_z=the_z,
+                transform=None,
+            )
+
+            # --- create the roi
+
+            roi = ROI(name=class_name)
+            roi.annotation_ref.append(AnnotationRef(id=map_annotation.id))
+
+            # --- add the correct shape dependent on roi types
+
+            if isinstance(qp_roi, (PolygonROI, GeometryROI)):
+                ome_shape = OmePolygon(
+                    points=" ".join(f"{p.getX():f},{p.getY():f}" for p in qp_roi.getAllPoints()),
+                    **shape_kwargs,
+                )
+            elif isinstance(qp_roi, EllipseROI):
+                # https://github.com/qupath/qupath/blob/e84467e86751e5aa542ab68a4915b70ecbf2f6fc/qupath-core/src/main/java/qupath/lib/roi/EllipseROI.java#L60-L63
+                ome_shape = OmeEllipse(
+                    radius_x=float(qp_roi.getBoundsWidth() * 0.5),
+                    radius_y=float(qp_roi.getBoundsHeight() * 0.5),
+                    x=float(qp_roi.getCentroidX()),
+                    y=float(qp_roi.getCentroidY()),
+                    **shape_kwargs,
+                )
+            elif isinstance(qp_roi, RectangleROI):
+                ome_shape = OmeRectangle(
+                    height=float(qp_roi.getBoundsHeight()),
+                    width=float(qp_roi.getBoundsWidth()),
+                    x=float(qp_roi.getBoundsX()),
+                    y=float(qp_roi.getBoundsY()),
+                    **shape_kwargs,
+                )
+            elif isinstance(qp_roi, LineROI):
+                ome_shape = OmeLine(
+                    x1=float(qp_roi.getX1()),
+                    x2=float(qp_roi.getX2()),
+                    y1=float(qp_roi.getY1()),
+                    y2=float(qp_roi.getY2()),
+                    marker_end=None,
+                    marker_start=None,
+                    **shape_kwargs,
+                )
+            elif isinstance(qp_roi, PolylineROI):
+                ome_shape = OmePolyline(
+                    points=" ".join(f"{p.getX():f},{p.getY():f}" for p in qp_roi.getAllPoints()),
+                    marker_end=None,
+                    marker_start=None,
+                    **shape_kwargs,
+                )
+            elif isinstance(qp_roi, PointsROI):
+                # we have to create individual points in ome
+                ome_shape = [
+                    OmePoint(x=float(p.getX()), y=float(p.getY()), **shape_kwargs)
+                    for p in qp_roi.getAllPoints()
+                ]
+            else:
+                raise NotImplementedError(f"todo {type(qp_roi).__name__}")
+
+            if isinstance(ome_shape, list):
+                roi.union.extend(ome_shape)
+            else:
+                roi.union.append(ome_shape)
+
+            # --- add the annotation to the ome structure
+            ome.rois.append(roi)
+            ome.structured_annotations.append(map_annotation)
+
+        return to_xml(ome)
 
     def __repr__(self):
         return f"Hierarchy(image={self._image_name}, annotations={len(self._annotations)}, detections={len(self._detections)})"

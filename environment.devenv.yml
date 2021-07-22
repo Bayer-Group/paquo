@@ -21,10 +21,11 @@ dependencies:
   - python>=3.6.1
   - pip
   - jpype1>=1.0.1
+  - dynaconf>=3,!=3.1.0
+  - ome-types
   - shapely
   - qupath
   - pytest>=6
   - pytest-cov
   - pip:
-    - dynaconf>=3,!=3.1.0
     - "-e ."  # [ PAQUO_DEVEL ]

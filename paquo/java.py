@@ -73,6 +73,14 @@ ROI = JClass("qupath.lib.roi.interfaces.ROI")
 ROIs = JClass("qupath.lib.roi.ROIs")
 ServerTools = JClass('qupath.lib.images.servers.ServerTools')
 
+EllipseROI = JClass("qupath.lib.roi.EllipseROI")
+GeometryROI = JClass("qupath.lib.roi.GeometryROI")
+LineROI = JClass("qupath.lib.roi.LineROI")
+PointsROI = JClass("qupath.lib.roi.PointsROI")
+PolygonROI = JClass("qupath.lib.roi.PolygonROI")
+PolylineROI = JClass("qupath.lib.roi.PolylineROI")
+RectangleROI = JClass("qupath.lib.roi.RectangleROI")
+
 WKBWriter = JClass("org.locationtech.jts.io.WKBWriter")
 WKBReader = JClass("org.locationtech.jts.io.WKBReader")
 
