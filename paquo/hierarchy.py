@@ -433,7 +433,7 @@ class QuPathPathObjectHierarchy:
 
         return bool(self.java_object.insertPathObjects(aos))
 
-    def to_ome_xml(self, prefix="paquo") -> str:
+    def to_ome_xml(self, prefix="paquo", fill_alpha=0.0) -> str:
         """return all annotations in ome xml format"""
         # this
         try:
@@ -499,13 +499,17 @@ class QuPathPathObjectHierarchy:
             if ao.path_class and ao.path_class.color:
                 # https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome_xsd.html#Color
                 r, g, b, a = ao.path_class.color.to_rgba()
-                stroke_color, = struct.unpack("<i", bytes([r, g, b, a]))
-                fill_color, = struct.unpack("<i", bytes([r, g, b, int(0.5*a)]))
+                stroke_color, = struct.unpack(">i", bytes([r, g, b, a]))
+                if fill_alpha <= 0:
+                    fill_color = None
+                else:
+                    fill_alpha = min(max(0.0, fill_alpha), 1.0)
+                    fill_color, = struct.unpack(">i", bytes([r, g, b, int(fill_alpha*a)]))
             else:
                 stroke_color = None
                 fill_color = None
             # https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome_xsd.html#Shape_FillRule
-            fill_rule = FillRule.EVEN_ODD
+            fill_rule = FillRule.NON_ZERO
 
             qp_roi = ao.java_object.getROI()
             the_c = int(qp_roi.getC())
@@ -526,7 +530,7 @@ class QuPathPathObjectHierarchy:
                 stroke_dash_array=None,
                 stroke_width=2,  # 2px is the QuPath default gui setting
                 # stroke_width_unit=UnitsLength("pixel"),
-                text=ao.description,
+                text=class_name,  # again class instead of ao.description for a nicer UX in omero.iviewer...
                 the_c=the_c if the_c >= 0 else None,
                 the_t=the_t,
                 the_z=the_z,
