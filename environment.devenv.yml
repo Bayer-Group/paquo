@@ -10,6 +10,7 @@
 #
 
 {% set PAQUO_DEVEL = os.environ.get('PAQUO_DEVEL', False) %}
+{% set WITH_OME = os.environ.get('WITH_OME', False) %}
 
 name: paquo
 
@@ -22,7 +23,7 @@ dependencies:
   - pip
   - jpype1>=1.0.1
   - dynaconf>=3,!=3.1.0
-  - ome-types  # [ sys.version_info >= (3,7) ]
+  - ome-types  # [ WITH_OME ]
   - shapely
   - qupath
   - pytest>=6
