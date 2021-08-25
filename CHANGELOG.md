@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ...
 
+## [0.4.0] - 2021-08-25
+### Added
+- paquo: support qupath version 0.3.0-rc1
+- paquo.hierarchy: no_autoflush context manager for speeding up adding many path objects
+- paquo.projects: support try_relative in update_image_paths
+- cli: allow providing both --annotations and --annotations-cmd
+- paquo.hierarchy: support conversion to ome xml
+- docs: quickstart example for loading detection measurements as pd.DataFrame (@nickdelgrosso)
+
+### Changed
+- paquo._base: remove QuPathBase base class
+
+### Fixed
+- paquo.hierarchy: improved update_class_path speed
+- paquo.hierarchy: support slicing for annotation and detection proxies
+- paquo.hierarchy: fixed proxy issue after load_geosjon
+- paquo.projects: speedup add_image for large projects
+
 ## [0.3.1] - 2021-04-02
 ### Fixed
 - paquo: changing annotations in a hierarchy now propagates to is_changed
@@ -55,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of paquo
 
 
-[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.1.1...v0.2.0
