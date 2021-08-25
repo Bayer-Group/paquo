@@ -27,5 +27,4 @@ dependencies:
   - pytest>=6
   - pytest-cov
   - pip:
-    - ome-types
-    - "-e ."  # [ PAQUO_DEVEL ]
+    - "-e .[ome]"  # [ PAQUO_DEVEL ]

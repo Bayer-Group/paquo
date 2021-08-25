@@ -11,9 +11,12 @@ jobs:
       max-parallel: 6
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.9]
         include:
+          # test windows on 3.8 until jpype1 gets updated
+          - os: windows-latest
+            python-version: 3.8
           # we'll test the python support on ubuntu
           - os: ubuntu-latest
             python-version: 3.8
