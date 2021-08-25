@@ -606,7 +606,7 @@ class QuPathPathObjectHierarchy:
             ome.rois.append(roi)
             ome.structured_annotations.append(map_annotation)
 
-        return to_xml(ome)
+        return to_xml(ome)  # type: ignore
 
     def __repr__(self):
         return f"Hierarchy(image={self._image_name}, annotations={len(self._annotations)}, detections={len(self._detections)})"
