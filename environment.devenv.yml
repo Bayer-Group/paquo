@@ -22,9 +22,10 @@ dependencies:
   - pip
   - jpype1>=1.0.1
   - dynaconf>=3,!=3.1.0
+  - ome-types  # [ sys.version_info >= (3,7) ]
   - shapely
   - qupath
   - pytest>=6
   - pytest-cov
   - pip:
-    - "-e .[ome]"  # [ PAQUO_DEVEL ]
+    - "-e ."  # [ PAQUO_DEVEL ]

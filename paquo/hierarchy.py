@@ -455,7 +455,7 @@ class QuPathPathObjectHierarchy:
             from ome_types.model.map import M
             from ome_types.model.shape import FillRule
         except ImportError:
-            raise RuntimeError(f"{type(self).__name__}.to_ome_xml requires 'ome-types' python module")
+            raise RuntimeError(f"{type(self).__name__}.to_ome_xml requires 'ome-types' python module and python>=3.7")
 
         from paquo.java import EllipseROI
         from paquo.java import GeometryROI

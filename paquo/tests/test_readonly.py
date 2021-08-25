@@ -1,3 +1,4 @@
+import importlib.util
 import shutil
 import tempfile
 from contextlib import contextmanager
@@ -84,9 +85,15 @@ class _Accessor:
         self._if.discard(item)
         setattr(self._i, item, value)
 
-    def callmethod(self, method, *args, **kwargs):
+    def callmethod(self, method, *args, ignore_exception=False, **kwargs):
         self._if.discard(method)
-        return getattr(self._i, method)(*args, **kwargs)
+        try:
+            return getattr(self._i, method)(*args, **kwargs)
+        except BaseException as e:
+            if ignore_exception:
+                pass
+            else:
+                raise e
 
     def unused_public_interface(self):
         return self._if
@@ -190,6 +197,8 @@ def test_images_metadata_and_properties(readonly_project):
 
 def test_hierarchy(readonly_project):
 
+    OME_NOT_INSTALLED = importlib.util.find_spec("ome_types") is None
+
     with assert_no_modification(readonly_project) as qp:
         image = qp.images[0]
         hierarchy = image.hierarchy
@@ -204,7 +213,7 @@ def test_hierarchy(readonly_project):
 
         # these do nothing
         h.callmethod("to_geojson")
-        h.callmethod("to_ome_xml")
+        h.callmethod("to_ome_xml", ignore_exception=OME_NOT_INSTALLED)
 
         # these are not allowed in readonly
         with pytest.raises(IOError):
