@@ -204,6 +204,7 @@ def test_hierarchy(readonly_project):
 
         # these do nothing
         h.callmethod("to_geojson")
+        h.callmethod("to_ome_xml")
 
         # these are not allowed in readonly
         with pytest.raises(IOError):
