@@ -469,6 +469,7 @@ class QuPathPathObjectHierarchy:
 
         for ao in self.annotations:
 
+            class_name: Optional[str]
             if ao.path_class:
                 class_name = ao.path_class.name
             else:
@@ -547,6 +548,7 @@ class QuPathPathObjectHierarchy:
 
             # --- add the correct shape dependent on roi types
 
+            ome_shape: Any
             if isinstance(qp_roi, (PolygonROI, GeometryROI)):
                 ome_shape = OmePolygon(
                     points=" ".join(f"{p.getX():f},{p.getY():f}" for p in qp_roi.getAllPoints()),
