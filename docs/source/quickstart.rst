@@ -191,6 +191,22 @@ This will allow you to display extra data like this:
     :width: 400
     :alt: Tile Overlay Example 05
 
+
+Putting Detection Measurements into a Pandas DataFrame
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Extracting data from QuPath into Pandas is similarly straightforward:
+
+.. code-block:: python
+
+    import pandas as pd
+    qp = QuPathProject('./my_new_project/project.qpproj', mode='r')  # open an existing project
+    image = qp.images[0]  # get the first image
+    detections = image.hierarchy.detections  # detections are stored in a set like proxy object
+    df = pd.DataFrame(detection.measurements for detection in detections)  # put the measurements dictionary for each detection into a pandas DataFrame
+    
+    
+
 More examples
 ^^^^^^^^^^^^^
 
