@@ -156,6 +156,12 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
 
     # For the time being, we assume qupath is our JVM of choice
     app_dir, runtime_dir, jvm_path, jvm_options = finder(**finder_kwargs)
+
+    # workaround for EXCEPTION_ACCESS_VIOLATION crash
+    # see: https://github.com/bayer-science-for-a-better-life/paquo/issues/67
+    if platform.system() == "Windows":
+        os.environ["PATH"] = f"{os.path.join(runtime_dir, 'bin')}{os.pathsep}{os.environ['PATH']}"
+
     # This is not really needed, but beware we might need SL4J classes (see warning)
     jpype.addClassPath(str(app_dir / '*'))
     try:
