@@ -16,6 +16,7 @@ from typing import Union
 from typing import overload
 from warnings import warn
 
+from packaging.version import Version
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
@@ -396,7 +397,7 @@ class QuPathPathObjectHierarchy:
                 # todo: should maybe test at the beginning of this method
                 #   if the version supports id or not, instead of checking
                 #   the version number...
-                if qupath_version and qupath_version <= "0.2.3" and 'id' not in annotation:
+                if qupath_version and qupath_version <= Version("0.2.3") and 'id' not in annotation:
                     object_type = annotation['properties'].get("object_type", "unknown")
                     object_id = {
                         'annotation': "PathAnnotationObject",

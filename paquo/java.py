@@ -1,12 +1,12 @@
 import warnings
-from distutils.version import LooseVersion
+
+from packaging.version import Version
 
 from paquo._config import settings, to_kwargs
 from paquo.jpype_backend import start_jvm, JClass
 
 # we can extend this as when we add more testing against different versions
-MIN_QUPATH_VERSION = LooseVersion('0.2.1')  # FIXME: this is bound to change
-
+MIN_QUPATH_VERSION = Version('0.2.1')  # FIXME: this is bound to change
 
 # allow paquo to be imported in case qupath and a jvm are not available
 # Note: this renders paquo unusable. But we need it for example for the

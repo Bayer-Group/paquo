@@ -1,4 +1,3 @@
-from distutils.version import LooseVersion
 from functools import partial
 from typing import List
 from typing import Type
@@ -6,9 +5,9 @@ from typing import TypeVar
 
 import pytest
 import shapely.geometry
+from packaging.version import Version
 from shapely.geometry import Polygon
 
-import paquo
 from paquo.classes import QuPathPathClass
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.images import QuPathImageType
@@ -176,7 +175,7 @@ TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus = [{
 
 @pytest.fixture
 def example_annotation(qupath_version):
-    if qupath_version <= LooseVersion("0.2.3"):
+    if qupath_version <= Version("0.2.3"):
         yield TEST_ANNOTATION_POLYGON_VERSION_0_2_3
     else:
         yield TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus

@@ -3,12 +3,14 @@ import platform
 import re
 import shlex
 from contextlib import contextmanager
-from distutils.version import LooseVersion
 from itertools import chain
 from pathlib import Path
 from typing import Tuple, List, Optional, Callable, Union, Iterable, Any, Dict
 
 import jpype
+from packaging.version import parse
+from packaging.version import Version
+from packaging.version import LegacyVersion
 
 from paquo._utils import nullcontext
 
@@ -137,11 +139,11 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) ->
 
 
 # stores qupath version to handle consecutive calls to start_jvm
-_QUPATH_VERSION: Optional[LooseVersion] = None
+_QUPATH_VERSION: Union[Version, LegacyVersion, None] = None
 
 
 def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
-              finder_kwargs: Optional[Dict[str, Any]] = None) -> Optional[LooseVersion]:
+              finder_kwargs: Optional[Dict[str, Any]] = None) -> Union[Version, LegacyVersion, None]:
     """start the jvm via jpype
 
     This is automatically called at import of `paquo.java`.
@@ -213,5 +215,5 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
     except (TypeError, AttributeError):  # pragma: no cover
         version = _QUPATH_VERSION = None
     else:
-        version = _QUPATH_VERSION = LooseVersion(_version)
+        version = _QUPATH_VERSION = parse(_version)
     return version
