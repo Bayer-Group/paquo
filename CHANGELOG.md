@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ...
 
+## [0.4.1] - 2022-01-05
+### Added
+- paquo: emit warning on windows when MicrosoftStore Python is detected
+
+### Fixed
+- paquo: fixed EXCEPTION_ACCESS_VIOLATION on Windows with QuPath versions 0.3.x
+- paquo: removed distutils.version usage to silence warnings on py39+ (pep632)
+
 ## [0.4.0] - 2021-08-25
 ### Added
 - paquo: support qupath version 0.3.0-rc1
@@ -73,7 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of paquo
 
 
-[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.2.0...v0.3.0
