@@ -2,12 +2,15 @@ import os
 import platform
 import re
 import shlex
+from contextlib import contextmanager
 from distutils.version import LooseVersion
 from itertools import chain
 from pathlib import Path
 from typing import Tuple, List, Optional, Callable, Union, Iterable, Any, Dict
 
 import jpype
+
+from paquo._utils import nullcontext
 
 # types
 PathOrStr = Union[Path, str]
@@ -157,38 +160,52 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
     # For the time being, we assume qupath is our JVM of choice
     app_dir, runtime_dir, jvm_path, jvm_options = finder(**finder_kwargs)
 
-    # workaround for EXCEPTION_ACCESS_VIOLATION crash
-    # see: https://github.com/bayer-science-for-a-better-life/paquo/issues/67
     if platform.system() == "Windows":
-        os.environ["PATH"] = f"{os.path.join(runtime_dir, 'bin')}{os.pathsep}{os.environ['PATH']}"
+        # workaround for EXCEPTION_ACCESS_VIOLATION crash
+        # see: https://github.com/bayer-science-for-a-better-life/paquo/issues/67
+        @contextmanager
+        def patched_env():
+            _old = os.environ.copy()
+            os.environ.update({
+                "PATH": f"{os.path.join(runtime_dir, 'bin')}{os.pathsep}{os.environ['PATH']}"
+            })
+            try:
+                yield
+            finally:
+                os.environ.clear()
+                os.environ.update(_old)
+    else:
+        patched_env = nullcontext
 
     # This is not really needed, but beware we might need SL4J classes (see warning)
     jpype.addClassPath(str(app_dir / '*'))
-    try:
-        jpype.startJVM(
-            str(jvm_path),
-            *jvm_options,
-            ignoreUnrecognized=False,
-            convertStrings=False
-        )
-    except RuntimeError as jvm_error:  # pragma: no cover
-        # there's a chance that this RuntimeError occurred because a user provided
-        # jvm_option is incorrect. let's try if that is the case and crash with a
-        # more verbose error message
+
+    with patched_env():
         try:
             jpype.startJVM(
                 str(jvm_path),
                 *jvm_options,
-                ignoreUnrecognized=True,
+                ignoreUnrecognized=False,
                 convertStrings=False
             )
-        except RuntimeError:
-            raise jvm_error
-        else:
-            msg = f"Provided JAVA_OPTS prevent the JVM from starting! {jvm_options}"
-            exc = RuntimeError(msg)
-            exc.__cause__ = jvm_error
-            raise exc
+        except RuntimeError as jvm_error:  # pragma: no cover
+            # there's a chance that this RuntimeError occurred because a user provided
+            # jvm_option is incorrect. let's try if that is the case and crash with a
+            # more verbose error message
+            try:
+                jpype.startJVM(
+                    str(jvm_path),
+                    *jvm_options,
+                    ignoreUnrecognized=True,
+                    convertStrings=False
+                )
+            except RuntimeError:
+                raise jvm_error
+            else:
+                msg = f"Provided JAVA_OPTS prevent the JVM from starting! {jvm_options}"
+                exc = RuntimeError(msg)
+                exc.__cause__ = jvm_error
+                raise exc
 
     # we'll do this explicitly here to verify the QuPath version
     try:
