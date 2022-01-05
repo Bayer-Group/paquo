@@ -2,10 +2,13 @@ import os
 import platform
 import re
 import shlex
+import sys
 from contextlib import contextmanager
 from itertools import chain
 from pathlib import Path
+from textwrap import dedent
 from typing import Tuple, List, Optional, Callable, Union, Iterable, Any, Dict
+from warnings import warn
 
 import jpype
 from packaging.version import parse
@@ -142,8 +145,10 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) ->
 _QUPATH_VERSION: Union[Version, LegacyVersion, None] = None
 
 
-def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
-              finder_kwargs: Optional[Dict[str, Any]] = None) -> Union[Version, LegacyVersion, None]:
+def start_jvm(
+    finder: Optional[Callable[..., QuPathJVMInfo]] = None,
+    finder_kwargs: Optional[Dict[str, Any]] = None,
+) -> Union[Version, LegacyVersion, None]:
     """start the jvm via jpype
 
     This is automatically called at import of `paquo.java`.
@@ -176,6 +181,30 @@ def start_jvm(finder: Optional[Callable[..., QuPathJVMInfo]] = None,
             finally:
                 os.environ.clear()
                 os.environ.update(_old)
+
+        # the above workaround doesn't fix the issue for python versions installed
+        # via the Microsoft Store. Let's warn users that this might cause problems
+        def is_windows_store_python() -> bool:
+            parts = Path(sys.base_exec_prefix).parts
+            try:
+                idx = parts.index("WindowsApps")
+            except ValueError:
+                return False
+            try:
+                return parts[idx + 1].startswith("PythonSoftwareFoundation")
+            except IndexError:
+                return False
+
+        if finder_kwargs.pop("warn_microsoft_store_python", True) and is_windows_store_python():
+            msg = dedent("""\
+            MicrosoftStore Python installation detected
+            Your Python version seems to be installed via the MicrosoftStore.
+            If paquo crashes with a EXCEPTION_ACCESS_VIOLATION try installing Python from https://www.python.org
+            To silence this warning set the following in your .paquo.toml configfile:
+            >>> warn_microsoft_store_python = false <<<
+            """)
+            warn(msg, stacklevel=2)
+
     else:
         patched_env = nullcontext
 

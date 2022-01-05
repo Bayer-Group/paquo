@@ -38,3 +38,5 @@ safe_truncate = true
 mock_backend = false
 # only show paquo errors on cli
 cli_force_log_level_error = true
+# on windows warn about microsoft store python
+warn_microsoft_store_python = true
