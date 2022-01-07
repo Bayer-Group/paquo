@@ -15,7 +15,6 @@
 name: paquo
 
 channels:
-  - sdvillal
   - conda-forge
 
 dependencies:
@@ -25,7 +24,7 @@ dependencies:
   - dynaconf>=3,!=3.1.0,!=3.1.7
   - ome-types  # [ WITH_OME ]
   - shapely
-  - qupath
+  - sdvillal::qupath
   - pytest>=6
   - pytest-cov
   - pip:
