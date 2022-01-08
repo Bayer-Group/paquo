@@ -3,6 +3,7 @@ import math
 import pathlib
 import re
 import shutil
+import sys
 from contextlib import contextmanager
 from typing import Any
 from typing import Dict
@@ -15,9 +16,9 @@ from typing import Tuple
 from typing import Union
 from typing import overload
 
-try:
-    from typing import Literal  # type: ignore
-except ImportError:
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
     from typing_extensions import Literal
 
 from paquo import settings
@@ -245,7 +246,7 @@ class QuPathProject:
                         if is_missing and is_readonly:
                             classes_json.unlink(missing_ok=True)
             else:
-                cm = nullcontext
+                cm = nullcontext  # type: ignore
 
             with redirect(stderr=True, stdout=True), cm(self._readonly):
                 project = ProjectIO.loadProject(File(str(p)), BufferedImage)

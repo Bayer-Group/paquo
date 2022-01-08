@@ -1,7 +1,8 @@
 from collections import ChainMap
 from functools import partial
 from io import StringIO
-from xml.etree.ElementTree import ElementTree, Element
+from xml.etree.ElementTree import Element
+from xml.etree.ElementTree import ElementTree
 
 __all__ = ["br", "div", "h3", "h4", "img", "p", "span", "css", "repr_html", "repr_svg", "rawhtml"]
 

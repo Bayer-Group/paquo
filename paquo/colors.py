@@ -1,7 +1,10 @@
 import string
-from typing import Tuple, Union, NamedTuple
+from typing import NamedTuple
+from typing import Tuple
+from typing import Union
 
-from paquo.java import ColorTools, Integer
+from paquo.java import ColorTools
+from paquo.java import Integer
 
 ColorTypeRGB = Tuple[int, int, int]
 ColorTypeRGBA = Tuple[int, int, int, int]

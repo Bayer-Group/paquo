@@ -1,9 +1,16 @@
 import warnings
+from typing import TYPE_CHECKING
 
 from packaging.version import Version
 
-from paquo._config import settings, to_kwargs
-from paquo.jpype_backend import start_jvm, JClass
+from paquo._config import settings
+from paquo._config import to_kwargs
+from paquo.jpype_backend import JClass
+from paquo.jpype_backend import start_jvm
+
+if TYPE_CHECKING:
+    # noinspection PyUnresolvedReferences
+    from packaging.version import LegacyVersion
 
 # we can extend this as when we add more testing against different versions
 MIN_QUPATH_VERSION = Version('0.2.0')  # FIXME: this is bound to change

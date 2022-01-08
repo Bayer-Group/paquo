@@ -14,9 +14,7 @@ from typing import Sequence
 from typing import Type
 from typing import Union
 from typing import overload
-from warnings import warn
 
-from packaging.version import Version
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 

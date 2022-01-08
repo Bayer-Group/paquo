@@ -1,20 +1,21 @@
 import json
 import lzma
+import sys
 from datetime import datetime
 from pathlib import Path
 
 __all__ = ['cached_property', 'nullcontext', 'make_backup_filename', 'load_json_from_path']
 
-try:
+if sys.version_info >= (3, 8):
     from functools import cached_property as _cached_property # type: ignore
 
     # noinspection PyPep8Naming
     class cached_property(_cached_property):
         def __set__(self, obj, value):
             raise AttributeError(f"readonly attribute {self.attrname}")
-except ImportError:
+else:
     # noinspection PyPep8Naming
-    class cached_property:  # type: ignore  # https://github.com/python/mypy/issues/1153
+    class cached_property:
         _NOCACHE = object()
 
         def __init__(self, fget):
@@ -37,10 +38,11 @@ except ImportError:
         def __set__(self, obj, value):
             raise AttributeError(f"readonly attribute {self.fget.__name__}")
 
-try:
-    from contextlib import nullcontext  # type: ignore
-except ImportError:
-    from contextlib import suppress as nullcontext  # works with 3.4+
+if sys.version_info >= (3, 7):
+    from contextlib import nullcontext
+else:
+    # works with 3.4+
+    from contextlib import suppress as nullcontext
 
 
 def make_backup_filename(path, name, suffix='backup'):

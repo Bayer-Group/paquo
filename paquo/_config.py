@@ -1,11 +1,13 @@
-try:
-    from importlib.resources import path as importlib_resources_path  # type: ignore
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    from importlib_resources import path as importlib_resources_path  # type: ignore
-
+import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
+from typing import Dict
+from typing import List
+
+if sys.version_info >= (3, 7):
+    from importlib.resources import path as importlib_resources_path
+else:
+    from importlib_resources import path as importlib_resources_path
 
 from dynaconf import Dynaconf, Validator
 from dynaconf.base import Settings

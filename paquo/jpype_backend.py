@@ -7,13 +7,20 @@ from contextlib import contextmanager
 from itertools import chain
 from pathlib import Path
 from textwrap import dedent
-from typing import Tuple, List, Optional, Callable, Union, Iterable, Any, Dict
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 from warnings import warn
 
 import jpype
-from packaging.version import parse
-from packaging.version import Version
 from packaging.version import LegacyVersion
+from packaging.version import Version
+from packaging.version import parse
 
 from paquo._utils import nullcontext
 
@@ -206,7 +213,7 @@ def start_jvm(
             warn(msg, stacklevel=2)
 
     else:
-        patched_env = nullcontext
+        patched_env = nullcontext  # type: ignore
 
     # This is not really needed, but beware we might need SL4J classes (see warning)
     jpype.addClassPath(str(app_dir / '*'))

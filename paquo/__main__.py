@@ -7,10 +7,18 @@ from contextlib import redirect_stdout
 from itertools import repeat
 from pathlib import Path
 
-from paquo._cli import subcommand, argument, DirectoryType, \
-    config_print_settings, config_print_defaults, list_project, export_annotations, create_project, open_qupath, \
-    qpzip_project
-from paquo._config import PAQUO_CONFIG_FILENAME, get_searchtree
+from paquo._cli import DirectoryType
+from paquo._cli import argument
+from paquo._cli import config_print_defaults
+from paquo._cli import config_print_settings
+from paquo._cli import create_project
+from paquo._cli import export_annotations
+from paquo._cli import list_project
+from paquo._cli import open_qupath
+from paquo._cli import qpzip_project
+from paquo._cli import subcommand
+from paquo._config import PAQUO_CONFIG_FILENAME
+from paquo._config import get_searchtree
 
 # noinspection PyTypeChecker
 parser = argparse.ArgumentParser(

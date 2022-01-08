@@ -1,10 +1,20 @@
 import atexit
 import logging
 import re
-from contextlib import contextmanager, ExitStack, ContextDecorator, AbstractContextManager, suppress
-from typing import Iterable, Tuple, List
+from contextlib import AbstractContextManager
+from contextlib import ContextDecorator
+from contextlib import ExitStack
+from contextlib import contextmanager
+from contextlib import suppress
+from typing import Iterable
+from typing import List
+from typing import Tuple
 
-from paquo.java import System, PrintStream, ByteArrayOutputStream, StandardCharsets, LogManager
+from paquo.java import ByteArrayOutputStream
+from paquo.java import LogManager
+from paquo.java import PrintStream
+from paquo.java import StandardCharsets
+from paquo.java import System
 
 __all__ = ['get_logger', 'redirect']
 
