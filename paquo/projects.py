@@ -24,6 +24,7 @@ from paquo import settings
 from paquo._logging import get_logger
 from paquo._logging import redirect
 from paquo._utils import make_backup_filename
+from paquo._utils import nullcontext
 from paquo.classes import QuPathPathClass
 from paquo.images import ImageProvider
 from paquo.images import QuPathImageType
@@ -44,6 +45,8 @@ from paquo.java import ProjectIO
 from paquo.java import Projects
 from paquo.java import ServerTools
 from paquo.java import String
+from paquo.java import compatibility
+
 
 _log = get_logger(__name__)
 
@@ -228,7 +231,23 @@ class QuPathProject:
             _exists = False
 
         if _exists:
-            with redirect(stderr=True, stdout=True):
+
+            if compatibility.requires_missing_classes_json_fix():
+                @contextmanager
+                def cm(is_readonly):
+                    classes_json = p.parent.joinpath("classifiers", "classes.json")
+                    is_missing = not classes_json.is_file()
+                    if is_missing:
+                        classes_json.write_text('{"pathClasses":[]}')
+                    try:
+                        yield
+                    finally:
+                        if is_missing and is_readonly:
+                            classes_json.unlink(missing_ok=True)
+            else:
+                cm = nullcontext
+
+            with redirect(stderr=True, stdout=True), cm(self._readonly):
                 project = ProjectIO.loadProject(File(str(p)), BufferedImage)
         else:
             p_dir = p.parent

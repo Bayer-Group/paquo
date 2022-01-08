@@ -6,7 +6,7 @@ from paquo._config import settings, to_kwargs
 from paquo.jpype_backend import start_jvm, JClass
 
 # we can extend this as when we add more testing against different versions
-MIN_QUPATH_VERSION = Version('0.2.1')  # FIXME: this is bound to change
+MIN_QUPATH_VERSION = Version('0.2.0')  # FIXME: this is bound to change
 
 # allow paquo to be imported in case qupath and a jvm are not available
 # Note: this renders paquo unusable. But we need it for example for the
@@ -36,6 +36,11 @@ class _Compatibility:
     """organizes QuPath version differences"""
     def __init__(self, version: "Version | LegacyVersion | None") -> None:
         self.version = version
+
+    def requires_missing_classes_json_fix(self):
+        # older QuPaths crash on project load when classes.json is missing
+        # see: https://github.com/qupath/qupath/commit/be861cea80b9a8ef300e30d7985fd69791c2432e
+        return self.version and self.version <= Version("0.2.0")
 
     def requires_annotation_json_fix(self):
         # annotations changed between QuPath "0.2.3" and "0.3.x"
