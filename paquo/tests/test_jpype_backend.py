@@ -48,13 +48,14 @@ def test_find_qupath(tmp_path):
         )
 
     # first search others than try conda
-    if _conda_qupath_dir() is not None:
+    _d = _conda_qupath_dir()
+    if _d is not None and _d.is_dir():
         cm = nullcontext()
     else:
         cm = pytest.raises(ValueError)  # pragma: no cover
     with cm:
         # search conda last
-        find_qupath(qupath_search_conda=True, qupath_prefer_conda=False)
+        find_qupath(qupath_dir=None, qupath_search_conda=True, qupath_prefer_conda=False)
 
 
 def test_find_qupath_java_opts_as_string():
