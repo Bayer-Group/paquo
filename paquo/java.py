@@ -32,6 +32,20 @@ if qupath_version is None or qupath_version < MIN_QUPATH_VERSION:
     warnings.warn(f"QUPATH '{qupath_version}' UNTESTED OR UNSUPPORTED")  # pragma: no cover
 
 
+class _Compatibility:
+    """organizes QuPath version differences"""
+    def __init__(self, version: "Version | LegacyVersion | None") -> None:
+        self.version = version
+
+    def requires_annotation_json_fix(self):
+        # annotations changed between QuPath "0.2.3" and "0.3.x"
+        # see: https://github.com/qupath/qupath/commit/fef5c43ce3f67e0e062677c407b395ef3e6e27c3
+        return self.version and self.version <= Version("0.2.3")
+
+
+compatibility = _Compatibility(qupath_version)
+
+
 ArrayList = JClass("java.util.ArrayList")
 BufferedImage = JClass('java.awt.image.BufferedImage')
 ByteArrayOutputStream = JClass("java.io.ByteArrayOutputStream")

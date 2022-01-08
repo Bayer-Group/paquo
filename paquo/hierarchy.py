@@ -26,7 +26,7 @@ from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools
 from paquo.java import IllegalArgumentException
 from paquo.java import PathObjectHierarchy
-from paquo.java import qupath_version
+from paquo.java import compatibility
 from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
 from paquo.pathobjects import QuPathPathDetectionObject
@@ -397,7 +397,10 @@ class QuPathPathObjectHierarchy:
                 # todo: should maybe test at the beginning of this method
                 #   if the version supports id or not, instead of checking
                 #   the version number...
-                if qupath_version and qupath_version <= Version("0.2.3") and 'id' not in annotation:
+                if (
+                    compatibility.requires_annotation_json_fix()
+                    and 'id' not in annotation
+                ):
                     object_type = annotation['properties'].get("object_type", "unknown")
                     object_id = {
                         'annotation': "PathAnnotationObject",
