@@ -24,7 +24,7 @@ with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config
     settings = Dynaconf(
         envvar_prefix="PAQUO",
         settings_file=[PAQUO_CONFIG_FILENAME],
-        root_path=Path.home(),
+        root_path=Path.cwd(),
         core_loaders=['TOML'],
         preload=[str(default_config.absolute())],
         validators=[
