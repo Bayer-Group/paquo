@@ -1,10 +1,21 @@
 import json
 import lzma
+import re
 import sys
 from datetime import datetime
+from functools import total_ordering
 from pathlib import Path
 
-__all__ = ['cached_property', 'nullcontext', 'make_backup_filename', 'load_json_from_path']
+from packaging.version import Version
+
+__all__ = [
+    'QuPathVersion',
+    'cached_property',
+    'nullcontext',
+    'make_backup_filename',
+    'load_json_from_path'
+]
+
 
 if sys.version_info >= (3, 8):
     from functools import cached_property as _cached_property
@@ -43,6 +54,35 @@ if sys.version_info >= (3, 7):
 else:
     # works with 3.4+
     from contextlib import suppress as nullcontext
+
+
+@total_ordering
+class QuPathVersion:
+    """Handle the QuPath version strings"""
+    def __init__(self, version: str) -> None:
+        self.origin = ver_str = str(version).strip()
+        # to not having to rely on packaging.version.LegacyVersion
+        # we replace the milestone versioning with -devNN
+        ver_str = re.sub(r"(?:-)m(?P<num>[0-9]+)", r"dev\g<num>", ver_str, count=1)
+        self.version = Version(ver_str)
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self.origin!r})"
+
+    def __str__(self) -> str:
+        return self.origin
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, QuPathVersion):
+            return self.version.__eq__(other.version)
+        else:
+            return self.version.__eq__(other)
+
+    def __lt__(self, other) -> bool:
+        if isinstance(other, QuPathVersion):
+            return self.version.__lt__(other.version)
+        else:
+            return self.version.__lt__(other)
 
 
 def make_backup_filename(path, name, suffix='backup'):

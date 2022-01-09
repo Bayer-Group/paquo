@@ -5,9 +5,9 @@ from typing import TypeVar
 
 import pytest
 import shapely.geometry
-from packaging.version import Version
 from shapely.geometry import Polygon
 
+from paquo._utils import QuPathVersion
 from paquo.classes import QuPathPathClass
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.images import QuPathImageType
@@ -175,7 +175,7 @@ TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus = [{
 
 @pytest.fixture
 def example_annotation(qupath_version):
-    if qupath_version <= Version("0.2.3"):
+    if qupath_version <= QuPathVersion("0.2.3"):
         yield TEST_ANNOTATION_POLYGON_VERSION_0_2_3
     else:
         yield TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus

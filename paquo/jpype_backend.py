@@ -19,11 +19,9 @@ from typing import Union
 from warnings import warn
 
 import jpype
-from packaging.version import LegacyVersion
-from packaging.version import Version
-from packaging.version import parse
 
 from paquo._utils import nullcontext
+from paquo._utils import QuPathVersion
 
 # types
 PathOrStr = Union[Path, str]
@@ -150,13 +148,13 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) ->
 
 
 # stores qupath version to handle consecutive calls to start_jvm
-_QUPATH_VERSION: Union[Version, LegacyVersion, None] = None
+_QUPATH_VERSION: Optional[QuPathVersion] = None
 
 
 def start_jvm(
     finder: Optional[Callable[..., QuPathJVMInfo]] = None,
     finder_kwargs: Optional[Dict[str, Any]] = None,
-) -> Union[Version, LegacyVersion, None]:
+) -> Optional[QuPathVersion]:
     """start the jvm via jpype
 
     This is automatically called at import of `paquo.java`.
@@ -253,5 +251,5 @@ def start_jvm(
     except (TypeError, AttributeError):  # pragma: no cover
         version = _QUPATH_VERSION = None
     else:
-        version = _QUPATH_VERSION = parse(_version)
+        version = _QUPATH_VERSION = QuPathVersion(_version)
     return version

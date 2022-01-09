@@ -1,16 +1,14 @@
 import warnings
 
-from packaging.version import Version
-from packaging.version import LegacyVersion
-
 from paquo._config import settings
 from paquo._config import to_kwargs
+from paquo._utils import QuPathVersion
 from paquo.jpype_backend import JClass
 from paquo.jpype_backend import start_jvm
 
 
 # we can extend this as when we add more testing against different versions
-MIN_QUPATH_VERSION = Version('0.2.0')  # FIXME: this is bound to change
+MIN_QUPATH_VERSION = QuPathVersion('0.2.0')  # FIXME: this is bound to change
 
 
 # allow paquo to be imported in case qupath and a jvm are not available
@@ -43,7 +41,7 @@ elif qupath_version < MIN_QUPATH_VERSION:
 
 class _Compatibility:
     """organizes QuPath version differences"""
-    def __init__(self, version: "Version | LegacyVersion | None") -> None:
+    def __init__(self, version: "QuPathVersion | None") -> None:
         self.version = version
 
     def requires_missing_classes_json_fix(self) -> bool:
@@ -52,7 +50,7 @@ class _Compatibility:
         if self.version is None:
             return True
         else:
-            return self.version <= Version("0.2.0")
+            return self.version <= QuPathVersion("0.2.0")
 
     def requires_annotation_json_fix(self) -> bool:
         # annotations changed between QuPath "0.2.3" and "0.3.x"
@@ -60,7 +58,7 @@ class _Compatibility:
         if self.version is None:
             return True
         else:
-            return self.version <= Version("0.2.3")
+            return self.version <= QuPathVersion("0.2.3")
 
     def supports_image_server_recovery(self) -> bool:
         # image_server server.json files are only guaranteed to be written since QuPath "0.2.0"
@@ -68,7 +66,7 @@ class _Compatibility:
         if self.version is None:
             return False
         else:
-            return self.version >= Version("0.2.0")
+            return self.version >= QuPathVersion("0.2.0")
 
     def supports_logmanager(self) -> bool:
         # the logmanager class was only added with 0.2.0-m10
@@ -76,7 +74,7 @@ class _Compatibility:
         if self.version is None:
             return False
         else:
-            return self.version >= LegacyVersion("0.2.0-m10")
+            return self.version >= QuPathVersion("0.2.0-m10")
 
 compatibility = _Compatibility(qupath_version)
 

@@ -1,7 +1,7 @@
 import pytest
 import shapely.geometry
-from packaging.version import Version
 
+from paquo._utils import QuPathVersion
 from paquo.classes import QuPathPathClass
 from paquo.pathobjects import QuPathPathAnnotationObject
 
@@ -62,7 +62,7 @@ def test_geojson_serialization(path_annotation, qupath_version):
     assert geo_json["type"] == "Feature"
 
     # bad practice
-    if qupath_version <= Version("0.2.3"):
+    if qupath_version <= QuPathVersion("0.2.3"):
         assert geo_json["id"] == "PathAnnotationObject"
     else:
         assert geo_json["properties"]["object_type"] == "annotation"
@@ -79,7 +79,7 @@ def test_geojson_serialization(path_annotation, qupath_version):
     assert prop["isLocked"] == path_annotation.locked
 
     # bad practice
-    if qupath_version <= Version("0.2.3"):
+    if qupath_version <= QuPathVersion("0.2.3"):
         assert prop["measurements"] == path_annotation.measurements.to_records()
     else:
         measurements = path_annotation.measurements.to_records()
