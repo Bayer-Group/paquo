@@ -12,24 +12,27 @@ if TYPE_CHECKING:
     # noinspection PyUnresolvedReferences
     from packaging.version import LegacyVersion
 
+
 # we can extend this as when we add more testing against different versions
 MIN_QUPATH_VERSION = Version('0.2.0')  # FIXME: this is bound to change
+
 
 # allow paquo to be imported in case qupath and a jvm are not available
 # Note: this renders paquo unusable. But we need it for example for the
 #   sphinx docs to be generated without requiring an installed qupath.
 if settings.mock_backend:  # pragma: no cover
-    def start_jvm(*_args, **_kwargs):  # type: ignore
-        return MIN_QUPATH_VERSION
+    from unittest.mock import create_autospec
+    from unittest.mock import MagicMock
 
+    start_jvm = create_autospec(start_jvm, return_value=MIN_QUPATH_VERSION)
     # noinspection PyPep8Naming
-    def JClass(*_args, **_kwargs):
-        class JClassType(type):
+    def JClass(jc, *_args, **_kwargs):
+        class _JClassType(type):
             def __getattr__(cls, key):
-                pass
+                return MagicMock()
 
-        class _JClass(metaclass=JClassType):
-            pass
+        class _JClass(metaclass=_JClassType):
+            f"""Java Class: {jc!r}"""
         return _JClass
 
 # ensure the jvm is running
