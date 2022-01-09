@@ -7,7 +7,7 @@ from pathlib import Path
 __all__ = ['cached_property', 'nullcontext', 'make_backup_filename', 'load_json_from_path']
 
 if sys.version_info >= (3, 8):
-    from functools import cached_property as _cached_property # type: ignore
+    from functools import cached_property as _cached_property
 
     # noinspection PyPep8Naming
     class cached_property(_cached_property):

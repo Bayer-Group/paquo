@@ -6,6 +6,7 @@ import struct
 from contextlib import contextmanager
 from contextlib import suppress
 from typing import Any
+from typing import Counter as CounterType
 from typing import Iterable
 from typing import Iterator
 from typing import MutableSet
@@ -87,12 +88,12 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         with suppress(KeyError):
             del self.__dict__["_list"]
 
-    def _disabled(self, other: Any) -> Any:
+    def _disabled(self, other: Iterable[Any], /) -> "PathObjectProxy":
         raise NotImplementedError(f"{type(self).__name__} only supports inplace operations: '|=', '-='")
-    __and__ = __or__ = __sub__ = __xor__ = __iand__ = __ixor__ = _disabled
+    __or__ = __and__ = __sub__ = __xor__ = __iand__ = __ixor__ = _disabled
     del _disabled
 
-    def __ior__(self, other: Any) -> "PathObjectProxy":  # type: ignore
+    def __ior__(self, other: Iterable[Any]) -> "PathObjectProxy":
         if self._mask:
             raise IOError("cannot modify view")
         if self._readonly:
@@ -105,7 +106,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         return self
     update = __ior__
 
-    def __isub__(self, other: Iterable[PathROIObjectType]) -> "PathObjectProxy":  # type: ignore
+    def __isub__(self, other: Iterable[Any]) -> "PathObjectProxy":
         if self._mask:
             raise IOError("cannot modify view")
         if self._readonly:
@@ -377,7 +378,7 @@ class QuPathPathObjectHierarchy:
             raise TypeError("requires a geojson list")
 
         aos = []
-        skipped = collections.Counter()  # type: ignore
+        skipped: "CounterType[str]" = collections.Counter()
         for annotation in geojson:
             try:
                 if fix_invalid:
@@ -608,7 +609,7 @@ class QuPathPathObjectHierarchy:
             ome.rois.append(roi)
             ome.structured_annotations.append(map_annotation)
 
-        return to_xml(ome)  # type: ignore
+        return to_xml(ome)
 
     def __repr__(self):
         return f"Hierarchy(image={self._image_name}, annotations={len(self._annotations)}, detections={len(self._detections)})"

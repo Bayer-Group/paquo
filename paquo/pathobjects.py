@@ -197,7 +197,7 @@ class _PathROIObject:
         """lock state of the annotation"""
         return bool(self.java_object.isLocked())
 
-    @locked.setter  # type: ignore
+    @locked.setter
     def locked(self: PathROIObjectType, value: bool) -> None:
         self.java_object.setLocked(value)
         if self._update_callback:
@@ -221,7 +221,7 @@ class _PathROIObject:
             return None
         return str(name)
 
-    @name.setter  # type: ignore
+    @name.setter
     def name(self: PathROIObjectType, name: Union[str, None]) -> None:
         if name is not None:
             name = String(name)

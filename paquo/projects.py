@@ -6,6 +6,8 @@ import shutil
 import sys
 from contextlib import contextmanager
 from typing import Any
+from typing import Callable
+from typing import ContextManager
 from typing import Dict
 from typing import Hashable
 from typing import Iterable
@@ -167,16 +169,7 @@ def _stash_project_files(project_dir: pathlib.Path):
 DEFAULT_IMAGE_PROVIDER: Any = SimpleURIImageProvider()
 
 
-ProjectIOMode = Union[
-    Literal["r"],
-    Literal["r+"],
-    Literal["w"],
-    Literal["w+"],
-    Literal["a"],
-    Literal["a+"],
-    Literal["x"],
-    Literal["x+"],
-]
+ProjectIOMode = Literal["r", "r+", "w", "w+", "a", "a+", "x", "x+"]
 
 
 class QuPathProject:
@@ -232,7 +225,7 @@ class QuPathProject:
             _exists = False
 
         if _exists:
-
+            cm: Callable[..., ContextManager[Any]]
             if compatibility.requires_missing_classes_json_fix():
                 @contextmanager
                 def cm(is_readonly):
@@ -246,7 +239,7 @@ class QuPathProject:
                         if is_missing and is_readonly:
                             classes_json.unlink(missing_ok=True)
             else:
-                cm = nullcontext  # type: ignore
+                cm = nullcontext
 
             with redirect(stderr=True, stdout=True), cm(self._readonly):
                 project = ProjectIO.loadProject(File(str(p)), BufferedImage)
@@ -282,7 +275,7 @@ class QuPathProject:
             # update the proxy
             self._image_entries_proxy.refresh()
 
-    @redirect(stderr=True, stdout=True)  # type: ignore
+    @redirect(stderr=True, stdout=True)
     def add_image(self,
                   image_id: Any,  # this should actually be ID type of the image provider
                   image_type: Optional[QuPathImageType] = None,

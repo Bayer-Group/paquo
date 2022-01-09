@@ -8,7 +8,7 @@ from pathlib import Path
 
 # -- argparse improvements ---------------------------------------------
 
-def subcommand(*arguments, parent):  # type: ignore
+def subcommand(*arguments, parent):
     """decorator helper for commandline"""
     def decorator(func):
         fn = func.__name__.rstrip('_')
@@ -71,11 +71,10 @@ def config_print_settings():
 
 def config_print_defaults():
     """print the default paquo configuration"""
-    try:
-        from importlib.resources import read_text  # type: ignore
-    except ImportError:
-        # noinspection PyUnresolvedReferences
-        from importlib_resources import read_text  # type: ignore
+    if sys.version_info >= (3, 7):
+        from importlib.resources import read_text
+    else:
+        from importlib_resources import read_text
     from paquo._config import settings
 
     output = read_text(

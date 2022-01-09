@@ -9,6 +9,7 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Any
 from typing import Callable
+from typing import ContextManager
 from typing import Dict
 from typing import Iterable
 from typing import List
@@ -174,6 +175,7 @@ def start_jvm(
     # For the time being, we assume qupath is our JVM of choice
     app_dir, runtime_dir, jvm_path, jvm_options = finder(**finder_kwargs)
 
+    patched_env: Callable[[], ContextManager[Any]]
     if platform.system() == "Windows":
         # workaround for EXCEPTION_ACCESS_VIOLATION crash
         # see: https://github.com/bayer-science-for-a-better-life/paquo/issues/67
@@ -213,7 +215,7 @@ def start_jvm(
             warn(msg, stacklevel=2)
 
     else:
-        patched_env = nullcontext  # type: ignore
+        patched_env = nullcontext
 
     # This is not really needed, but beware we might need SL4J classes (see warning)
     jpype.addClassPath(str(app_dir / '*'))
