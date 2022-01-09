@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
-...
+### Added
+- paquo: support QuPath v0.2.0 (a83d8a2)
+
+### Fixed
+- paquo._config: fixed searchtree to allow local override
+- tests: fixed jpype test when run in conda env with external QuPath
+
+### Changed
+- paquo: multiple typing improvements and minor fixes
 
 ## [0.4.1] - 2022-01-05
 ### Added
