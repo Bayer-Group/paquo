@@ -1,16 +1,12 @@
 import warnings
-from typing import TYPE_CHECKING
 
 from packaging.version import Version
+from packaging.version import LegacyVersion
 
 from paquo._config import settings
 from paquo._config import to_kwargs
 from paquo.jpype_backend import JClass
 from paquo.jpype_backend import start_jvm
-
-if TYPE_CHECKING:
-    # noinspection PyUnresolvedReferences
-    from packaging.version import LegacyVersion
 
 
 # we can extend this as when we add more testing against different versions
@@ -37,9 +33,12 @@ if settings.mock_backend:  # pragma: no cover
 
 # ensure the jvm is running
 qupath_version = start_jvm(finder_kwargs=to_kwargs(settings))
-if qupath_version is None or qupath_version < MIN_QUPATH_VERSION:
-    # let's not exit for now but warn the user that
-    warnings.warn(f"QUPATH '{qupath_version}' UNTESTED OR UNSUPPORTED")  # pragma: no cover
+if qupath_version is None:
+    # let's not exit for now but warn the user:
+    warnings.warn("COULD NOT DETECT QUPATH VERSION! UNSUPPORTED")  # pragma: no cover
+elif qupath_version < MIN_QUPATH_VERSION:
+    # let's not exit for now but warn the user:
+    warnings.warn(f"QUPATH '{qupath_version}' IS UNTESTED OR UNSUPPORTED")  # pragma: no cover
 
 
 class _Compatibility:
@@ -71,6 +70,14 @@ class _Compatibility:
         else:
             return self.version >= Version("0.2.0")
 
+    def supports_logmanager(self) -> bool:
+        # the logmanager class was only added with 0.2.0-m10
+        # see: https://github.com/qupath/qupath/commit/15b844703b686f7a9a64c50194ebe22fc46924a5
+        if self.version is None:
+            return False
+        else:
+            return self.version >= LegacyVersion("0.2.0-m10")
+
 compatibility = _Compatibility(qupath_version)
 
 
@@ -97,7 +104,12 @@ ImageType = JClass('qupath.lib.images.ImageData.ImageType')
 ImageServer = JClass('qupath.lib.images.servers.ImageServer')
 ImageServers = JClass('qupath.lib.images.servers.ImageServers')  # NOTE: this is needed to make QuPath v0.3.0-rc1 work
 ImageServerProvider = JClass('qupath.lib.images.servers.ImageServerProvider')
-LogManager = JClass('qupath.lib.gui.logging.LogManager')
+
+if compatibility.supports_logmanager():
+    LogManager = JClass('qupath.lib.gui.logging.LogManager')
+else:
+    LogManager = None
+
 PathAnnotationObject = JClass("qupath.lib.objects.PathAnnotationObject")
 PathClass = JClass('qupath.lib.objects.classes.PathClass')
 PathClassFactory = JClass('qupath.lib.objects.classes.PathClassFactory')

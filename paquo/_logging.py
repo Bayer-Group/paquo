@@ -26,7 +26,8 @@ logging.getLogger('qupath').addHandler(logging.NullHandler())
 
 # set the java log level to DEBUG
 # and filter in the 'qupath' logger on the python side
-LogManager.setDebug()
+if LogManager:
+    LogManager.setDebug()
 
 
 @atexit.register
@@ -36,7 +37,8 @@ def _java_log_cleanup():
     #   that point we've already left the contextmanager for log
     #   redirection, we'll just switch the qupath loglevel to Warn
     #   and emit a debug message on the python side.
-    LogManager.setWarn()
+    if LogManager:
+        LogManager.setWarn()
     get_logger('qupath').debug("switching java logger to warn for silent thread cleanup")
 
 
