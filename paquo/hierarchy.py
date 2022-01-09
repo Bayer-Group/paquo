@@ -209,6 +209,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
                 mask = [self._mask[idx] for idx in i]
             return PathObjectProxy(self._hierarchy, self._paquo_cls, mask)
 
+    def count(self, value: PathROIObjectType) -> int:
+        return int(value in self)  # PathObjectProxy is a set
+
     def __repr__(self):
         c = type(self).__name__
         h = repr(self._hierarchy)
