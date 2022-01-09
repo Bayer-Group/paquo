@@ -47,16 +47,29 @@ class _Compatibility:
     def __init__(self, version: "Version | LegacyVersion | None") -> None:
         self.version = version
 
-    def requires_missing_classes_json_fix(self):
+    def requires_missing_classes_json_fix(self) -> bool:
         # older QuPaths crash on project load when classes.json is missing
         # see: https://github.com/qupath/qupath/commit/be861cea80b9a8ef300e30d7985fd69791c2432e
-        return self.version and self.version <= Version("0.2.0")
+        if self.version is None:
+            return True
+        else:
+            return self.version <= Version("0.2.0")
 
-    def requires_annotation_json_fix(self):
+    def requires_annotation_json_fix(self) -> bool:
         # annotations changed between QuPath "0.2.3" and "0.3.x"
         # see: https://github.com/qupath/qupath/commit/fef5c43ce3f67e0e062677c407b395ef3e6e27c3
-        return self.version and self.version <= Version("0.2.3")
+        if self.version is None:
+            return True
+        else:
+            return self.version <= Version("0.2.3")
 
+    def supports_image_server_recovery(self) -> bool:
+        # image_server server.json files are only guaranteed to be written since QuPath "0.2.0"
+        # see: https://github.com/qupath/qupath/commit/39abee3012da9252ea988308848c5d802164e060
+        if self.version is None:
+            return False
+        else:
+            return self.version >= Version("0.2.0")
 
 compatibility = _Compatibility(qupath_version)
 

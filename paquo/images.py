@@ -35,6 +35,7 @@ from paquo.java import PathIO
 from paquo.java import String
 from paquo.java import URI
 from paquo.java import URISyntaxException
+from paquo.java import compatibility
 
 if TYPE_CHECKING:
     import paquo.projects
@@ -439,7 +440,12 @@ class QuPathProjectImageEntry:
         server = self._image_data.getServer()
         if not server:
             _log.warning("recovering readonly from server.json")
-            server = _RecoveredReadOnlyImageServer(self.entry_path)
+            try:
+                server = _RecoveredReadOnlyImageServer(self.entry_path)
+            except FileNotFoundError:
+                if not compatibility.supports_image_server_recovery():
+                    raise RuntimeError("QuPath < 0.2.0 is not guaranteed to write server.json")
+                raise
         return server
 
     @property
