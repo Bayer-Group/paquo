@@ -16,9 +16,6 @@ from typing import Type
 from typing import Union
 from typing import overload
 
-from shapely.geometry import shape
-from shapely.geometry.base import BaseGeometry
-
 from paquo._logging import get_logger
 from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
@@ -26,12 +23,15 @@ from paquo.java import GsonTools
 from paquo.java import IllegalArgumentException
 from paquo.java import PathObjectHierarchy
 from paquo.java import compatibility
+from paquo.pathobjects import BaseGeometry
+from paquo.pathobjects import fix_geojson_geometry
 from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
 from paquo.pathobjects import QuPathPathDetectionObject
 from paquo.pathobjects import QuPathPathTileObject
 
 __all__ = ["QuPathPathObjectHierarchy"]
+
 _logger = get_logger(__name__)
 
 
@@ -385,15 +385,7 @@ class QuPathPathObjectHierarchy:
         for annotation in geojson:
             try:
                 if fix_invalid:
-                    s = shape(annotation['geometry'])
-                    if not s.is_valid:
-                        # attempt to fix
-                        s = s.buffer(0, 1)
-                        if not s.is_valid:
-                            s = s.buffer(0, 1)
-                            if not s.is_valid:
-                                raise ValueError("invalid geometry")
-                    annotation['geometry'] = s.__geo_interface__
+                    annotation["geometry"] = fix_geojson_geometry(annotation["geometry"])
 
                 # compatibility layer
                 # todo: should maybe test at the beginning of this method

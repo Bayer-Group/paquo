@@ -8,6 +8,7 @@ from typing import Type
 from typing import TypeVar
 from typing import Union
 
+from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 from shapely.wkb import dumps as shapely_wkb_dumps
 from shapely.wkb import loads as shapely_wkb_loads
@@ -27,6 +28,8 @@ from paquo.java import WKBReader
 from paquo.java import WKBWriter
 
 __all__ = [
+    "fix_geojson_geometry",
+    "BaseGeometry",
     "PathROIObjectType",
     "QuPathPathAnnotationObject",
     "QuPathPathDetectionObject",
@@ -56,6 +59,19 @@ def _qupath_roi_to_shapely_geometry(roi) -> BaseGeometry:
     jts_geometry = GeometryTools.roiToGeometry(roi)
     wkb_bytearray = WKBWriter(2).write(jts_geometry)
     return shapely_wkb_loads(bytes(wkb_bytearray))
+
+
+def fix_geojson_geometry(geometry: dict) -> dict:
+    """try to fix a provided geojson geometry via buffering"""
+    s = shape(geometry)
+    if not s.is_valid:
+        # attempt to fix
+        s = s.buffer(0, 1)
+        if not s.is_valid:
+            s = s.buffer(0, 1)
+            if not s.is_valid:
+                raise ValueError("invalid geometry")
+    return s.__geo_interface__
 
 
 class _MeasurementList(MutableMapping):
