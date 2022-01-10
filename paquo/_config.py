@@ -1,4 +1,5 @@
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 from typing import Dict
@@ -9,16 +10,39 @@ if sys.version_info >= (3, 7):
 else:
     from importlib_resources import path as importlib_resources_path
 
-from dynaconf import Dynaconf, Validator
+from dynaconf import loaders
+from dynaconf import Dynaconf
+from dynaconf import Validator
 from dynaconf.base import Settings
 from dynaconf.utils import files as _files
+from dynaconf.utils.boxing import DynaBox
+
 
 PAQUO_CONFIG_FILENAME = '.paquo.toml'
 
 
-def to_kwargs(s: Settings) -> Dict[str, Any]:
+def to_kwargs(s: "Settings | DynaBox") -> Dict[str, Any]:
     """convert dynaconf settings to lowercase"""
     return {k.lower(): v for k, v in s.to_dict().items()}
+
+
+def to_toml(s: Settings) -> str:
+    """convert dynaconf settings to a toml str"""
+    # we'll use the current public dynaconf api so that we don't need to import our own
+    # toml... that means we need to go via a temporary file to dump the current config,
+    # because dynaconf doesn't support it otherwise...
+    # github.com/rochacbruno/dynaconf/blob/68df27d2/dynaconf/loaders/toml_loader.py#L56
+    data = DynaBox(s.as_dict(internal=False))
+
+    # we create a temporary dir and write to a toml file
+    # note: this is to workaround the fact that using NamedTemporaryFile will
+    #   error under windows due to loaders.write calling open on the file
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fn = str(Path(tmpdir) / ".paquo.temporary.toml")  # suffix determines loader
+        loaders.write(fn, to_kwargs(data))
+        with open(fn, 'rt') as f:
+            output = f.read()
+    return output
 
 
 with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config:
