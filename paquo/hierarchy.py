@@ -88,12 +88,12 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         with suppress(KeyError):
             del self.__dict__["_list"]
 
-    def _disabled(self, other: Iterable[Any], /) -> "PathObjectProxy":
+    def _disabled(self, other: Iterable[Any]) -> "PathObjectProxy":
         raise NotImplementedError(f"{type(self).__name__} only supports inplace operations: '|=', '-='")
     __or__ = __and__ = __sub__ = __xor__ = __iand__ = __ixor__ = _disabled
     del _disabled
 
-    def __ior__(self, other: Iterable[Any]) -> "PathObjectProxy":
+    def __ior__(self, other: Iterable[Any]) -> "PathObjectProxy":  # type: ignore
         if self._mask:
             raise IOError("cannot modify view")
         if self._readonly:
@@ -106,7 +106,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         return self
     update = __ior__
 
-    def __isub__(self, other: Iterable[Any]) -> "PathObjectProxy":
+    def __isub__(self, other: Iterable[Any]) -> "PathObjectProxy":  # type: ignore
         if self._mask:
             raise IOError("cannot modify view")
         if self._readonly:
