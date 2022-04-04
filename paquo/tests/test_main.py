@@ -40,7 +40,7 @@ def project_with_data(svs_small):
 
 
 def test_no_args():
-    assert main([]) == 0
+    assert main([]) == 1
 
 
 def test_version():

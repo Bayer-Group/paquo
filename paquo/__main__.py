@@ -5,6 +5,7 @@ import sys
 import tempfile
 from contextlib import redirect_stdout
 from itertools import repeat
+from logging.config import dictConfig
 from pathlib import Path
 
 from paquo._cli import DirectoryType
@@ -19,6 +20,7 @@ from paquo._cli import qpzip_project
 from paquo._cli import subcommand
 from paquo._config import PAQUO_CONFIG_FILENAME
 from paquo._config import get_searchtree
+from paquo._config import settings
 
 # noinspection PyTypeChecker
 parser = argparse.ArgumentParser(
@@ -43,14 +45,17 @@ def main(commandline=None):
     """main command line argument handling"""
     args = parser.parse_args(commandline)
     if args.cmd is None:
-        if args.version:
-            from paquo import __version__
-            print(f"{__version__}")
-        if args.qupath_version:
-            from paquo.java import qupath_version
-            print(f"{qupath_version!s}")
-        if not (args.version or args.qupath_version):
+        if args.version or args.qupath_version:
+            if args.version:
+                from paquo import __version__
+                print(f"{__version__}")
+            if args.qupath_version:
+                from paquo.java import qupath_version
+                print(f"{qupath_version!s}")
+            return 0
+        else:
             parser.print_help()
+            return 1
     else:
         from paquo import settings
         from logging.config import dictConfig
@@ -77,7 +82,6 @@ def main(commandline=None):
             },
         })
         return args.cmd_func(args)
-    return 0
 
 
 @subcommand(
