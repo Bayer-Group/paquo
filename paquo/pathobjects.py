@@ -71,7 +71,7 @@ def fix_geojson_geometry(geometry: dict) -> dict:
             s = s.buffer(0, 1)
             if not s.is_valid:
                 raise ValueError("invalid geometry")
-    return s.__geo_interface__
+    return s.__geo_interface__  # type: ignore
 
 
 class _MeasurementList(MutableMapping):
