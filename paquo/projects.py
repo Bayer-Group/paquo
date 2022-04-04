@@ -43,7 +43,7 @@ from paquo.java import GeneralTools
 from paquo.java import ImageServerProvider
 from paquo.java import IOException
 from paquo.java import NegativeArraySizeException
-from paquo.java import ProjectImportImagesCommand
+from paquo.java import ProjectImportImagesCommand_getThumbnailRGB
 from paquo.java import ProjectIO
 from paquo.java import Projects
 from paquo.java import ServerTools
@@ -353,7 +353,7 @@ class QuPathProject:
 
             # set the project thumbnail
             try:
-                thumbnail = ProjectImportImagesCommand.getThumbnailRGB(server, None)
+                thumbnail = ProjectImportImagesCommand_getThumbnailRGB(server, None)
             except NegativeArraySizeException:  # pragma: no cover
                 raise RuntimeError(
                     "Thumbnailing FAILED. Image might be too large and has no embedded thumbnail."
