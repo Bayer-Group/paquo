@@ -50,29 +50,36 @@ Environment variables
 ---------------------
 
 All `paquo` settings can also be overridden by environment variables. Just prefix the particular
-setting with :code:`PAQUO_` and set the environment variable to what you want it to be.
+setting with :code:`PAQUO__` (double underscore!) and set the environment variable to what you
+want it to be.
 
-    PAQUO_QUPATH_DIR = :code:`""`
+    PAQUO__QUPATH_DIR = :code:`""`
         if set will skip search and try to use qupath from this folder
 
-    PAQUO_QUPATH_SEARCH_DIRS
+    PAQUO__QUPATH_SEARCH_DIRS
         defaults to all default installation locations for QuPath this can be set to the folders that will be
         searched for QuPath installations.
 
-    PAQUO_QUPATH_SEARCH_DIR_REGEX = :code:`"(?i)qupath.*"`
+    PAQUO__QUPATH_SEARCH_DIR_REGEX = :code:`"(?i)qupath.*"`
         used to regex match qupath_dirs during search
 
-    PAQUO_QUPATH_SEARCH_CONDA = :code:`true`
+    PAQUO__QUPATH_SEARCH_CONDA = :code:`true`
         should the conda installed QuPath be considered?
 
-    PAQUO_QUPATH_PREFER_CONDA = :code:`true`
+    PAQUO__QUPATH_PREFER_CONDA = :code:`true`
         should the conda installed QuPath be preferred over another locally installed QuPath
 
-    PAQUO_JAVA_OPTS = :code:`["-XX:MaxRAMPercentage=50",]`
+    PAQUO__JAVA_OPTS = :code:`["-XX:MaxRAMPercentage=50",]`
         a list of JVM options passed to the java virtual machine
 
-    PAQUO_MOCK_BACKEND = :code:`false`
+    PAQUO__MOCK_BACKEND = :code:`false`
         an internal setting which allows building the docs without having qupath installed
+
+    PAQUO__CLI_FORCE_LOG_LEVEL_ERROR = :code:`true`
+        only show paquo errors on cli
+
+    PAQUO__WARN_MICROSOFT_STORE_PYTHON = :code:`true`
+        windows only, warn if paquo is run via a microsoft store python
 
 
 Verifying the config
