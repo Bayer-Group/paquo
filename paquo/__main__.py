@@ -308,6 +308,7 @@ def quickview(args, subparser):
     argument("version", type=str, help="the QuPath version to download"),
 )
 def get_qupath(args, subparser):
+    """download a specific QuPath version"""
     from paquo._utils import download_qupath
     from paquo._utils import extract_qupath
 
