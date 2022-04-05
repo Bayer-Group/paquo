@@ -1,6 +1,7 @@
 import argparse
 import functools
 import os
+import platform
 import sys
 import tempfile
 from contextlib import redirect_stdout
@@ -294,6 +295,53 @@ def quickview(args, subparser):
         open_qupath(project_path)
 
     return 0
+
+
+@subcommand(
+    argument("--install-path", type=DirectoryType(), required=True, help="extract / install QuPath to this path"),
+    argument("--override-system", default=platform.system(), help=argparse.SUPPRESS),
+    argument(
+        "--download-path",
+        type=DirectoryType(),
+        default=tempfile.gettempdir(),
+        help="download QuPath archives to this path",
+    ),
+    argument("version", type=str, help="the QuPath version to download"),
+)
+def get_qupath(args, subparser):
+    from paquo._utils import download_qupath
+    from paquo._utils import extract_qupath
+
+    system = args.override_system
+
+    def _download_cb(it, name):
+        if name:
+            print("# downloading:", name)
+        print("# progress ", end="", flush=True)
+        try:
+            for chunk in it:
+                print(".", end="", flush=True)
+                yield chunk
+            print(" OK", end="", flush=True)
+        finally:
+            print("")
+
+    file = download_qupath(args.version, path=args.download_path, callback=_download_cb, system=system)
+    print("# extracting:", file)
+    app = extract_qupath(file, args.install_path, system=system)
+    print("# available at:", app)
+
+    print("#\n# use via environment variable:")
+    if system in {"Linux", "Darwin"}:
+        print(f"#  $ export PAQUO__QUPATH_DIR={app}")
+    else:
+        print("#  REM Windows CMD")
+        print(f'#  C:\\> set PAQUO__QUPATH_DIR="{app}"')
+        print("#  # Windows PowerShell")
+        print(f'#  PS C:\\> $env:PAQUO__QUPATH_DIR="{app}"')
+    print(f"#\n# use via .paquo.toml config file:")
+    print(f'#  qupath_dir="{app}"')
+    print(app)
 
 
 if __name__ == "__main__":  # pragma: no cover

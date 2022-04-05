@@ -1,10 +1,20 @@
 import json
 import lzma
+import os
+import platform
 import re
+import shutil
+import subprocess
 import sys
+import tarfile
+import tempfile
+import warnings
+import zipfile
 from datetime import datetime
 from functools import total_ordering
 from pathlib import Path
+from urllib.request import urlopen
+from urllib.parse import urlsplit
 
 from packaging.version import Version
 
@@ -117,3 +127,130 @@ def load_json_from_path(path):
         return {'annotations': data}
     else:
         raise ValueError("expected dict or list of annotations")
+
+
+def download_qupath(version, path, *, system=None, callback=lambda chunk_iter, name: chunk_iter):
+    """download qupath from github"""
+    if system is None:
+        system = platform.system()
+
+    if system == "Linux":
+        _sys = "Linux"
+        ext = "tar.xz"
+    elif system == "Darwin":
+        _sys = "Mac"
+        ext = "pkg"
+    elif system == "Windows":
+        _sys = "Windows"
+        ext = "zip"
+    else:
+        raise ValueError(f"unsupported platform.system() == {system!r}")
+
+    if "rc" not in version:
+        name = f"QuPath-{version}-{_sys}"
+    else:
+        name = f"QuPath-{version}"
+
+    url = f"https://github.com/qupath/qupath/releases/download/v{version}/{name}.{ext}"
+
+    chunk_size = 10 * 1024 * 1024
+
+    fn = os.path.basename(urlsplit(url).path)
+    out_fn = os.path.join(path, fn)
+    if os.path.exists(out_fn):
+        return out_fn
+    try:
+        with open(out_fn, mode="wb") as tmp, urlopen(url) as f:
+            for chunk in callback(iter(lambda: f.read(chunk_size), b""), name=url):
+                tmp.write(chunk)
+    except Exception:
+        try:
+            os.unlink(out_fn)
+        except OSError:
+            pass
+        raise
+    else:
+        return out_fn
+
+
+def extract_qupath(file, destination, system=None):
+    """extract downloaded QuPath file to a destination"""
+    fn = os.path.basename(file)
+
+    # normalize QuPath App dirname
+    m = re.match(
+        r"QuPath-(?P<version>[0-9]+[.][0-9]+[.][0-9]+(-rc[0-9]+|-m[0-9]+)?)",
+        fn,
+    )
+
+    if system is None:
+        system = platform.system()
+
+    if system in {"Linux", "Windows"}:
+        app_dir = f"QuPath-{m.group('version')}"
+    elif system == "Darwin":
+        app_dir = f"QuPath-{m.group('version')}.app"
+    else:
+        raise ValueError(f"unsupported platform.system() == {system!r}")
+
+    destination = os.path.abspath(os.path.expanduser(destination))
+    if not os.path.isdir(destination):
+        raise ValueError(f"destination: {destination!r} is not a directory")
+    qp_dst = os.path.join(destination, app_dir)
+    if os.path.isdir(qp_dst):
+        warnings.warn(
+            f"Skipping! Output directory already exists: {qp_dst!r}",
+            stacklevel=2,
+        )
+        return qp_dst
+
+    if system == "Linux":
+        if not os.fspath(file).endswith(".tar.xz"):
+            raise ValueError("file does not end with `.tar.xz`")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with tarfile.open(file, mode="r:xz") as tf:
+                tf.extractall(tmp_dir)
+                for name in os.listdir(tmp_dir):
+                    pth = os.path.join(tmp_dir, name)
+                    if name.startswith("QuPath") and os.path.isdir(pth):
+                        break
+                else:
+                    raise RuntimeError("no qupath extracted?")
+            shutil.move(os.path.join(tmp_dir, name), qp_dst)
+        return qp_dst
+
+    elif system == "Darwin":
+        if not Path(file).suffix == ".pkg":
+            raise ValueError("file does not end with `.pkg`")
+        if shutil.which("7z") is None:
+            raise RuntimeError("7z is required, run: `brew install p7zip`")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            subprocess.run(["7z", "x", os.path.abspath(file)], cwd=tmp_dir, capture_output=True)
+            subprocess.run(["7z", "x", "Payload~"], cwd=tmp_dir, capture_output=True)
+            for name in os.listdir(tmp_dir):
+                if name.startswith("QuPath") and name.endswith(".app"):
+                    break
+            else:
+                raise RuntimeError("no qupath extracted?")
+            shutil.move(os.path.join(tmp_dir, name), qp_dst)
+        return qp_dst
+
+    elif system == "Windows":
+        if not Path(file).suffix == ".zip":
+            raise ValueError("file does not end with `.zip`")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with zipfile.ZipFile(file, mode="r") as zf:
+                zf.extractall(tmp_dir)
+                for name in os.listdir(tmp_dir):
+                    pth = os.path.join(tmp_dir, name)
+                    if name.startswith("QuPath") and os.path.isdir(pth):
+                        break
+                else:
+                    raise RuntimeError("no qupath extracted?")
+            shutil.move(os.path.join(tmp_dir, name), qp_dst)
+        return qp_dst
+
+    else:
+        raise ValueError(f"unsupported platform.system() == {system!r}")
