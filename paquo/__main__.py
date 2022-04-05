@@ -19,9 +19,6 @@ from paquo._cli import list_project
 from paquo._cli import open_qupath
 from paquo._cli import qpzip_project
 from paquo._cli import subcommand
-from paquo._config import PAQUO_CONFIG_FILENAME
-from paquo._config import get_searchtree
-from paquo._config import settings
 
 # noinspection PyTypeChecker
 parser = argparse.ArgumentParser(
@@ -58,8 +55,7 @@ def main(commandline=None):
             parser.print_help()
             return 1
     else:
-        from paquo import settings
-        from logging.config import dictConfig
+        from paquo._config import settings
         lvl = 'INFO'
         if settings.cli_force_log_level_error:
             lvl = 'ERROR'
@@ -99,6 +95,9 @@ def main(commandline=None):
 )
 def config(args, subparser):
     """handle paquo configuration"""
+    from paquo._config import PAQUO_CONFIG_FILENAME
+    from paquo._config import get_searchtree
+
     if not (args.list or args.search_tree):
         print(subparser.format_help())
         return 0
