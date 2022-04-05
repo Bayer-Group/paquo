@@ -1,9 +1,14 @@
+from typing import TYPE_CHECKING
+
 try:
     from ._version import version as __version__
 except ImportError:  # pragma: no cover
     __version__ = "not-installed"
 
-# noinspection PyUnresolvedReferences
+if TYPE_CHECKING:
+    from dynaconf import Dynaconf
+    settings: Dynaconf
+
 __all__ = [
     "__version__",
     "settings",
