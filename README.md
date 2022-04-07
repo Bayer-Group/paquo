@@ -35,6 +35,12 @@ paquo's stable releases can be installed via `pip`:
 pip install paquo
 ```
 
+or via `conda`:
+```bash
+conda install -c conda-forge paquo
+```
+
+
 ## Getting QuPath
 
 After installing, paquo requires a QuPath installation to run. To get QuPath follow the
@@ -65,7 +71,7 @@ paquo to use that version.
 
 1. Install conda and git
 2. Clone paquo `git clone https://github.com/bayer-science-for-a-better-life/paquo.git`
-3. Run `conda env create -f environment.yaml`
+3. Run `conda env create -f environment.devenv.yaml`
 4. Activate the environment `conda activate paquo`
 
 Note that in this environment `paquo` is already installed in development mode,
@@ -91,4 +97,4 @@ Build with love by Andreas Poehlmann and Santi Villalba from the _Machine
 Learning Research_ group at Bayer. In collaboration with the _Pathology Lab 2_
 and the _Mechanistic and Toxicologic Pathology_ group.
 
-`paquo`: copyright 2020 Bayer AG, licensed under [GPL-3.0](https://github.com/bayer-science-for-a-better-life/paquo/blob/master/LICENSE)
+`paquo`: copyright 2020-2022 Bayer AG, licensed under [GPL-3.0](https://github.com/bayer-science-for-a-better-life/paquo/blob/master/LICENSE)

@@ -37,11 +37,14 @@ find it. Check out the :ref:`Configuration` section to learn more.
 .. tip::
 
     For your convenience we added a commandline option to the `paquo` commandline interface to
-    simplify installing a specific version of QuPath:
+    simplify installing a specific version of QuPath. After having installed paquo, run:
 
     .. code-block:: console
 
-        user@computer:~$ paquo get_qupath --install-path /my-qupath-folder 0.3.2
+        user@computer:~$ paquo get_qupath --install-path ./some-directory 0.3.2
+
+    This will download the specified version and extract it to ./some-directory. It also prints
+    some instructions on how to use paquo with the downloaded QuPath.
 
 
 Install paquo's dev environment
@@ -61,8 +64,8 @@ then run:
 
 This will create a **paquo** conda environment with everything you need to get started. It installs a
 special conda-packaged `QuPath <https://github.com/bayer-science-for-a-better-life/qupath-feedstock>`_
-that we're currently using to develop `paquo` and also installs all the other things required to let
-you get started. You should be able to run:
+that we're currently using to develop `paquo` and also installs all the other things required. You
+should now be able to run:
 
 .. code-block:: console
 
