@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ...
 
+## [0.5.0] - 2022-04-05
+### Fixed
+- cli: startup time improved
+- docs: fix configuration section (double underscore for prefix `PAQUO__`)
+- paquo.java: prevent emitting a QuPath logging message on import
+- paquo: reduce cli startup time by lazy importing settings
+- cli: fixed help display if terminal doesn't support unicode
+
+### Added
+- cli: add get_qupath command for downloading specific QuPaths
+
+### Changed
+- paquo: drop Python=3.6 support
+
 ## [0.4.2] - 2022-01-10
 ### Added
 - paquo: support QuPath v0.2.0 (a83d8a2)
@@ -92,7 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of paquo
 
 
-[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.3.1...v0.4.0

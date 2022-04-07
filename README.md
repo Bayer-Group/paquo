@@ -52,7 +52,7 @@ to a location on your machine. Follow the printed instructions to configure
 paquo to use that version.
 
 ```shell
-> paquo get-qupath --install-path "/some/path/on/your/machine" 0.3.2
+> paquo get_qupath --install-path "/some/path/on/your/machine" 0.3.2
 # downloading: https://github.com/qupath/qupath/releases/download/v0.3.2/QuPath-0.3.2-Linux.tar.xz
 # progress ................... OK
 # extracting: [...]/QuPath-0.3.2-Linux.tar.xz
