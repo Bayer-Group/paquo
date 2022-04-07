@@ -15,6 +15,7 @@ from shapely.wkb import loads as shapely_wkb_loads
 
 from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
+from paquo.java import ROI
 from paquo.java import GeometryTools
 from paquo.java import GsonTools
 from paquo.java import PathAnnotationObject
@@ -22,7 +23,6 @@ from paquo.java import PathDetectionObject
 from paquo.java import PathObjects
 from paquo.java import PathROIObject
 from paquo.java import PathTileObject
-from paquo.java import ROI
 from paquo.java import String
 from paquo.java import WKBReader
 from paquo.java import WKBWriter
@@ -285,7 +285,13 @@ class _PathROIObject:
         return f"{type(self).__name__}({' '.join(out)})"
 
     def _repr_html_(self):
-        from paquo._repr import br, div, h4, p, span, rawhtml, repr_svg
+        from paquo._repr import br
+        from paquo._repr import div
+        from paquo._repr import h4
+        from paquo._repr import p
+        from paquo._repr import rawhtml
+        from paquo._repr import repr_svg
+        from paquo._repr import span
 
         obj_class_name = self.__class__.__name__
         if obj_class_name.startswith('QuPath'):

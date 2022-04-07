@@ -24,11 +24,11 @@ from paquo.java import IllegalArgumentException
 from paquo.java import PathObjectHierarchy
 from paquo.java import compatibility
 from paquo.pathobjects import BaseGeometry
-from paquo.pathobjects import fix_geojson_geometry
 from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
 from paquo.pathobjects import QuPathPathDetectionObject
 from paquo.pathobjects import QuPathPathTileObject
+from paquo.pathobjects import fix_geojson_geometry
 
 __all__ = ["QuPathPathObjectHierarchy"]
 
@@ -439,17 +439,17 @@ class QuPathPathObjectHierarchy:
         # this
         try:
             from ome_types import to_xml
+            from ome_types.model import OME
+            from ome_types.model import ROI
             from ome_types.model import AnnotationRef
             from ome_types.model import Ellipse as OmeEllipse
             from ome_types.model import Line as OmeLine
             from ome_types.model import Map
             from ome_types.model import MapAnnotation
-            from ome_types.model import OME
             from ome_types.model import Point as OmePoint
             from ome_types.model import Polygon as OmePolygon
             from ome_types.model import Polyline as OmePolyline
             from ome_types.model import Rectangle as OmeRectangle
-            from ome_types.model import ROI
             from ome_types.model.map import M
             from ome_types.model.shape import FillRule
         except ImportError:
@@ -610,7 +610,11 @@ class QuPathPathObjectHierarchy:
         return f"Hierarchy(image={self._image_name}, annotations={len(self._annotations)}, detections={len(self._detections)})"
 
     def _repr_html_(self):
-        from paquo._repr import br, div, h4, p, span
+        from paquo._repr import br
+        from paquo._repr import div
+        from paquo._repr import h4
+        from paquo._repr import p
+        from paquo._repr import span
 
         return div(
             h4(text=f"Hierarchy: {self._image_name}", style={"margin-top": "0"}),

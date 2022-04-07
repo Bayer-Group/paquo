@@ -12,28 +12,28 @@ from pathlib import Path
 from pathlib import PurePath
 from pathlib import PurePosixPath
 from pathlib import PureWindowsPath
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Optional
-from typing import TYPE_CHECKING
 from typing import Union
 
 from paquo._logging import get_logger
 from paquo._logging import redirect
 from paquo._utils import cached_property
 from paquo.hierarchy import QuPathPathObjectHierarchy
+from paquo.java import URI
 from paquo.java import BufferedImage
 from paquo.java import DefaultProjectImageEntry
 from paquo.java import File
 from paquo.java import FileNotFoundException
-from paquo.java import IOException
 from paquo.java import ImageType
+from paquo.java import IOException
 from paquo.java import NoSuchFileException
 from paquo.java import PathIO
 from paquo.java import String
-from paquo.java import URI
 from paquo.java import URISyntaxException
 from paquo.java import compatibility
 
@@ -588,7 +588,13 @@ class QuPathProjectImageEntry:
 
     def _repr_html_(self, compact=False, index=0):
         from base64 import b64encode
-        from paquo._repr import br, h4, img, div, p, span
+
+        from paquo._repr import br
+        from paquo._repr import div
+        from paquo._repr import h4
+        from paquo._repr import img
+        from paquo._repr import p
+        from paquo._repr import span
 
         img_css = {
             "max-width": "100px",

@@ -20,8 +20,8 @@ from warnings import warn
 
 import jpype
 
-from paquo._utils import nullcontext
 from paquo._utils import QuPathVersion
+from paquo._utils import nullcontext
 
 # types
 PathOrStr = Union[Path, str]

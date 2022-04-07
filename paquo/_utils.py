@@ -14,8 +14,8 @@ import zipfile
 from datetime import datetime
 from functools import total_ordering
 from pathlib import Path
-from urllib.request import urlopen
 from urllib.parse import urlsplit
+from urllib.request import urlopen
 from warnings import warn
 
 from packaging.version import Version

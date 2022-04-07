@@ -10,13 +10,12 @@ if sys.version_info >= (3, 7):
 else:
     from importlib_resources import path as importlib_resources_path
 
-from dynaconf import loaders
 from dynaconf import Dynaconf
 from dynaconf import Validator
+from dynaconf import loaders
 from dynaconf.base import Settings
 from dynaconf.utils import files as _files
 from dynaconf.utils.boxing import DynaBox
-
 
 PAQUO_CONFIG_FILENAME = '.paquo.toml'
 

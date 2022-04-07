@@ -6,7 +6,6 @@ from paquo._utils import QuPathVersion
 from paquo.jpype_backend import JClass
 from paquo.jpype_backend import start_jvm
 
-
 # we can extend this as when we add more testing against different versions
 MIN_QUPATH_VERSION = QuPathVersion('0.2.0')  # FIXME: this is bound to change
 
@@ -15,8 +14,8 @@ MIN_QUPATH_VERSION = QuPathVersion('0.2.0')  # FIXME: this is bound to change
 # Note: this renders paquo unusable. But we need it for example for the
 #   sphinx docs to be generated without requiring an installed qupath.
 if settings.mock_backend:  # pragma: no cover
-    from unittest.mock import create_autospec
     from unittest.mock import MagicMock
+    from unittest.mock import create_autospec
 
     start_jvm = create_autospec(start_jvm, return_value=MIN_QUPATH_VERSION)
     # noinspection PyPep8Naming

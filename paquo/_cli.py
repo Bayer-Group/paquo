@@ -5,7 +5,6 @@ from collections import defaultdict
 from functools import partial
 from pathlib import Path
 
-
 # -- argparse improvements ---------------------------------------------
 
 def subcommand(*arguments, parent):
@@ -112,11 +111,11 @@ def create_project(project_path, class_names_colors, images,
                    annotations_json_func=None,
                    remove_default_classes=False, force_write=False):
     """create a qupath project"""
+    from paquo._logging import get_logger
+    from paquo._utils import load_json_from_path
     from paquo.classes import QuPathPathClass
     from paquo.images import QuPathImageType
     from paquo.projects import QuPathProject
-    from paquo._logging import get_logger
-    from paquo._utils import load_json_from_path
 
     _logger = get_logger(__name__)
 
@@ -154,8 +153,9 @@ def create_project(project_path, class_names_colors, images,
 
 def export_annotations(path, image_idx, pretty=False):
     """print annotations as geojson"""
-    from paquo.projects import QuPathProject
     import pprint
+
+    from paquo.projects import QuPathProject
 
     with QuPathProject(path, mode='r') as qp:
         image = qp.images[image_idx]
@@ -171,10 +171,13 @@ def export_annotations(path, image_idx, pretty=False):
 def open_qupath(project_path):
     """launch qupath with the provided project"""
     import subprocess
-    from zipfile import ZipFile
-    from contextlib import contextmanager, ExitStack
+    from contextlib import ExitStack
+    from contextlib import contextmanager
     from tempfile import TemporaryDirectory
-    from paquo._config import settings, to_kwargs
+    from zipfile import ZipFile
+
+    from paquo._config import settings
+    from paquo._config import to_kwargs
     from paquo.jpype_backend import find_qupath
 
     # retrieve the path of the qupath executable

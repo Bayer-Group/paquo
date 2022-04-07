@@ -50,7 +50,6 @@ from paquo.java import ServerTools
 from paquo.java import String
 from paquo.java import compatibility
 
-
 _log = get_logger(__name__)
 
 

@@ -99,7 +99,8 @@ class QuPathColor(NamedTuple):
         return f"Color{self.to_rgb()}"
 
     def _repr_html_(self):
-        from paquo._repr import div, span
+        from paquo._repr import div
+        from paquo._repr import span
         a = self.alpha / 255.
         alpha = "alpha={:0.3f}".format(a) if self.alpha != 255 else ""
         return div(
