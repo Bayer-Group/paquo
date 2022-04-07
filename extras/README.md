@@ -14,8 +14,8 @@ To create a usable OSX app install `py2app` in you conda environment and run:
 ```console
 $> cd extras/osx_app_shim
 $> python setup.py py2app -A
-``` 
- 
+```
+
 This will create an app in `extras/osx_app_shim/dist/PaquoOpenQpZip.app` in alias mode.
 Please refer to the `py2app` documentation if you need the app to be portable.
 
@@ -23,5 +23,5 @@ You can now run
 ```console
 $> cd extras/osx_app_shim/dist
 $> open -a PaquoOpenQpZip.app ~/path-to-my-wonderful/example-qupath-project
-``` 
+```
 and it will launch QuPath with the example-qupath-project.

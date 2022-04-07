@@ -204,8 +204,8 @@ Extracting data from QuPath into Pandas is similarly straightforward:
     image = qp.images[0]  # get the first image
     detections = image.hierarchy.detections  # detections are stored in a set like proxy object
     df = pd.DataFrame(detection.measurements for detection in detections)  # put the measurements dictionary for each detection into a pandas DataFrame
-    
-    
+
+
 
 More examples
 ^^^^^^^^^^^^^

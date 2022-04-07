@@ -24,7 +24,7 @@ from paquo._cli import subcommand
 parser = argparse.ArgumentParser(
     prog="python -m paquo" if Path(sys.argv[0]).name == "__main__.py" else None,
     description="""\
- ██████╗  █████╗  ██████╗ ██╗   ██╗ ██████╗ 
+ ██████╗  █████╗  ██████╗ ██╗   ██╗ ██████╗
  ██╔══██╗██╔══██╗██╔═══██╗██║   ██║██╔═══██╗
  ██████╔╝███████║██║   ██║██║   ██║██║   ██║
  ██╔═══╝ ██╔══██║██║▄▄ ██║██║   ██║██║   ██║

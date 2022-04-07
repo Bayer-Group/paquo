@@ -19,7 +19,7 @@ unintuitive, slow or if its documentation is confusing, it's a bug in
 `paquo`. Feel free to report any issues or feature requests in the issue
 tracker!
 
-Development 
+Development
 [happens on github](https://github.com/bayer-science-for-a-better-life/paquo)
 :octocat:
 
@@ -32,7 +32,7 @@ You can find `paquo`'s documentation at
 
 paquo's stable releases can be installed via `pip`:
 ```bash
-pip install paquo 
+pip install paquo
 ```
 
 ## Getting QuPath
