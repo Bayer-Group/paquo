@@ -4,6 +4,7 @@ import os
 import platform
 import re
 import shutil
+import ssl
 import subprocess
 import sys
 import tarfile
@@ -15,6 +16,7 @@ from functools import total_ordering
 from pathlib import Path
 from urllib.request import urlopen
 from urllib.parse import urlsplit
+from warnings import warn
 
 from packaging.version import Version
 
@@ -129,7 +131,14 @@ def load_json_from_path(path):
         raise ValueError("expected dict or list of annotations")
 
 
-def download_qupath(version, path, *, system=None, callback=lambda chunk_iter, name: chunk_iter):
+def download_qupath(
+    version,
+    path,
+    *,
+    system=None,
+    callback=(lambda chunk_iter, name: chunk_iter),
+    ssl_verify=True
+):
     """download qupath from github"""
     if system is None:
         system = platform.system()
@@ -159,8 +168,17 @@ def download_qupath(version, path, *, system=None, callback=lambda chunk_iter, n
     out_fn = os.path.join(path, fn)
     if os.path.exists(out_fn):
         return out_fn
+
+    if ssl_verify:
+        _ctx = None
+    else:
+        warn(f"DISABLING SSL VERIFICATION FOR: {url}", stacklevel=2)
+        _ctx = ssl.create_default_context()
+        _ctx.check_hostname = False
+        _ctx.verify_mode = ssl.CERT_NONE
+
     try:
-        with open(out_fn, mode="wb") as tmp, urlopen(url) as f:
+        with open(out_fn, mode="wb") as tmp, urlopen(url, context=_ctx) as f:
             for chunk in callback(iter(lambda: f.read(chunk_size), b""), name=url):
                 tmp.write(chunk)
     except Exception:

@@ -305,6 +305,7 @@ def quickview(args, subparser):
         default=tempfile.gettempdir(),
         help="download QuPath archives to this path",
     ),
+    argument("--no-ssl-verify", action="store_true", help="(danger!) disable ssl verification for download"),
     argument("version", type=str, help="the QuPath version to download"),
 )
 def get_qupath(args, subparser):
@@ -326,7 +327,13 @@ def get_qupath(args, subparser):
         finally:
             print("")
 
-    file = download_qupath(args.version, path=args.download_path, callback=_download_cb, system=system)
+    file = download_qupath(
+        args.version,
+        path=args.download_path,
+        callback=_download_cb,
+        system=system,
+        ssl_verify=not args.no_ssl_verify
+    )
     print("# extracting:", file)
     app = extract_qupath(file, args.install_path, system=system)
     print("# available at:", app)
