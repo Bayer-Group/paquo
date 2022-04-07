@@ -22,10 +22,10 @@ dependencies:
   - pip
   - jpype1>=1.0.1
   - dynaconf>=3,!=3.1.0,!=3.1.7
-  - ome-types  # [ WITH_OME ]
+  - ome-types   # [ WITH_OME ]
   - shapely
   - sdvillal::qupath
-  - pytest>=6
-  - pytest-cov
-  - pip:
-    - "-e ."  # [ PAQUO_DEVEL ]
+  - pytest>=6   # [ PAQUO_DEVEL ]
+  - pytest-cov  # [ PAQUO_DEVEL ]
+  - pip:        # [ PAQUO_DEVEL ]
+    - "-e ."    # [ PAQUO_DEVEL ]
