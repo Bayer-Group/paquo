@@ -20,7 +20,6 @@ from paquo._cli import open_qupath
 from paquo._cli import qpzip_project
 from paquo._cli import subcommand
 
-# noinspection PyTypeChecker
 parser = argparse.ArgumentParser(
     prog="python -m paquo" if Path(sys.argv[0]).name == "__main__.py" else None,
     description="""\
@@ -41,7 +40,13 @@ parser.add_argument('--qupath-version', action='store_true', help="print qupath 
 
 def main(commandline=None):
     """main command line argument handling"""
-    args = parser.parse_args(commandline)
+    try:
+        args = parser.parse_args(commandline)
+    except UnicodeEncodeError:
+        # recover in case terminal does not support unicode
+        parser.description = "PAQUO"
+        args = parser.parse_args(commandline)
+
     if args.cmd is None:
         if args.version or args.qupath_version:
             if args.version:
