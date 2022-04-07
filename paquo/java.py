@@ -19,7 +19,7 @@ if settings.mock_backend:  # pragma: no cover
 
     start_jvm = create_autospec(start_jvm, return_value=MIN_QUPATH_VERSION)
     # noinspection PyPep8Naming
-    def JClass(jc, *_args, **_kwargs):
+    def JClass(jc, *_args, **_kwargs):  # noqa
         class _JClassType(type):
             def __getattr__(cls, key):
                 return MagicMock()
@@ -74,6 +74,7 @@ class _Compatibility:
             return False
         else:
             return self.version >= QuPathVersion("0.2.0-m10")
+
 
 compatibility = _Compatibility(qupath_version)
 

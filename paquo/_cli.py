@@ -7,6 +7,7 @@ from pathlib import Path
 
 # -- argparse improvements ---------------------------------------------
 
+
 def subcommand(*arguments, parent):
     """decorator helper for commandline"""
     def decorator(func):

@@ -282,12 +282,12 @@ def quickview(args, subparser):
     cmd = None
     if f_annotations_cmd or f_annotations:
         def cmd(name):
-            l = []
+            names = []
             if f_annotations:
-                l.extend(f_annotations(name))
+                names.extend(f_annotations(name))
             if f_annotations_cmd:
-                l.extend(f_annotations_cmd(name))
-            return l
+                names.extend(f_annotations_cmd(name))
+            return names
 
     with tempfile.TemporaryDirectory() as project_path:
         create_project(project_path, class_names_colors=[], images=[image], annotations_json_func=cmd)
@@ -346,7 +346,7 @@ def get_qupath(args, subparser):
         print(f'#  C:\\> set PAQUO__QUPATH_DIR="{app}"')
         print("#  # Windows PowerShell")
         print(f'#  PS C:\\> $env:PAQUO__QUPATH_DIR="{app}"')
-    print(f"#\n# use via .paquo.toml config file:")
+    print("#\n# use via .paquo.toml config file:")
     print(f'#  qupath_dir="{app}"')
     print(app)
 

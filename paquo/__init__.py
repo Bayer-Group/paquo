@@ -14,6 +14,7 @@ __all__ = [
     "settings",
 ]
 
+
 def __getattr__(name):
     if name == "settings":
         from paquo._config import settings

@@ -12,6 +12,7 @@ import tempfile
 import warnings
 import zipfile
 from datetime import datetime
+from functools import partial
 from functools import total_ordering
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -107,9 +108,9 @@ def load_json_from_path(path):
         raise FileNotFoundError(str(path))  # pragma: no cover
 
     if path.name.endswith(".geojson.xz"):
-        ctx = lambda: lzma.open(path, 'rt')
+        ctx = partial(lzma.open, path, 'rt')
     elif path.name.endswith(('.geojson', '.json')):
-        ctx = lambda: path.open('r')
+        ctx = partial(path.open, 'r')
     else:
         raise NotImplementedError(f"unsupported file format '{path}'")
 

@@ -348,7 +348,7 @@ class QuPathProject:
             target_downsample = math.sqrt(width / 1024.0 * height / 1024.0)
             _log.info(f"Image[{width}x{height}] with downsamples {downsamples}")
             if not any(d >= target_downsample for d in downsamples):
-                _log.warning(f"No matching downsample for thumbnail! This might take a long time...")
+                _log.warning("No matching downsample for thumbnail! This might take a long time...")
 
             # set the project thumbnail
             try:
