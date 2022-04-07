@@ -1,14 +1,10 @@
 import sys
 import tempfile
+from importlib.resources import path as importlib_resources_path
 from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import List
-
-if sys.version_info >= (3, 7):
-    from importlib.resources import path as importlib_resources_path
-else:
-    from importlib_resources import path as importlib_resources_path
 
 from dynaconf import Dynaconf
 from dynaconf import Validator
@@ -39,7 +35,7 @@ def to_toml(s: Settings) -> str:
     with tempfile.TemporaryDirectory() as tmpdir:
         fn = str(Path(tmpdir) / ".paquo.temporary.toml")  # suffix determines loader
         loaders.write(fn, to_kwargs(data))
-        with open(fn, 'rt') as f:
+        with open(fn) as f:
             output = f.read()
     return output
 

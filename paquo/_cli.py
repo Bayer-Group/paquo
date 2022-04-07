@@ -53,10 +53,8 @@ def config_print_settings():
 
 def config_print_defaults():
     """print the default paquo configuration"""
-    if sys.version_info >= (3, 7):
-        from importlib.resources import read_text
-    else:
-        from importlib_resources import read_text
+    from importlib.resources import read_text
+
     from paquo._config import settings
 
     output = read_text(

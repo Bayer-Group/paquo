@@ -95,9 +95,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
 
     def __ior__(self, other: Iterable[Any]) -> "PathObjectProxy":  # type: ignore
         if self._mask:
-            raise IOError("cannot modify view")
+            raise OSError("cannot modify view")
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         path_objects = [x.java_object for x in other]
         try:
             self._java_hierarchy.addPathObjects(path_objects)
@@ -108,9 +108,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
 
     def __isub__(self, other: Iterable[Any]) -> "PathObjectProxy":  # type: ignore
         if self._mask:
-            raise IOError("cannot modify view")
+            raise OSError("cannot modify view")
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         path_objects = [x.java_object for x in other]
         try:
             self._java_hierarchy.removeObjects(path_objects, True)
@@ -121,9 +121,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
     def add(self, x: PathROIObjectType) -> None:
         """adds a new path object to the proxy"""
         if self._mask:
-            raise IOError("cannot modify view")
+            raise OSError("cannot modify view")
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
         try:
@@ -137,9 +137,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
     def discard(self, x: PathROIObjectType) -> None:
         """discard a path object from the proxy"""
         if self._mask:
-            raise IOError("cannot modify view")
+            raise OSError("cannot modify view")
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         if not isinstance(x, self._paquo_cls):
             raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
         try:
@@ -153,9 +153,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
     def clear(self) -> None:
         """clear all path objects from the proxy"""
         if self._mask:
-            raise IOError("cannot modify view")
+            raise OSError("cannot modify view")
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         try:
             self._java_hierarchy.removeObjects(self._list, True)
         finally:
@@ -305,7 +305,7 @@ class QuPathPathObjectHierarchy:
                        path_class_probability: float = math.nan) -> QuPathPathAnnotationObject:
         """convenience method for adding annotations"""
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         obj = QuPathPathAnnotationObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
@@ -325,7 +325,7 @@ class QuPathPathObjectHierarchy:
                       *,
                       path_class_probability: float = math.nan) -> QuPathPathDetectionObject:
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         """convenience method for adding detections
 
         Notes
@@ -352,7 +352,7 @@ class QuPathPathObjectHierarchy:
         these will be added to self.detections
         """
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         obj = QuPathPathTileObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
@@ -376,7 +376,7 @@ class QuPathPathObjectHierarchy:
         """
         # todo: use geojson module for type checking?
         if self._readonly:
-            raise IOError("project in readonly mode")
+            raise OSError("project in readonly mode")
         if not isinstance(geojson, list):
             raise TypeError("requires a geojson list")
 

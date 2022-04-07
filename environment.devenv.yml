@@ -18,7 +18,7 @@ channels:
   - conda-forge
 
 dependencies:
-  - python>=3.6.1
+  - python>=3.7
   - pip
   - jpype1>=1.0.1
   - dynaconf>=3,!=3.1.0,!=3.1.7

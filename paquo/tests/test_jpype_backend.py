@@ -1,8 +1,8 @@
+from contextlib import nullcontext
 from pathlib import Path
 
 import pytest
 
-from paquo._utils import nullcontext
 # noinspection PyProtectedMember
 from paquo.jpype_backend import start_jvm, find_qupath, qupath_jvm_info_from_qupath_dir, _conda_qupath_dir
 

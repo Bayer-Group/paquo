@@ -2,11 +2,11 @@ import os
 import platform
 import shutil
 import tempfile
+from contextlib import nullcontext
 from pathlib import Path
 
 import pytest
 
-from paquo._utils import nullcontext
 from paquo.images import ImageProvider, QuPathProjectImageEntry, QuPathImageType
 from paquo.projects import QuPathProject
 
@@ -154,7 +154,7 @@ def test_project_add_path_classes(new_project):
     new_project.path_classes = map(QuPathPathClass, names)
 
     assert len(new_project.path_classes) == 3
-    assert set(c.name for c in new_project.path_classes) == names
+    assert {c.name for c in new_project.path_classes} == names
 
 
 def test_download_svs(svs_small):

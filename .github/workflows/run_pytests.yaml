@@ -21,8 +21,6 @@ jobs:
             python-version: 3.8
           - os: ubuntu-latest
             python-version: 3.7
-          - os: ubuntu-latest
-            python-version: 3.6
     steps:
     - uses: actions/checkout@v1
     - name: Make python reference python3 because conda-devenv needs it

@@ -102,7 +102,7 @@ class QuPathColor(NamedTuple):
         from paquo._repr import div
         from paquo._repr import span
         a = self.alpha / 255.
-        alpha = "alpha={:0.3f}".format(a) if self.alpha != 255 else ""
+        alpha = f"alpha={a:0.3f}" if self.alpha != 255 else ""
         return div(
             span(text=f"{self.__class__.__name__}: ", style={"font-weight": "bold"}),
             div(style={

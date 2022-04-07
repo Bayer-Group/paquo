@@ -23,7 +23,6 @@ from packaging.version import Version
 __all__ = [
     'QuPathVersion',
     'cached_property',
-    'nullcontext',
     'make_backup_filename',
     'load_json_from_path'
 ]
@@ -60,12 +59,6 @@ else:
 
         def __set__(self, obj, value):
             raise AttributeError(f"readonly attribute {self.fget.__name__}")
-
-if sys.version_info >= (3, 7):
-    from contextlib import nullcontext
-else:
-    # works with 3.4+
-    from contextlib import suppress as nullcontext
 
 
 @total_ordering

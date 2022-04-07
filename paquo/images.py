@@ -688,7 +688,7 @@ class QuPathProjectImageEntry:
         """save image entry"""
         with redirect(stdout=True, stderr=True):
             if self._readonly:
-                raise IOError("project in readonly mode")
+                raise OSError("project in readonly mode")
             if self.is_readable():
                 if self.is_changed():
                     self.java_object.saveImageData(self._image_data)

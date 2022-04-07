@@ -1,13 +1,13 @@
 import platform
 import shutil
 import tempfile
+from contextlib import nullcontext
 from operator import itemgetter
 from pathlib import Path, PureWindowsPath, PurePosixPath
 from typing import Dict
 
 import pytest
 
-from paquo._utils import nullcontext
 from paquo.hierarchy import QuPathPathObjectHierarchy
 from paquo.images import QuPathImageType, ImageProvider
 from paquo.projects import QuPathProject
