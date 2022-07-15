@@ -345,12 +345,12 @@ def get_qupath(args, subparser):
 
     print("#\n# use via environment variable:")
     if system in {"Linux", "Darwin"}:
-        print(f"#  $ export PAQUO__QUPATH_DIR={app}")
+        print(f"#  $ export PAQUO_QUPATH_DIR={app}")
     else:
         print("#  REM Windows CMD")
-        print(f'#  C:\\> set PAQUO__QUPATH_DIR="{app}"')
+        print(f'#  C:\\> set PAQUO_QUPATH_DIR="{app}"')
         print("#  # Windows PowerShell")
-        print(f'#  PS C:\\> $env:PAQUO__QUPATH_DIR="{app}"')
+        print(f'#  PS C:\\> $env:PAQUO_QUPATH_DIR="{app}"')
     print("#\n# use via .paquo.toml config file:")
     print(f'#  qupath_dir="{app}"')
     print(app)

@@ -59,7 +59,7 @@ paquo to use that version.
 # available at: /some/path/on/your/machine/QuPath-0.3.2
 #
 # use via environment variable:
-#   $ export PAQUO__QUPATH_DIR=/some/path/on/your/machine/QuPath-0.3.2
+#   $ export PAQUO_QUPATH_DIR=/some/path/on/your/machine/QuPath-0.3.2
 #
 # use via .paquo.toml config file:
 #   qupath_dir="/some/path/on/your/machine/QuPath-0.3.2"
