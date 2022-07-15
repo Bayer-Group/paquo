@@ -1,4 +1,3 @@
-import sys
 import tempfile
 from importlib.resources import path as importlib_resources_path
 from pathlib import Path
@@ -40,24 +39,30 @@ def to_toml(s: Settings) -> str:
     return output
 
 
-with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config:
+def _get_settings() -> Dynaconf:
+    """load default settings instance"""
+    with importlib_resources_path("paquo", ".paquo.defaults.toml") as default_config:
 
-    settings = Dynaconf(
-        envvar_prefix="PAQUO",
-        settings_file=[PAQUO_CONFIG_FILENAME],
-        root_path=Path.cwd(),
-        core_loaders=['TOML'],
-        preload=[str(default_config.absolute())],
-        validators=[
-            Validator("java_opts", is_type_of=(list, tuple, str)),
-            Validator("qupath_search_dirs", is_type_of=(list, tuple, str)),
-            Validator("qupath_search_conda", is_type_of=(bool, int), is_in=(0, 1)),
-            Validator("qupath_prefer_conda", is_type_of=(bool, int), is_in=(0, 1)),
-            Validator("safe_truncate", is_type_of=(bool, int), is_in=(0, 1)),
-            Validator("mock_backend", is_type_of=(bool, int), is_in=(0, 1)),
-            Validator("cli_force_log_level_error", is_type_of=(bool, int), is_in=(0, 1)),
-        ]
-    )
+        settings = Dynaconf(
+            envvar_prefix="PAQUO",
+            settings_file=[PAQUO_CONFIG_FILENAME],
+            root_path=Path.cwd(),
+            core_loaders=['TOML'],
+            preload=[str(default_config.absolute())],
+            validators=[
+                Validator("java_opts", is_type_of=(list, tuple, str)),
+                Validator("qupath_search_dirs", is_type_of=(list, tuple, str)),
+                Validator("qupath_search_conda", is_type_of=(bool, int), is_in=(0, 1)),
+                Validator("qupath_prefer_conda", is_type_of=(bool, int), is_in=(0, 1)),
+                Validator("safe_truncate", is_type_of=(bool, int), is_in=(0, 1)),
+                Validator("mock_backend", is_type_of=(bool, int), is_in=(0, 1)),
+                Validator("cli_force_log_level_error", is_type_of=(bool, int), is_in=(0, 1)),
+            ]
+        )
+    return settings
+
+
+settings = _get_settings()
 
 
 def get_searchtree() -> List[str]:
