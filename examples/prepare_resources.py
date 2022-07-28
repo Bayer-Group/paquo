@@ -28,7 +28,7 @@ def download_image(copies=1):
     small_image = "CMU-1-Small-Region.svs"
     # download svs from openslide test images
     url = images_base_url + small_image
-    with urllib.request.urlopen(url) as response:
+    with urllib.request.urlopen(url) as response:  # nosec B310
         buffer = io.BytesIO(response.read())
         for idx in range(copies):
             img_fn = IMAGES_DIR / f"image_{idx}.svs"

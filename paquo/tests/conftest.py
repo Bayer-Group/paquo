@@ -10,7 +10,7 @@ IMAGES_BASE_URL = "http://openslide.cs.cmu.edu/download/openslide-testdata/Aperi
 
 
 def md5(fn):
-    m = hashlib.md5()
+    m = hashlib.md5()  # nosec B303
     with open(fn, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             m.update(chunk)
@@ -30,7 +30,7 @@ def svs_small():
     if not img_fn.is_file():
         # download svs from openslide test images
         url = IMAGES_BASE_URL + small_image
-        with urllib.request.urlopen(url) as response, open(img_fn, 'wb') as out_file:
+        with urllib.request.urlopen(url) as response, open(img_fn, 'wb') as out_file:  # nosec B310
             shutil.copyfileobj(response, out_file)
 
     if md5(img_fn) != small_image_md5:  # pragma: no cover

@@ -1,0 +1,3 @@
+[bandit]
+exclude = paquo/tests,examples,.eggs,build,docs
+severity = High
