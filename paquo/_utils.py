@@ -70,6 +70,9 @@ class QuPathVersion:
         # to not having to rely on packaging.version.LegacyVersion
         # we replace the milestone versioning with -devNN
         ver_str = re.sub(r"(?:-)m(?P<num>[0-9]+)", r"dev\g<num>", ver_str, count=1)
+        # to allow running snapshot versions we replace the suffix
+        # with a local version
+        ver_str = ver_str.replace("-SNAPSHOT", "+snapshot")
         self.version = Version(ver_str)
 
     def __repr__(self) -> str:
