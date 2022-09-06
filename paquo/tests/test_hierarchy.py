@@ -1,3 +1,5 @@
+import uuid
+from copy import deepcopy
 from functools import partial
 from typing import List
 from typing import Type
@@ -173,24 +175,70 @@ TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus = [{
 }]
 
 
+# qupath version v0.4.0 made changes to the geojson format
+# 1. the 'id' key is added again but seems to be a UUID for each annotation
+TEST_ANNOTATION_POLYGON_VERSION_0_4_0_snapshot = [{
+    'type': 'Feature',
+    'id': '7d254d72-a9a0-43a6-a455-3fa99e83b7af',
+    'geometry': {
+        'type': 'Polygon',
+        'coordinates': [[
+            [1000, 1300],
+            [1011, 1420],
+            [1120, 1430],
+            [1060, 1380],
+            [1000, 1300],
+        ]]
+    },
+    'properties': {
+        'classification': {
+            'name': 'Tumor',
+            'colorRGB': -3670016
+        },
+        'isLocked': False,
+        'object_type': 'annotation',
+    }
+}]
+
+
 @pytest.fixture
 def example_annotation(qupath_version):
     if qupath_version <= QuPathVersion("0.2.3"):
-        yield TEST_ANNOTATION_POLYGON_VERSION_0_2_3
+        yield deepcopy(TEST_ANNOTATION_POLYGON_VERSION_0_2_3)
+    elif qupath_version < QuPathVersion("0.4.0"):
+        yield deepcopy(TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus)
     else:
-        yield TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus
+        yield deepcopy(TEST_ANNOTATION_POLYGON_VERSION_0_4_0_snapshot)
+
+
+def is_uuid(x):
+    try:
+        uuid.UUID(x)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 @pytest.mark.parametrize(
     "input_annotation", [
         pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_2_3, id='v0.2.3'),
-        pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus, id='v0.3.0rc1')
+        pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus, id='v0.3.0rc1'),
+        pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_4_0_snapshot, id='v0.4.0+snapshot'),
     ]
 )
-def test_geojson_roundtrip_via_annotations(empty_hierarchy, example_annotation, input_annotation):
+def test_geojson_roundtrip_via_annotations(empty_hierarchy, example_annotation, input_annotation, qupath_version):
     h = empty_hierarchy
     assert h.load_geojson(input_annotation)
     output = h.to_geojson()
+
+    if qupath_version < QuPathVersion("0.4.0"):
+        pass
+    else:
+        # these uuids are assigned randomly if they were missing in input
+        out_id = output[0].pop("id", "")
+        test_id = example_annotation[0].pop("id", "")
+        assert is_uuid(out_id) and is_uuid(test_id)
     assert output == example_annotation
 
 
