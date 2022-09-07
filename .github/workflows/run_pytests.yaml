@@ -2,6 +2,9 @@ name: paquo ci
 
 on: [push, pull_request]
 
+env:
+  QUPATH_VERSION: 0.3.2
+
 jobs:
   # RUN PYTEST ON PAQUO SOURCE
   tests:
@@ -22,39 +25,32 @@ jobs:
           - os: ubuntu-latest
             python-version: 3.7
     steps:
-    - uses: actions/checkout@v1
-    - name: Make python reference python3 because conda-devenv needs it
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
       with:
-        python-version: '3.x'
-    - name: Create the environment.yml via conda-devenv
+        fetch-depth: 0
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install paquo
       run: |
         python -m pip install --upgrade pip
-        python -m pip install --upgrade setuptools
-        python -m pip install git+https://github.com/ESSS/conda-devenv.git@2.1.1
-        python -m conda_devenv.devenv --env PAQUO_DEVEL=TRUE --file environment.devenv.yml --print > environment.yml
-    - name: Cache conda
-      uses: actions/cache@v1
+        pip install -e .[dev]
+    - name: Restore qupath cache
+      uses: actions/cache@v2
       env:
-        # Increase this value to reset cache if etc/example-environment.yml has not changed
         CACHE_NUMBER: 1
       with:
-        path: ~/conda_pkgs_dir
-        key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('environment.yml') }}
-    - name: Setup conda
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        environment-file: environment.yml
-        python-version: ${{ matrix.python-version }}
-        auto-update-conda: true
-        activate-environment: paquo
-        use-only-tar-bz2: true
-        auto-activate-base: false
-    - shell: bash -l {0}
-      name: Test with pytest
+        path: ./qupath/download
+        key: ${{ runner.os }}-qupath-v${{ env.CACHE_NUMBER }}
+    - name: Install qupath and set PAQUO_QUPATH_DIR
+      shell: bash
       run: |
-        conda info
-        conda list
+        python -c "import os; os.makedirs('qupath/download', exist_ok=True)"
+        python -c "import os; os.makedirs('qupath/apps', exist_ok=True)"
+        python -m paquo get_qupath --install-path ./qupath/apps --download-path ./qupath/download ${{ env.QUPATH_VERSION }} | grep -v "^#" | sed "s/^/PAQUO_QUPATH_DIR=/" >> $GITHUB_ENV
+    - name: Test with pytest
+      run: |
         pytest --cov=./paquo --cov-report=xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
@@ -66,15 +62,16 @@ jobs:
     name: mypy type analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade setuptools
           pip install -e .[dev]
       - name: Run mypy
         run: |
@@ -87,9 +84,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v1
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install dependencies
@@ -132,9 +131,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
-      - uses: actions/checkout@v1
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install dependencies
