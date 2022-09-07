@@ -44,6 +44,7 @@ jobs:
         path: ./qupath/download
         key: ${{ runner.os }}-qupath-v${{ env.CACHE_NUMBER }}
     - name: Install qupath and set PAQUO_QUPATH_DIR
+      shell: bash
       run: |
         python -c "import os; os.makedirs('qupath/download', exist_ok=True)"
         python -c "import os; os.makedirs('qupath/apps', exist_ok=True)"
