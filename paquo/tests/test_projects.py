@@ -183,7 +183,7 @@ def test_project_add_image(new_project, svs_small):
 def test_project_add_image_windows(new_project, svs_small):
     drive, *parts = svs_small.parts
     assert len(drive) == 3 and drive.endswith(":\\")
-    network_path = Path(f"//localhost/{drive[0].lower()}$/", *parts)
+    network_path = Path(f"\\\\localhost\\{drive[0].lower()}$\\", *parts)
 
     _ = new_project.add_image(network_path)
     assert len(new_project.images) == 1
