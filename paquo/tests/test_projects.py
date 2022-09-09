@@ -182,8 +182,11 @@ def test_project_add_image(new_project, svs_small):
 @pytest.mark.skipif(platform.system() != "Windows", reason="windows only")
 def test_project_add_image_windows(new_project, svs_small):
     drive, *parts = svs_small.parts
+
+    # use the UNC path for the image
     assert len(drive) == 3 and drive.endswith(":\\")
-    network_path = Path(f"\\\\localhost\\{drive[0].lower()}$\\", *parts)
+    network_path = Path(f"//localhost/{drive[0].lower()}$", *parts)
+    assert network_path.exists()
 
     _ = new_project.add_image(network_path)
     assert len(new_project.images) == 1
