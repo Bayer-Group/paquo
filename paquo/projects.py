@@ -6,6 +6,7 @@ import shutil
 import sys
 from contextlib import contextmanager
 from contextlib import nullcontext
+from urllib.parse import urlparse
 from typing import Any
 from typing import Callable
 from typing import ContextManager
@@ -273,18 +274,6 @@ class QuPathProject:
             # update the proxy
             self._image_entries_proxy.refresh()
 
-    # @redirect(stderr=True, stdout=True)
-    def remove_image(self, image_entry_id):
-        # Check if image is in project:
-        entry_ids = [im.entry_id for im in self.images]
-        assert image_entry_id in entry_ids, "Image with entry id {} not found and cannot be removed".format(image_entry_id)
-        entry = self.images[entry_ids.index(image_entry_id)]
-
-        # Remove image and update the project:
-        self.java_object.removeImage(entry.java_object, True)
-        self.save(images=False)
-
-
     @redirect(stderr=True, stdout=True)
     def add_image(self,
                   image_id: SimpleFileImageId,
@@ -442,6 +431,38 @@ class QuPathProject:
         # update uris if possible
         for image in self.images:
             image.java_object.updateServerURIs(uri2uri)
+
+    # @redirect(stderr=True, stdout=True)
+    def remove_image(self, image_path: Any,
+                     ensure_exists: bool = False) -> None:
+        """
+        Delete an image from the QuPath project.
+        TODO: handle projects with duplicates images (current implementation only removes the first matching image)
+        :param image_path: URI or path of the image that should be deleted
+        :param ensure_exists: If True, raises an error if the image is not found in the project
+        """
+        # Convert image path to uri (if it was not already one):
+        image_uri = self._image_provider.uri(urlparse(image_path).path)
+
+        # Check if image is in the project:
+        current_uris = [image.uri for image in self.images]
+        for uri in current_uris:
+            print(uri)
+        try:
+            idx_uri_to_delete = current_uris.index(image_uri)
+        except ValueError:
+            idx_uri_to_delete = None
+
+        if idx_uri_to_delete is None and ensure_exists:
+            raise ValueError(f"Image with uri {image_uri} was not found in project"
+                             f" and cannot be removed. Set `ensure_exists=False` to ignore")
+        elif idx_uri_to_delete is not None:
+            # Delete image and update the project:
+            entry_to_be_removed = self.images[idx_uri_to_delete]
+            self.java_object.removeImage(entry_to_be_removed.java_object, True)
+            # self.java_object.refreshProject()
+            _log.info(f"Image {image_path} removed from project")
+            self.save(images=False)
 
     @property
     def uri(self) -> str:
