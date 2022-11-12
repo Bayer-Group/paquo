@@ -45,7 +45,7 @@ where N is the issue number.
 ## Merge approval
 
 Repository maintainers will review the pull request and make sure it provides
-the appropriate level of code quality & correctness. 
+the appropriate level of code quality & correctness.
 
 
 ## How are decisions made?
