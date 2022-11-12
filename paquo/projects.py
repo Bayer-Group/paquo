@@ -6,7 +6,6 @@ import shutil
 import sys
 from contextlib import contextmanager
 from contextlib import nullcontext
-from urllib.parse import urlparse
 from typing import Any
 from typing import Callable
 from typing import ContextManager
@@ -18,6 +17,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 from typing import overload
+from urllib.parse import urlsplit
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -442,7 +442,7 @@ class QuPathProject:
         :param ensure_exists: If True, raises an error if the image is not found in the project
         """
         # Convert image path to uri (if it was not already one):
-        image_uri = self._image_provider.uri(urlparse(image_path).path)
+        image_uri = self._image_provider.uri(urlsplit(image_path).path)
 
         # Check if image is in the project:
         current_uris = [image.uri for image in self.images]
