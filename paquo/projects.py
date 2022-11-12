@@ -311,13 +311,11 @@ class QuPathProject:
                 if img_id == uri:
                     raise FileExistsError(img_id)
 
-        img_pth = str(ImageProvider.path_from_uri(img_uri))
-
         # first get a server builder
         try:
             support = ImageServerProvider.getPreferredUriImageSupport(
                 BufferedImage,
-                String(img_pth),
+                String(img_uri),
             )
         except IOException:  # pragma: no cover
             # it's possible that an image_provider returns an URI but that URI

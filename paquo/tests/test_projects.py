@@ -1,5 +1,6 @@
 import os
 import platform
+import posixpath
 import shutil
 import tempfile
 from contextlib import nullcontext
@@ -183,12 +184,9 @@ def test_project_add_image(new_project, svs_small):
 def test_project_add_image_windows(new_project, svs_small):
     drive, *parts = svs_small.parts
 
-    # use the UNC path for the image
-    assert len(drive) == 3 and drive.endswith(":\\")
-    network_path = Path(f"//localhost/{drive[0].lower()}$", *parts)
-    assert network_path.exists()
+    uri = posixpath.join(f"file:////localhost/{drive[0].lower()}$", *parts)
 
-    _ = new_project.add_image(network_path)
+    _ = new_project.add_image(uri)
     assert len(new_project.images) == 1
 
 

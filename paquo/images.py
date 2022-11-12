@@ -184,6 +184,9 @@ class SimpleURIImageProvider:
         """accepts a path and returns a URIString"""
         if not isinstance(image_id, (Path, str, SimpleURIImageProvider.FilenamePathId)):
             raise TypeError("image_id not of correct format")  # pragma: no cover
+        if isinstance(image_id, str) and "://" in image_id:
+            # image_id is uri
+            return SimpleURIImageProvider.URIString(image_id)
         img_path = pathlib.Path(image_id).absolute().resolve()
         if not img_path.is_file():
             return None
