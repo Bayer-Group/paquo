@@ -33,12 +33,12 @@ JClass = jpype.JClass
 
 
 def find_qupath(*,
-                qupath_dir: PathOrStr = None,
-                qupath_search_dirs: Union[PathOrStr, List[PathOrStr]] = None,
-                qupath_search_dir_regex: str = None,
-                qupath_search_conda: bool = None,
-                qupath_prefer_conda: bool = None,
-                java_opts: Union[List[str], str] = None,
+                qupath_dir: Optional[PathOrStr] = None,
+                qupath_search_dirs: Optional[Union[PathOrStr, List[PathOrStr]]] = None,
+                qupath_search_dir_regex: Optional[str] = None,
+                qupath_search_conda: Optional[bool] = None,
+                qupath_prefer_conda: Optional[bool] = None,
+                java_opts: Optional[Union[List[str], str]] = None,
                 **_kwargs) -> QuPathJVMInfo:
     """find current qupath installation and jvm paths/options
 
