@@ -38,4 +38,4 @@ repos:
   rev: '1.7.4'
   hooks:
   - id: bandit
-    args: ["--ini", ".bandit"]
+    args: ["-lll", "--ini", ".bandit"]
