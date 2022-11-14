@@ -19,6 +19,9 @@ from typing import Iterator
 from typing import List
 from typing import Optional
 from typing import Union
+from urllib.parse import quote
+from urllib.parse import urlsplit
+from urllib.parse import urlunsplit
 
 from paquo._logging import get_logger
 from paquo._logging import redirect
@@ -53,16 +56,39 @@ _log = get_logger(__name__)
 def _normalize_pathlib_uris(uri):
     """this will correctly unescape and normalize uri's received from pathlib.Path.as_uri()"""
     # https://docs.oracle.com/javase/7/docs/api/java/net/URI.html section Identities
-    u = URI(uri)
-    return URI(
-        u.getScheme(),
-        u.getUserInfo(),
-        u.getHost(),
-        u.getPort(),
-        u.getPath(),
-        u.getQuery(),
-        u.getFragment()
-    )
+    try:
+        u = URI(uri)
+    except URISyntaxException:
+        try:
+            s = urlsplit(uri)
+            s = s._replace(path=quote(s.path))
+            uri = urlunsplit(s)
+        except ValueError:
+            raise ValueError(f"uri not valid '{uri}'")
+        else:
+            u = URI(uri)
+    scheme = u.getScheme()
+    if scheme != "file":
+        raise ValueError(f"uri unsupported scheme '{uri}'")
+    host = u.getHost()
+    path = str(u.getPath())
+    if host:
+        path = f"////{host}{path}"
+    elif re.match("^//[^/]+/[a-zA-Z][$]/", path):
+        path = f"//{path}"
+    try:
+        x = URI(
+            scheme,
+            u.getUserInfo(),
+            None,
+            u.getPort(),
+            path,
+            u.getQuery(),
+            u.getFragment()
+        )
+    except URISyntaxException:
+        raise ValueError(f"uri syntax error '{uri}'")
+    return x
 
 
 class ImageProvider(ABC):
@@ -93,15 +119,17 @@ class ImageProvider(ABC):
         Parses an URI representing a file system path into a Path.
         """
         # TODO: needs way more tests... See note [URI:java-python]
-        try:
-            java_uri = URI(uri)
-        except URISyntaxException:
-            raise ValueError(f"not a valid uri '{uri}'")
+        java_uri = _normalize_pathlib_uris(uri)
         # test current scheme support
         if str(java_uri.getScheme()) != "file":
             raise NotImplementedError("paquo only supports file:/ URIs as of now")
         else:
             path_str = str(java_uri.getPath())
+
+        host = java_uri.getHost()
+        if host:
+            path_str = f"//{host}{path_str}"
+
         # fixme: this should be replaced with something more reliable...
         # check if we encode a windows path
         if re.match(r"/[A-Z]:/[^/]", path_str):
@@ -186,6 +214,7 @@ class SimpleURIImageProvider:
             raise TypeError("image_id not of correct format")  # pragma: no cover
         if isinstance(image_id, str) and "://" in image_id:
             # image_id is uri
+            image_id = _normalize_pathlib_uris(image_id)
             return SimpleURIImageProvider.URIString(image_id)
         img_path = pathlib.Path(image_id).absolute().resolve()
         if not img_path.is_file():
