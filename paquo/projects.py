@@ -301,9 +301,8 @@ class QuPathProject:
         if img_uri is None:
             raise FileNotFoundError(f"image_provider can't provide URI for requested image_id: '{image_id}'")
         img_id = self._image_provider.id(img_uri)
-        if not img_id == image_id:  # pragma: no cover
+        if img_id != image_id:  # pragma: no cover
             _log.warning(f"image_provider roundtrip error: '{image_id}' -> uri -> '{img_id}'")
-            raise RuntimeError("the image provider failed to roundtrip the image id correctly")
 
         if not allow_duplicates:
             for entry in self.images:
@@ -315,13 +314,13 @@ class QuPathProject:
         try:
             support = ImageServerProvider.getPreferredUriImageSupport(
                 BufferedImage,
-                String(str(img_uri))
+                String(img_uri),
             )
         except IOException:  # pragma: no cover
             # it's possible that an image_provider returns an URI but that URI
             # is not actually reachable. In that case catch the java IOException
             # and raise a FileNotFoundError here
-            raise FileNotFoundError(image_id)
+            raise FileNotFoundError(img_uri)
         except ExceptionInInitializerError:
             raise OSError("no preferred support found")
         if not support:

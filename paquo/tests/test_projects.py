@@ -1,5 +1,6 @@
 import os
 import platform
+import posixpath
 import shutil
 import tempfile
 from contextlib import nullcontext
@@ -179,6 +180,33 @@ def test_project_add_image(new_project, svs_small):
     assert object() not in new_project.images
 
 
+@pytest.mark.skipif(platform.system() != "Windows", reason="windows only")
+def test_project_add_image_windows(new_project, svs_small):
+    drive, *parts = svs_small.parts
+
+    uri = posixpath.join(f"file:////localhost/{drive[0].lower()}$", *parts)
+
+    _ = new_project.add_image(uri)
+    assert len(new_project.images) == 1
+
+
+@pytest.mark.skipif(platform.system() != "Windows", reason="windows only")
+@pytest.mark.parametrize(
+    "renamed_svs_small", [
+        pytest.param("abc.svs", id="simple_name"),
+        pytest.param("image%image.svs", id="name_with_percentage"),
+    ],
+    indirect=True,
+)
+def test_project_add_image_windows_unencoded_uri(new_project, renamed_svs_small):
+    drive, *parts = renamed_svs_small.parts
+
+    uri = posixpath.join(f"file:////localhost/{drive[0]}$", *parts)
+
+    _ = new_project.add_image(uri)
+    assert len(new_project.images) == 1
+
+
 def test_project_add_image_writes_project(tmp_path, svs_small):
     qp = QuPathProject(tmp_path, mode='x')
     qp.add_image(svs_small)
@@ -258,7 +286,7 @@ def test_project_delete_image_file_when_opened(new_project, svs_small):
 
     if qupath_uses == "BIOFORMATS":  # pragma: no cover
         if platform.system() == "Windows":
-            # NOTE: on windows because you can't delete files that have open
+            # NOTE: on Windows because you can't delete files that have open
             #   file handles. In this test we're deleting the file opened by
             #   the ImageServer on the java side. (this is happening
             #   implicitly when calling is_readable() because the java

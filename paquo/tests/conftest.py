@@ -40,6 +40,14 @@ def svs_small():
         yield img_fn.absolute()
 
 
+@pytest.fixture(scope="function")
+def renamed_svs_small(request, tmp_path, svs_small):
+    name = request.param
+    new_path = tmp_path.joinpath(name)
+    new_path.write_bytes(svs_small.read_bytes())
+    yield new_path
+
+
 @pytest.fixture(scope='session')
 def qupath_version():
     from paquo.java import qupath_version
