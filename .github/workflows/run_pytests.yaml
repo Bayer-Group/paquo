@@ -11,13 +11,15 @@ jobs:
     name: pytest ${{ matrix.os }}::py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 6
+      max-parallel: 7
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10"]
+        python-version: ["3.11"]
         include:
           # we'll test the python support on ubuntu
+          - os: ubuntu-latest
+            python-version: 3.11
           - os: ubuntu-latest
             python-version: 3.9
           - os: ubuntu-latest
