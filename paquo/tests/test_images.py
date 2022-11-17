@@ -312,37 +312,6 @@ def test_image_provider_path_from_uri(uri: str, path: Path):
     assert c_path.parts == path.parts
 
 
-def test_image_provider_ducktyping():
-    class IPBad:
-        def id(self, x):
-            pass  # pragma: no cover
-
-    class IPGood(IPBad):  # if all required methods are implemented we're an ImageProvider
-        def uri(self, y):
-            pass  # pragma: no cover
-
-        def rebase(self, **x):
-            pass  # pragma: no cover
-
-    assert not isinstance(IPBad(), ImageProvider)
-    assert isinstance(IPGood(), ImageProvider)
-
-
-def test_image_provider_default_implementation():
-    class NoneProvider(ImageProvider):
-        def id(self, x):
-            return super().id(x)
-
-        def uri(self, y):
-            return super().uri(y)
-
-        def rebase(self, *x, **y):
-            return super().rebase(*x, **y)
-
-    ip = NoneProvider()
-    assert set(ip.rebase('file:/abc.svs', 'file:/efg.svs')) == {None}
-
-
 def test_image_provider_uri_from_relpath_and_abspath():
     with pytest.raises(ValueError):
         ImageProvider.uri_from_path(Path('./abc.svs'))
