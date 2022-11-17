@@ -369,10 +369,12 @@ class QuPathProject:
         """verify if images are reachable"""
         readability_map = {}
         for image in self.images:
-            image_uri = self._image_provider.uri(image.uri)
-            if image_uri in readability_map:  # pragma: no cover
+            uri = self._image_provider.uri(image.uri)
+            if uri is None:
+                raise RuntimeError(f"entry has None uri: {image!r}")
+            if uri in readability_map:  # pragma: no cover
                 raise RuntimeError("received the same image_id from image_provider for two different images")
-            readability_map[image_uri] = image.is_readable()
+            readability_map[str(uri)] = image.is_readable()
         return readability_map
 
     def update_image_paths(self, *, try_relative: bool = False, **rebase_kwargs) -> None:
