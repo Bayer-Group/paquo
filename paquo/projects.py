@@ -10,7 +10,6 @@ from typing import Any
 from typing import Callable
 from typing import ContextManager
 from typing import Dict
-from typing import Hashable
 from typing import Iterable
 from typing import Iterator
 from typing import Optional
@@ -32,7 +31,6 @@ from paquo.classes import QuPathPathClass
 from paquo.images import ImageProvider
 from paquo.images import QuPathImageType
 from paquo.images import QuPathProjectImageEntry
-from paquo.images import SimpleURIImageProvider
 from paquo.java import URI
 from paquo.java import BufferedImage
 from paquo.java import DefaultProject
@@ -165,7 +163,7 @@ def _stash_project_files(project_dir: pathlib.Path):
     # done
 
 
-DEFAULT_IMAGE_PROVIDER: Any = SimpleURIImageProvider()
+DEFAULT_IMAGE_PROVIDER: Any = ImageProvider()
 
 
 ProjectIOMode = Literal["r", "r+", "w", "w+", "a", "a+", "x", "x+"]
@@ -367,7 +365,7 @@ class QuPathProject:
         self.save(images=False)
         return py_entry
 
-    def is_readable(self) -> Dict[Hashable, bool]:
+    def is_readable(self) -> Dict[str, bool]:
         """verify if images are reachable"""
         readability_map = {}
         for image in self.images:
@@ -389,7 +387,7 @@ class QuPathProject:
             at a different location.
         **rebase_kwargs:
             keyword arguments are handed over to the image provider instance.
-            The default image provider is a paquo.images.SimpleURIImageProvider
+            The default image provider is a paquo.images.ImageProvider
             which uses the uri2uri keyword argument. (A mapping from old URI to new
             URI: Mapping[str, str])
 
