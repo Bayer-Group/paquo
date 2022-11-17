@@ -31,6 +31,7 @@ from paquo.classes import QuPathPathClass
 from paquo.images import ImageProvider
 from paquo.images import QuPathImageType
 from paquo.images import QuPathProjectImageEntry
+from paquo.images import SimpleFileImageId
 from paquo.java import URI
 from paquo.java import BufferedImage
 from paquo.java import DefaultProject
@@ -274,7 +275,7 @@ class QuPathProject:
 
     @redirect(stderr=True, stdout=True)
     def add_image(self,
-                  image_id: Any,  # this should actually be ID type of the image provider
+                  image_id: SimpleFileImageId,
                   image_type: Optional[QuPathImageType] = None,
                   *,
                   allow_duplicates: bool = False) -> QuPathProjectImageEntry:
@@ -298,15 +299,14 @@ class QuPathProject:
         img_uri = self._image_provider.uri(image_id)
         if img_uri is None:
             raise FileNotFoundError(f"image_provider can't provide URI for requested image_id: '{image_id}'")
-        img_id = self._image_provider.id(img_uri)
-        if img_id != image_id:  # pragma: no cover
-            _log.warning(f"image_provider roundtrip error: '{image_id}' -> uri -> '{img_id}'")
+        # img_id = self._image_provider.id(img_uri)
+        # if img_id != image_id:  # pragma: no cover
+        #     _log.warning(f"image_provider roundtrip error: '{image_id}' -> uri -> '{img_id}'")
 
         if not allow_duplicates:
             for entry in self.images:
-                uri = self._image_provider.id(entry.uri)
-                if img_id == uri:
-                    raise FileExistsError(img_id)
+                if img_uri == self._image_provider.uri(entry.uri):
+                    raise FileExistsError(image_id)
 
         # first get a server builder
         try:
@@ -318,7 +318,7 @@ class QuPathProject:
             # it's possible that an image_provider returns an URI but that URI
             # is not actually reachable. In that case catch the java IOException
             # and raise a FileNotFoundError here
-            raise FileNotFoundError(img_uri)
+            raise FileNotFoundError(f"{image_id!r} as {img_uri!r}")
         except ExceptionInInitializerError:
             raise OSError("no preferred support found")
         if not support:
@@ -369,10 +369,10 @@ class QuPathProject:
         """verify if images are reachable"""
         readability_map = {}
         for image in self.images:
-            image_id = self._image_provider.id(image.uri)
-            if image_id in readability_map:  # pragma: no cover
+            image_uri = self._image_provider.uri(image.uri)
+            if image_uri in readability_map:  # pragma: no cover
                 raise RuntimeError("received the same image_id from image_provider for two different images")
-            readability_map[image_id] = image.is_readable()
+            readability_map[image_uri] = image.is_readable()
         return readability_map
 
     def update_image_paths(self, *, try_relative: bool = False, **rebase_kwargs) -> None:

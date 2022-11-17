@@ -41,6 +41,13 @@ from paquo.java import compatibility
 if TYPE_CHECKING:
     import paquo.projects
 
+__all__ = [
+    "ImageProvider",
+    "QuPathImageType",
+    "QuPathProjectImageEntry",
+    "SimpleFileImageId",
+]
+
 _log = get_logger(__name__)
 
 
