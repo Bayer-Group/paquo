@@ -210,19 +210,6 @@ class ImageProvider:
         uri_b = _normalize_pathlib_uris(b)
         return bool(uri_a.equals(uri_b))
 
-    @classmethod
-    def __subclasshook__(cls, C):
-        """ImageProviders don't need to derive but only duck-type"""
-        required_methods = ('uri', 'id', 'rebase')
-        if cls is ImageProvider:
-            methods_available = [False] * len(required_methods)
-            for B in C.__mro__:
-                for idx, method in enumerate(required_methods):
-                    methods_available[idx] |= method in B.__dict__
-                if all(methods_available):
-                    return True
-        return NotImplemented
-
 
 # noinspection PyPep8Naming
 class _RecoveredReadOnlyImageServer:
