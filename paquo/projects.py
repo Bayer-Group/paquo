@@ -12,6 +12,7 @@ from typing import ContextManager
 from typing import Dict
 from typing import Iterable
 from typing import Iterator
+from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
@@ -273,12 +274,37 @@ class QuPathProject:
             # update the proxy
             self._image_entries_proxy.refresh()
 
+    @overload
+    def add_image(
+        self,
+        image_id: SimpleFileImageId,
+        image_type: Optional[QuPathImageType] = ...,
+        *,
+        allow_duplicates: bool = ...,
+        return_list: Literal[True],
+    ) -> List[QuPathProjectImageEntry]:
+        ...
+
+    @overload
+    def add_image(
+        self,
+        image_id: SimpleFileImageId,
+        image_type: Optional[QuPathImageType] = ...,
+        *,
+        allow_duplicates: bool = ...,
+        return_list: Literal[False] = ...,
+    ) -> Union[QuPathProjectImageEntry, List[QuPathProjectImageEntry]]:
+        ...
+
     @redirect(stderr=True, stdout=True)
-    def add_image(self,
-                  image_id: SimpleFileImageId,
-                  image_type: Optional[QuPathImageType] = None,
-                  *,
-                  allow_duplicates: bool = False) -> QuPathProjectImageEntry:
+    def add_image(
+        self,
+        image_id: SimpleFileImageId,
+        image_type: Optional[QuPathImageType] = None,
+        *,
+        allow_duplicates: bool = False,
+        return_list: bool = False,
+    ) -> Union[QuPathProjectImageEntry, List[QuPathProjectImageEntry]]:
         """add an image to the project
 
         Parameters
@@ -326,44 +352,49 @@ class QuPathProject:
         server_builders = list(support.getBuilders())
         if not server_builders:
             raise OSError("no supported server builders found")  # pragma: no cover
-        server_builder = server_builders[0]
 
-        with self._stage_image_entry(server_builder) as j_entry:
-            # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
-            try:
-                server = server_builder.build()
-            except IOException:
-                _, _, _sb = server_builder.__class__.__name__.rpartition(".")
-                raise OSError(f"{_sb} can't open {str(image_id)}")
-            j_entry.setImageName(ServerTools.getDisplayableImageName(server))
+        entries = []
+        for server_builder in server_builders:
+            with self._stage_image_entry(server_builder) as j_entry:
+                # all of this happens in qupath.lib.gui.commands.ProjectImportImagesCommand
+                try:
+                    server = server_builder.build()
+                except IOException:
+                    _, _, _sb = server_builder.__class__.__name__.rpartition(".")
+                    raise OSError(f"{_sb} can't open {str(image_id)}")
+                j_entry.setImageName(ServerTools.getDisplayableImageName(server))
 
-            # add some informative logging
-            _md = server.getMetadata()
-            width = int(_md.getWidth())
-            height = int(_md.getHeight())
-            downsamples = [float(x) for x in _md.getPreferredDownsamplesArray()]
-            target_downsample = math.sqrt(width / 1024.0 * height / 1024.0)
-            _log.info(f"Image[{width}x{height}] with downsamples {downsamples}")
-            if not any(d >= target_downsample for d in downsamples):
-                _log.warning("No matching downsample for thumbnail! This might take a long time...")
+                # add some informative logging
+                _md = server.getMetadata()
+                width = int(_md.getWidth())
+                height = int(_md.getHeight())
+                downsamples = [float(x) for x in _md.getPreferredDownsamplesArray()]
+                target_downsample = math.sqrt(width / 1024.0 * height / 1024.0)
+                _log.info(f"Image[{width}x{height}] with downsamples {downsamples}")
+                if not any(d >= target_downsample for d in downsamples):
+                    _log.warning("No matching downsample for thumbnail! This might take a long time...")
 
-            # set the project thumbnail
-            try:
-                thumbnail = ProjectImportImagesCommand_getThumbnailRGB(server, None)
-            except NegativeArraySizeException:  # pragma: no cover
-                raise RuntimeError(
-                    "Thumbnailing FAILED. Image might be too large and has no embedded thumbnail."
-                )
-            else:
-                j_entry.setThumbnail(thumbnail)
+                # set the project thumbnail
+                try:
+                    thumbnail = ProjectImportImagesCommand_getThumbnailRGB(server, None)
+                except NegativeArraySizeException:  # pragma: no cover
+                    raise RuntimeError(
+                        "Thumbnailing FAILED. Image might be too large and has no embedded thumbnail."
+                    )
+                else:
+                    j_entry.setThumbnail(thumbnail)
 
-        py_entry = self._image_entries_proxy[-1]
-        if image_type is not None:
-            py_entry.image_type = image_type
-        # save project after adding image
-        py_entry.save()
-        self.save(images=False)
-        return py_entry
+            py_entry = self._image_entries_proxy[-1]
+            if image_type is not None:
+                py_entry.image_type = image_type
+            # save project after adding image
+            py_entry.save()
+            self.save(images=False)
+            entries.append(py_entry)
+        if return_list or len(entries) > 1:
+            return entries
+        else:
+            return entries[0]
 
     def is_readable(self) -> Dict[str, bool]:
         """verify if images are reachable"""
