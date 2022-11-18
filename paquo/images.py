@@ -136,7 +136,7 @@ class ImageProvider:
         """accepts a path and returns a URIString"""
         if not isinstance(image_id, (Path, str, ImageProvider.FilenamePathId)):
             raise TypeError("image_id not of correct format")  # pragma: no cover
-        if isinstance(image_id, str) and "://" in image_id:
+        if isinstance(image_id, str) and image_id.startswith("file:/"):
             # image_id is uri
             image_id = _normalize_pathlib_uris(image_id)
             return ImageProvider.URIString(image_id)

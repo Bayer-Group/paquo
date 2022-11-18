@@ -31,6 +31,8 @@ java_opts = [
 # paquo options
 safe_truncate = true
 
+# allows to use a different jvm_path for running qupath
+jvm_path_override = ""
 
 # internal settings
 # -----------------

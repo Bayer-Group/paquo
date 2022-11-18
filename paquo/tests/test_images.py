@@ -74,6 +74,10 @@ def test_image_properties_from_image_server(image_entry):
     assert image_entry.num_z_slices == 1
 
 
+@pytest.mark.xfail(
+    platform.uname().machine == "arm64",
+    reason="QuPath-vendored openslide not working on arm64"
+)
 def test_image_downsample_levels(image_entry):
     levels = [
         {'downsample': 1.0,
