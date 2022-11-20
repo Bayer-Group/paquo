@@ -434,7 +434,7 @@ class QuPathProject:
     @redirect(stderr=True, stdout=True)
     def remove_image(
         self,
-        image_entry: QuPathProjectImageEntry,
+        image_entry: Union[QuPathProjectImageEntry, int],
     ) -> None:
         """
         Delete an image from the QuPath project.
@@ -444,6 +444,8 @@ class QuPathProject:
         image_entry:
             the image entry to be removed
         """
+        if isinstance(image_entry, int):
+            image_entry = self.images[image_entry]
         if not isinstance(image_entry, QuPathProjectImageEntry):
             raise TypeError(
                 f"expected QuPathProjectImageEntry, got: {type(image_entry).__name__!r}"
