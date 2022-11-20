@@ -17,6 +17,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 from typing import overload
+from urllib.parse import urlsplit
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -89,7 +90,6 @@ class _ProjectImageEntriesProxy(collections_abc.Sequence):
         if removed:
             for key in removed:  # pragma: no cover
                 _ = self._images.pop(key)
-                raise NotImplementedError("removal not yet implemented")
 
     def __iter__(self) -> Iterator[QuPathProjectImageEntry]:
         return iter(self._images.values())
@@ -430,6 +430,33 @@ class QuPathProject:
         # update uris if possible
         for image in self.images:
             image.java_object.updateServerURIs(uri2uri)
+
+    @redirect(stderr=True, stdout=True)
+    def remove_image(
+        self,
+        image_entry: Union[QuPathProjectImageEntry, int],
+    ) -> None:
+        """
+        Delete an image from the QuPath project.
+
+        Parameters
+        ----------
+        image_entry:
+            the image entry to be removed
+        """
+        if isinstance(image_entry, int):
+            image_entry = self.images[image_entry]
+        if not isinstance(image_entry, QuPathProjectImageEntry):
+            raise TypeError(
+                f"expected QuPathProjectImageEntry, got: {type(image_entry).__name__!r}"
+            )
+        if self._readonly:
+            raise OSError("project in readonly mode")
+        try:
+            self.java_object.removeImage(image_entry.java_object, False)
+        finally:
+            self._image_entries_proxy.refresh()
+            self.save(images=False)
 
     @property
     def uri(self) -> str:

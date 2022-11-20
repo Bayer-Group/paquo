@@ -124,6 +124,9 @@ def test_project_attrs_and_methods(readonly_project, copy_svs_small):
             a.callmethod("add_image", copy_svs_small, allow_duplicates=True)
         with pytest.raises(IOError):
             a.callmethod("save")
+        with pytest.raises(IOError):
+            image_entry = qp.images[0]
+            a.callmethod("remove_image", image_entry)
 
         # test that we can reassign uri's even in readonly mode
         cur_uri = qp.images[0].uri

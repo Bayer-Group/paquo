@@ -239,6 +239,19 @@ def test_project_add_unsupported_image(new_project, tmp_path):
         new_project.add_image(image)
 
 
+def test_project_remove_image(new_project, svs_small):
+    # Add an image to the project and then remove it:
+    new_project.add_image(svs_small)
+    assert len(new_project.images) == 1
+    new_project.remove_image(new_project.images[0])
+    assert len(new_project.images) == 0
+
+
+def test_project_remove_image_wrong_type(new_project):
+    with pytest.raises(TypeError):
+        new_project.remove_image("some/file.svs")
+
+
 def test_project_image_slicing(new_project):
     _ = new_project.images[slice(None, None, None)]
 
