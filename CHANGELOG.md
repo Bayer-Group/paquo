@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ...
 
+## [0.6.0] - 2022-11-21
+### Fixed
+- paquo: support windows network share URIs
+- paquo: add all available scenes of image in `add_image`
+
+### Added
+- paquo: support snapshot versions of QuPath for testing newer upstream compatibility
+- paquo: allow user to provide path to JVM to support Apple M1 hardware
+- paquo: add `remove_image` method to QuPathProject
+
+### Changed
+- paquo: simplify ImageProvider and deprecate SimpleImageProvider
+- ci: install paquo via pip to speedup workflows
+- ci: test against python 3.11
+
 ## [0.5.1] - 2022-07-15
 ### Fixed
 - paquo: env var configuration now works via `PAQUO_` and `PAQUO__` prefix
@@ -110,7 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of paquo
 
 
-[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.4.1...v0.4.2

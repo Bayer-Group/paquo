@@ -49,7 +49,8 @@ If you choose the default installation paths paquo should autodetect your QuPath
 
 Or you can run the following command to download a specific version of QuPath
 to a location on your machine. Follow the printed instructions to configure
-paquo to use that version.
+paquo to use that version. Currently, paquo supports every version of QuPath from
+`0.2.0` to the most recent. _(We even support older `0.2.0-mX` versions but no guarantees)._
 
 ```shell
 > paquo get_qupath --install-path "/some/path/on/your/machine" 0.3.2
