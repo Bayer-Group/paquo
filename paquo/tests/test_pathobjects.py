@@ -64,8 +64,10 @@ def test_geojson_serialization(path_annotation, qupath_version):
     # bad practice
     if qupath_version <= QuPathVersion("0.2.3"):
         assert geo_json["id"] == "PathAnnotationObject"
-    else:
+    elif qupath_version < QuPathVersion("0.4.0"):
         assert geo_json["properties"]["object_type"] == "annotation"
+    else:
+        assert geo_json["properties"]["objectType"] == "annotation"
 
     assert "geometry" in geo_json
     geom = geo_json["geometry"]
@@ -76,7 +78,10 @@ def test_geojson_serialization(path_annotation, qupath_version):
     assert "properties" in geo_json
     prop = geo_json["properties"]
 
-    assert prop["isLocked"] == path_annotation.locked
+    if qupath_version < QuPathVersion("0.4.0"):
+        assert prop["isLocked"] == path_annotation.locked
+    else:
+        assert "isLocked" not in prop
 
     # bad practice
     if qupath_version <= QuPathVersion("0.2.3"):
@@ -89,7 +94,10 @@ def test_geojson_serialization(path_annotation, qupath_version):
             assert prop["measurements"] == measurements
 
     assert prop["classification"]["name"] == path_annotation.path_class.name
-    assert prop["classification"]["colorRGB"] == path_annotation.path_class.color.to_java_rgba()
+    if qupath_version < QuPathVersion("0.4.0"):
+        assert prop["classification"]["colorRGB"] == path_annotation.path_class.color.to_java_rgba()
+    else:
+        assert tuple(prop["classification"]["color"]) == path_annotation.path_class.color.to_rgb()
 
 
 def test_annotation_object():

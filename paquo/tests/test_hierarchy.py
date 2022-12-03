@@ -177,7 +177,7 @@ TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus = [{
 
 # qupath version v0.4.0 made changes to the geojson format
 # 1. the 'id' key is added again but seems to be a UUID for each annotation
-TEST_ANNOTATION_POLYGON_VERSION_0_4_0_snapshot = [{
+TEST_ANNOTATION_POLYGON_VERSION_0_4_0 = [{
     'type': 'Feature',
     'id': '7d254d72-a9a0-43a6-a455-3fa99e83b7af',
     'geometry': {
@@ -193,10 +193,10 @@ TEST_ANNOTATION_POLYGON_VERSION_0_4_0_snapshot = [{
     'properties': {
         'classification': {
             'name': 'Tumor',
-            'colorRGB': -3670016
+            'color': [200, 0, 0],
         },
         'isLocked': False,
-        'object_type': 'annotation',
+        'objectType': 'annotation',
     }
 }]
 
@@ -208,7 +208,7 @@ def example_annotation(qupath_version):
     elif qupath_version < QuPathVersion("0.4.0"):
         yield deepcopy(TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus)
     else:
-        yield deepcopy(TEST_ANNOTATION_POLYGON_VERSION_0_4_0_snapshot)
+        yield deepcopy(TEST_ANNOTATION_POLYGON_VERSION_0_4_0)
 
 
 def is_uuid(x):
@@ -224,7 +224,7 @@ def is_uuid(x):
     "input_annotation", [
         pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_2_3, id='v0.2.3'),
         pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_3_0_rc1_plus, id='v0.3.0rc1'),
-        pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_4_0_snapshot, id='v0.4.0+snapshot'),
+        pytest.param(TEST_ANNOTATION_POLYGON_VERSION_0_4_0, id='v0.4.0'),
     ]
 )
 def test_geojson_roundtrip_via_annotations(empty_hierarchy, example_annotation, input_annotation, qupath_version):
@@ -239,6 +239,8 @@ def test_geojson_roundtrip_via_annotations(empty_hierarchy, example_annotation, 
         out_id = output[0].pop("id", "")
         test_id = example_annotation[0].pop("id", "")
         assert is_uuid(out_id) and is_uuid(test_id)
+        # isLocked is not exported
+        del example_annotation[0]["properties"]["isLocked"]
     assert output == example_annotation
 
 

@@ -54,18 +54,18 @@ paquo to use that version. Currently, paquo supports every version of QuPath fro
 `0.2.0` to the most recent. _(We even support older `0.2.0-mX` versions but no guarantees)._
 
 ```shell
-> paquo get_qupath --install-path "/some/path/on/your/machine" 0.3.2
-# downloading: https://github.com/qupath/qupath/releases/download/v0.3.2/QuPath-0.3.2-Linux.tar.xz
+> paquo get_qupath --install-path "/some/path/on/your/machine" 0.4.0
+# downloading: https://github.com/qupath/qupath/releases/download/v0.4.0/QuPath-0.4.0-Linux.tar.xz
 # progress ................... OK
-# extracting: [...]/QuPath-0.3.2-Linux.tar.xz
-# available at: /some/path/on/your/machine/QuPath-0.3.2
+# extracting: [...]/QuPath-0.4.0-Linux.tar.xz
+# available at: /some/path/on/your/machine/QuPath-0.4.0
 #
 # use via environment variable:
-#   $ export PAQUO_QUPATH_DIR=/some/path/on/your/machine/QuPath-0.3.2
+#   $ export PAQUO_QUPATH_DIR=/some/path/on/your/machine/QuPath-0.4.0
 #
 # use via .paquo.toml config file:
-#   qupath_dir="/some/path/on/your/machine/QuPath-0.3.2"
-/some/path/on/your/machine/QuPath-0.3.2
+#   qupath_dir="/some/path/on/your/machine/QuPath-0.4.0"
+/some/path/on/your/machine/QuPath-0.4.0
 ```
 
 
