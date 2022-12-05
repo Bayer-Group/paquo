@@ -78,10 +78,13 @@ def test_geojson_serialization(path_annotation, qupath_version):
     assert "properties" in geo_json
     prop = geo_json["properties"]
 
-    if qupath_version < QuPathVersion("0.4.0"):
-        assert prop["isLocked"] == path_annotation.locked
+    if path_annotation.locked:
+        assert prop["isLocked"] is True
     else:
-        assert "isLocked" not in prop
+        if qupath_version < QuPathVersion("0.4.0"):
+            assert prop["isLocked"] is False
+        else:
+            assert "isLocked" not in prop
 
     # bad practice
     if qupath_version <= QuPathVersion("0.2.3"):
