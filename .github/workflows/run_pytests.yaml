@@ -8,7 +8,7 @@ on:
   pull_request: {}
 
 env:
-  QUPATH_VERSION: 0.4.0
+  QUPATH_VERSION: 0.4.1
 
 jobs:
   # RUN PYTEST ON PAQUO SOURCE
