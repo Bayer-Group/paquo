@@ -99,4 +99,4 @@ Build with love by Andreas Poehlmann and Santi Villalba from the _Machine
 Learning Research_ group at Bayer. In collaboration with the _Pathology Lab 2_
 and the _Mechanistic and Toxicologic Pathology_ group.
 
-`paquo`: copyright 2020-2022 Bayer AG, licensed under [GPL-3.0](https://github.com/bayer-science-for-a-better-life/paquo/blob/master/LICENSE)
+`paquo`: copyright 2020 Bayer AG, licensed under [GPL-3.0](https://github.com/bayer-science-for-a-better-life/paquo/blob/master/LICENSE)
