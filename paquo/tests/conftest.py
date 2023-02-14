@@ -1,6 +1,7 @@
 import hashlib
 import pathlib
 import shutil
+import sys
 import urllib.request
 
 import pytest
@@ -10,7 +11,10 @@ IMAGES_BASE_URL = "http://openslide.cs.cmu.edu/download/openslide-testdata/Aperi
 
 
 def md5(fn):
-    m = hashlib.md5()  # nosec B303
+    if sys.version_info >= (3, 9):
+        m = hashlib.md5(usedforsecurity=False)
+    else:
+        m = hashlib.md5()  # nosec B324
     with open(fn, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             m.update(chunk)
