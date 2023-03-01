@@ -1,6 +1,7 @@
 import json
 import math
 from collections.abc import MutableMapping
+from functools import partial
 from typing import Callable
 from typing import Iterator
 from typing import Optional
@@ -76,18 +77,28 @@ def fix_geojson_geometry(geometry: dict) -> dict:
 
 class _MeasurementList(MutableMapping):
 
-    def __init__(self, measurement_list):
+    def __init__(
+        self,
+        measurement_list,
+        *,
+        update_callback: Optional[Callable[[], None]] = None
+    ):
         self._measurement_list = measurement_list
+        self._update_callback = update_callback
 
     def __setitem__(self, k: str, v: float) -> None:
         if not isinstance(v, float):
             raise TypeError(f"value must be float, got: {type(v).__name__}")
         self._measurement_list.putMeasurement(k, v)
+        if self._update_callback:
+            self._update_callback()
 
     def __delitem__(self, v: str) -> None:
         if v not in self:
             raise KeyError(v)
         self._measurement_list.removeMeasurements(v)
+        if self._update_callback:
+            self._update_callback()
 
     def __getitem__(self, k: Union[str, int]) -> float:
         if not isinstance(k, (int, str)):
@@ -110,6 +121,8 @@ class _MeasurementList(MutableMapping):
 
     def clear(self) -> None:
         self._measurement_list.clear()
+        if self._update_callback:
+            self._update_callback()
 
     def __repr__(self):
         return f"Measurements({repr(dict(self))})"
@@ -274,7 +287,14 @@ class _PathROIObject:
 
     @cached_property
     def measurements(self):
-        return _MeasurementList(self.java_object.getMeasurementList())
+        if self._update_callback:
+            cb = partial(self._update_callback, self)
+        else:
+            cb = None
+        return _MeasurementList(
+            self.java_object.getMeasurementList(),
+            update_callback=cb,
+        )
 
     def __repr__(self):
         name = self.name
