@@ -80,6 +80,8 @@ class _MeasurementList(MutableMapping):
         self._measurement_list = measurement_list
 
     def __setitem__(self, k: str, v: float) -> None:
+        if not isinstance(v, float):
+            raise TypeError(f"value must be float, got: {type(v).__name__}")
         self._measurement_list.putMeasurement(k, v)
 
     def __delitem__(self, v: str) -> None:
@@ -90,7 +92,10 @@ class _MeasurementList(MutableMapping):
     def __getitem__(self, k: Union[str, int]) -> float:
         if not isinstance(k, (int, str)):
             raise KeyError(f"unsupported key of type {type(k)}")
-        return float(self._measurement_list.getMeasurementValue(k))
+        value = float(self._measurement_list.getMeasurementValue(k))
+        if math.isnan(value) and k not in self:
+            raise KeyError(k)
+        return value
 
     def __contains__(self, item: object) -> bool:
         if not isinstance(item, str):
