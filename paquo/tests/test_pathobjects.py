@@ -1,9 +1,11 @@
 import pytest
 import shapely.geometry
+from shapely import Polygon
 
 from paquo._utils import QuPathVersion
 from paquo.classes import QuPathPathClass
 from paquo.pathobjects import QuPathPathAnnotationObject
+from paquo.projects import QuPathProject
 
 
 def test_qupath_to_shapely_conversion():
@@ -173,7 +175,34 @@ def test_measurements():
         _ = ao.measurements[None]
 
     with pytest.raises(KeyError):
+        _ = ao.measurements["this-key-does-not-exist"]
+
+    with pytest.raises(KeyError):
         del ao.measurements[None]
 
     del ao.measurements['measurement1']
     ao.measurements.clear()
+
+
+@pytest.fixture(scope="function")
+def project_with_detections(tmp_path, svs_small):
+    pth = tmp_path / "paquo-project"
+    with QuPathProject(pth, mode='x') as proj:
+        entry = proj.add_image(svs_small)
+        entry.hierarchy.add_detection(
+            roi=Polygon.from_bounds(20, 20, 100, 100),
+        )
+        assert len(entry.hierarchy.detections) == 1
+    yield pth
+
+
+def test_saving_measurements(project_with_detections):
+    with QuPathProject(project_with_detections, mode="a") as proj:
+        det = proj.images[0].hierarchy.detections[0]
+        assert len(det.measurements) == 0
+        det.measurements["something"] = 1.0
+        assert dict(det.measurements) == {"something": 1.0}
+
+    with QuPathProject(project_with_detections, mode="r") as proj:
+        det = proj.images[0].hierarchy.detections[0]
+        assert det.measurements["something"] == 1.0
