@@ -306,7 +306,7 @@ class _PathROIObject:
         if path_class:
             out.append(f'class="{path_class.name}"')
         if roi:
-            out.append(f'roi={roi.type}')
+            out.append(f'roi={roi.geom_type}')
         return f"{type(self).__name__}({' '.join(out)})"
 
     def _repr_html_(self):
@@ -341,7 +341,7 @@ class _PathROIObject:
                 span(text=path_class_name),
                 br(),
                 span(text="roi_type: ", style={"font-weight": "bold"}),
-                span(text=roi.type),
+                span(text=roi.geom_type),
                 br(),
                 span(text="roi: ", style={"font-weight": "bold"}),
                 roi_tag,

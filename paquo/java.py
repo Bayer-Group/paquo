@@ -75,6 +75,15 @@ class _Compatibility:
         else:
             return self.version >= QuPathVersion("0.2.0-m10")
 
+    def supports_newer_addobject_and_pathclass(self) -> bool:
+        # PathObjectHierarchy.addPathObject and .addPathObjectWithoutUpdate are deprecated
+        # PathClassFactory is deprecated too
+        # see: https://github.com/qupath/qupath/commit/b961944120c26a3a4cfe01959d8e8b993075ffdf
+        if self.version is None:
+            return False
+        else:
+            return self.version >= QuPathVersion("0.4.0")
+
 
 compatibility = _Compatibility(qupath_version)
 
