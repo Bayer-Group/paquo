@@ -173,6 +173,9 @@ def test_measurements():
         _ = ao.measurements[None]
 
     with pytest.raises(KeyError):
+        _ = ao.measurements["this-key-does-not-exist"]
+
+    with pytest.raises(KeyError):
         del ao.measurements[None]
 
     del ao.measurements['measurement1']
