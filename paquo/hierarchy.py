@@ -118,21 +118,39 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
             self._list_invalidate_cache()
         return self
 
-    def add(self, x: PathROIObjectType) -> None:
-        """adds a new path object to the proxy"""
-        if self._mask:
-            raise OSError("cannot modify view")
-        if self._readonly:
-            raise OSError("project in readonly mode")
-        if not isinstance(x, self._paquo_cls):
-            raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
-        try:
-            if self._hierarchy.autoflush:
-                self._java_hierarchy.addPathObject(x.java_object)
-            else:
-                self._java_hierarchy.addPathObjectWithoutUpdate(x.java_object)
-        finally:
-            self._list_invalidate_cache()
+    if compatibility.supports_newer_addobject_and_pathclass():
+        def add(self, x: PathROIObjectType) -> None:
+            """adds a new path object to the proxy"""
+            if self._mask:
+                raise OSError("cannot modify view")
+            if self._readonly:
+                raise OSError("project in readonly mode")
+            if not isinstance(x, self._paquo_cls):
+                raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
+            try:
+                if self._hierarchy.autoflush:
+                    self._java_hierarchy.addObject(x.java_object, True)
+                else:
+                    self._java_hierarchy.addObject(x.java_object, False)
+            finally:
+                self._list_invalidate_cache()
+
+    else:
+        def add(self, x: PathROIObjectType) -> None:
+            """adds a new path object to the proxy"""
+            if self._mask:
+                raise OSError("cannot modify view")
+            if self._readonly:
+                raise OSError("project in readonly mode")
+            if not isinstance(x, self._paquo_cls):
+                raise TypeError(f"requires {self._paquo_cls.__name__} instance got {x.__class__.__name__}")
+            try:
+                if self._hierarchy.autoflush:
+                    self._java_hierarchy.addPathObject(x.java_object)
+                else:
+                    self._java_hierarchy.addPathObjectWithoutUpdate(x.java_object)
+            finally:
+                self._list_invalidate_cache()
 
     def discard(self, x: PathROIObjectType) -> None:
         """discard a path object from the proxy"""

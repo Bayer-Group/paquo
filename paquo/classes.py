@@ -5,6 +5,7 @@ from paquo.colors import QuPathColor
 from paquo.java import PathClass
 from paquo.java import PathClassFactory
 from paquo.java import String
+from paquo.java import compatibility
 
 __all__ = ['QuPathPathClass']
 
@@ -82,7 +83,10 @@ class QuPathPathClass:
         if color is not None:
             java_color = QuPathColor.from_any(color).to_java_rgba()  # use rgba?
 
-        path_class = PathClassFactory.getDerivedPathClass(java_parent, name, java_color)
+        if compatibility.supports_newer_addobject_and_pathclass():
+            path_class = PathClass.getInstance(java_parent, name, java_color)
+        else:
+            path_class = PathClassFactory.getDerivedPathClass(java_parent, name, java_color)
         self.java_object = path_class
 
     @property
