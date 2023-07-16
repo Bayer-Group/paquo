@@ -586,11 +586,14 @@ class QuPathProjectImageEntry:
     @cached_property
     def hierarchy(self) -> QuPathPathObjectHierarchy:
         """the image entry hierarchy. it contains all annotations"""
-        try:
-            h = self._image_data.getHierarchy()
-        except OSError:
-            _log.warning("could not open image data. loading annotation hierarchy from project.")
+        if self._readonly:
             h = self.java_object.readHierarchy()
+        else:
+            try:
+                h = self._image_data.getHierarchy()
+            except OSError:
+                _log.warning("could not open image data. loading annotation hierarchy from project.")
+                h = self.java_object.readHierarchy()
 
         return QuPathPathObjectHierarchy(h, readonly=self._readonly, image_name=self.image_name)
 
