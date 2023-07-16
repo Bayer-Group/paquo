@@ -23,8 +23,6 @@ else:
     from importlib.resources import path as importlib_resources_path
 
 
-
-
 PAQUO_CONFIG_FILENAME = '.paquo.toml'
 
 _PAQUO_FIX_CONFIG_KEYS = {
