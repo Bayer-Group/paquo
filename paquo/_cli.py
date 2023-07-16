@@ -54,7 +54,13 @@ def config_print_settings():
 
 def config_print_defaults():
     """print the default paquo configuration"""
-    from importlib.resources import read_text
+    if sys.version_info >= (3, 9):
+        from importlib.resources import files
+
+        def read_text(package, resource, encoding):
+            return files(package).joinpath(resource).read_text(encoding=encoding)
+    else:
+        from importlib.resources import read_text
 
     from paquo._config import settings
 
