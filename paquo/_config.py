@@ -1,5 +1,5 @@
+import sys
 import tempfile
-from importlib.resources import path as importlib_resources_path
 from pathlib import Path
 from typing import Any
 from typing import Dict
@@ -11,6 +11,19 @@ from dynaconf import loaders
 from dynaconf.base import Settings
 from dynaconf.utils import files as _files
 from dynaconf.utils.boxing import DynaBox
+
+if sys.version_info >= (3, 9):
+    from importlib.resources import as_file
+    from importlib.resources import files
+
+    def importlib_resources_path(package, resource):
+        return as_file(files(package).joinpath(resource))
+
+else:
+    from importlib.resources import path as importlib_resources_path
+
+
+
 
 PAQUO_CONFIG_FILENAME = '.paquo.toml'
 
