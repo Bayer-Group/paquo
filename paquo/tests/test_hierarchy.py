@@ -388,3 +388,11 @@ def test_add_incorrect_to_hierarchy(empty_hierarchy):
     with pytest.raises(TypeError):
         # noinspection PyTypeChecker
         empty_hierarchy.annotations.discard("abc")
+
+
+def test_serialize_to_ome(project_with_annotations):
+    pytest.importorskip("ome_types")
+    xml = project_with_annotations.images[0].hierarchy.to_ome_xml()
+
+    assert xml.startswith("<OME")
+    assert xml.endswith("</OME>")
