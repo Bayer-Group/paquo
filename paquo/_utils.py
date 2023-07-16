@@ -12,9 +12,9 @@ import tempfile
 import warnings
 import zipfile
 from datetime import datetime
+from functools import cached_property as _cached_property
 from functools import partial
 from functools import total_ordering
-from functools import cached_property as _cached_property
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import urlopen
@@ -28,6 +28,7 @@ __all__ = [
     'make_backup_filename',
     'load_json_from_path'
 ]
+
 
 # noinspection PyPep8Naming
 class cached_property(_cached_property):
@@ -197,7 +198,7 @@ def extract_qupath(file, destination, system=None):
             raise ValueError("file does not end with `.tar.xz`")
         with tempfile.TemporaryDirectory() as tmp_dir:
             with tarfile.open(file, mode="r:xz") as tf:
-                tf.extractall(tmp_dir)
+                tf.extractall(tmp_dir)  # nosec: B202
                 for name in os.listdir(tmp_dir):
                     pth = os.path.join(tmp_dir, name)
                     if name.startswith("QuPath") and os.path.isdir(pth):
@@ -230,7 +231,7 @@ def extract_qupath(file, destination, system=None):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with zipfile.ZipFile(file, mode="r") as zf:
-                zf.extractall(tmp_dir)
+                zf.extractall(tmp_dir)  # nosec: B202
                 for name in os.listdir(tmp_dir):
                     pth = os.path.join(tmp_dir, name)
                     if name.startswith("QuPath") and os.path.isdir(pth):
