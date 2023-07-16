@@ -510,7 +510,7 @@ class QuPathPathObjectHierarchy:
             for k, v in ao.measurements.items():
                 _m[f"{prefix}:measurement:{k}"] = v
 
-            if "ms" in (Map.model_fields if hasattr(Map, "model_fields") else Map.__fields__):
+            if "ms" in Map.__annotations__:
                 map_annotation = MapAnnotation(  # type: ignore
                     value=Map(
                         ms=[
