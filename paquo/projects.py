@@ -3,7 +3,6 @@ import math
 import pathlib
 import re
 import shutil
-import sys
 from contextlib import contextmanager
 from contextlib import nullcontext
 from typing import Any
@@ -13,17 +12,12 @@ from typing import Dict
 from typing import Iterable
 from typing import Iterator
 from typing import List
+from typing import Literal
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import Union
 from typing import overload
-from urllib.parse import urlsplit
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
 
 from paquo import settings
 from paquo._logging import get_logger
