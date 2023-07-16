@@ -509,10 +509,26 @@ class QuPathPathObjectHierarchy:
                 _m[f"{prefix}:name"] = ao.name
             for k, v in ao.measurements.items():
                 _m[f"{prefix}:measurement:{k}"] = v
-            map_annotation = MapAnnotation(value=Map(m=[
-                M(k=_key, value=str(_value))
-                for _key, _value in _m.items()
-            ]))
+
+            if "ms" in Map.__fields__:
+                map_annotation = MapAnnotation(  # type: ignore
+                    value=Map(
+                        ms=[
+                            M(k=_key, value=str(_value))
+                            for _key, _value in _m.items()
+                        ]
+                    )
+                )
+            else:
+                # ome-types < 0.4.0
+                map_annotation = MapAnnotation(  # type: ignore
+                    value=Map(
+                        m=[
+                            M(k=_key, value=str(_value))
+                            for _key, _value in _m.items()
+                        ]
+                    )
+                )
 
             # --- prepare common kwargs for ome Shape
 
@@ -559,8 +575,12 @@ class QuPathPathObjectHierarchy:
 
             # --- create the roi
 
-            roi = ROI(name=class_name)
-            roi.annotation_ref.append(AnnotationRef(id=map_annotation.id))
+            roi = ROI(name=class_name)  # type: ignore
+            try:
+                roi.annotation_refs.append(AnnotationRef(id=map_annotation.id))  # type: ignore
+            except AttributeError:
+                # ome-types<0.4.0
+                roi.annotation_ref.append(AnnotationRef(id=map_annotation.id))
 
             # --- add the correct shape dependent on roi types
 

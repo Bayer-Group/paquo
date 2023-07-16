@@ -395,4 +395,4 @@ def test_serialize_to_ome(project_with_annotations):
     xml = project_with_annotations.images[0].hierarchy.to_ome_xml()
 
     assert xml.startswith("<OME")
-    assert xml.endswith("</OME>")
+    assert xml.strip().endswith("</OME>")
