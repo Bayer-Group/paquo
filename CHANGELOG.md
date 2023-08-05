@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
-...
+
+## [0.7.1] - 2023-08-05
+### Fixed
+- prevent warning in ome conversion with pydantic>=2
+- speedup hierarchy loading in readonly mode
+- fix import of geojson tile objects
 
 ## [0.7.0] - 2023-06-16
 ### Changed
@@ -141,7 +146,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of paquo
 
 
-[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.5.1...v0.6.0
