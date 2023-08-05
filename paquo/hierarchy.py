@@ -3,6 +3,7 @@ import json
 import math
 import reprlib
 import struct
+import warnings
 from contextlib import contextmanager
 from contextlib import suppress
 from typing import Any
@@ -21,7 +22,11 @@ from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools
 from paquo.java import IllegalArgumentException
+from paquo.java import PathAnnotationObject
+from paquo.java import PathDetectionObject
 from paquo.java import PathObjectHierarchy
+from paquo.java import PathTileObject
+from paquo.java import String
 from paquo.java import compatibility
 from paquo.pathobjects import BaseGeometry
 from paquo.pathobjects import PathROIObjectType
@@ -398,6 +403,8 @@ class QuPathPathObjectHierarchy:
         if not isinstance(geojson, list):
             raise TypeError("requires a geojson list")
 
+        requires_annotation_json_fix = compatibility.requires_annotation_json_fix()
+
         aos = []
         skipped: "CounterType[str]" = collections.Counter()
         for annotation in geojson:
@@ -405,21 +412,27 @@ class QuPathPathObjectHierarchy:
                 if fix_invalid:
                     annotation["geometry"] = fix_geojson_geometry(annotation["geometry"])
 
+                properties = annotation["properties"]
+                if "objectType" in properties:
+                    # https://github.com/qupath/qupath/pull/1099
+                    object_type = properties["objectType"]
+                elif "object_type" in properties:
+                    object_type = properties["object_type"]
+                else:
+                    object_type = "unknown"
+
                 # compatibility layer
-                # todo: should maybe test at the beginning of this method
-                #   if the version supports id or not, instead of checking
-                #   the version number...
                 if (
-                    compatibility.requires_annotation_json_fix()
+                    requires_annotation_json_fix
                     and 'id' not in annotation
                 ):
-                    object_type = annotation['properties'].get("object_type", "unknown")
                     object_id = {
                         'annotation': "PathAnnotationObject",
                         'detection': "PathDetectionObject",
                         'tile': "PathTileObject",
                         'cell': "PathCellObject",
                         'tma_core': "TMACoreObject",
+                        'tmaCore': "TMACoreObject",  # https://github.com/qupath/qupath/pull/1099
                         'root': "PathRootObject",
                         'unknown': "PathAnnotationObject",
                     }.get(object_type, None)
@@ -428,7 +441,22 @@ class QuPathPathObjectHierarchy:
                         object_id = "PathAnnotationObject"
                     annotation['id'] = object_id
 
-                ao = QuPathPathAnnotationObject.from_geojson(annotation)
+                gson = GsonTools.getInstance()
+                if object_type == "annotation":
+                    java_obj = gson.fromJson(String(json.dumps(annotation)), PathAnnotationObject)
+                elif object_type == "detection":
+                    java_obj = gson.fromJson(String(json.dumps(annotation)), PathDetectionObject)
+                elif object_type == "tile":
+                    java_obj = gson.fromJson(String(json.dumps(annotation)), PathTileObject)
+                else:
+                    if object_type != "unknown":
+                        warnings.warn(
+                            f"Trying to load annotation object_type={object_type!r}. "
+                            "Please report this on the paquo issue tracker on github and provide a geojson example. "
+                            "https://github.com/Bayer-Group/paquo/issues",
+                            stacklevel=2,
+                        )
+                    java_obj = gson.fromJson(String(json.dumps(annotation)), PathAnnotationObject)
 
             except (IllegalArgumentException, ValueError) as err:
                 _logger.warn(f"Annotation skipped: {err}")
@@ -437,7 +465,7 @@ class QuPathPathObjectHierarchy:
                 continue
 
             else:
-                aos.append(ao.java_object)
+                aos.append(java_obj)
 
         if skipped:
             n_skipped = sum(skipped.values())
