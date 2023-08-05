@@ -396,3 +396,38 @@ def test_serialize_to_ome(project_with_annotations):
 
     assert xml.startswith("<OME")
     assert xml.strip().endswith("</OME>")
+
+
+TEST_ANNOTATION_OBJECT_TYPE_TILE = {
+    "features": [
+        {
+            "geometry": {
+                "coordinates": [
+                    [
+                        [0, 23904],
+                        [350, 23904],
+                        [350, 24254],
+                        [0, 24254],
+                        [0, 23904],
+                    ]
+                ],
+                "type": "Polygon"
+            },
+            "properties": {
+                "isLocked": True,
+                "measurements": {
+                    "prob_notumor": 0.9998319149017334,
+                    "prob_tumor": 0.00016804548795334995
+                },
+                "objectType": "tile"
+            },
+            "type": "Feature"
+        }
+    ],
+    "type": "FeatureCollection"
+}
+
+
+def test_load_object_type_tile_geojson(empty_hierarchy):
+    geojson = deepcopy(TEST_ANNOTATION_OBJECT_TYPE_TILE)["features"]
+    empty_hierarchy.load_geojson(geojson)
