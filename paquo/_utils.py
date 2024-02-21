@@ -248,9 +248,12 @@ def extract_qupath(file, destination, system=None):
                     pth = os.path.join(tmp_dir, name)
                     if name.startswith("QuPath") and os.path.isdir(pth):
                         break
+                    if name.startswith("QuPath") and name.endswith(".exe") and os.path.isfile(pth):
+                        pth = tmp_dir
+                        break
                 else:
                     raise RuntimeError("no qupath extracted?")
-            shutil.move(os.path.join(tmp_dir, name), qp_dst)
+            shutil.move(pth, qp_dst)
         return qp_dst
 
     else:
