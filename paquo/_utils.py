@@ -126,12 +126,22 @@ def download_qupath(
     else:
         raise ValueError(f"unsupported platform.system() == {system!r}")
 
-    if "rc" not in version:
+    if not version.startswith("v"):
+        version = f"v{version}"
+
+    if Version(version) > Version("0.4.4"):
+        if platform.machine() == "arm64":
+            _sys = "Mac-arm64"
+        else:
+            _sys = "Mac-x64"
         name = f"QuPath-{version}-{_sys}"
     else:
-        name = f"QuPath-{version}"
+        if "rc" not in version:
+            name = f"QuPath-{version[1:]}-{_sys}"
+        else:
+            name = f"QuPath-{version[1:]}"
 
-    url = f"https://github.com/qupath/qupath/releases/download/v{version}/{name}.{ext}"
+    url = f"https://github.com/qupath/qupath/releases/download/{version}/{name}.{ext}"
 
     chunk_size = 10 * 1024 * 1024
 
@@ -149,6 +159,7 @@ def download_qupath(
         _ctx.verify_mode = ssl.CERT_NONE
 
     try:
+        print("# requesting:", url)
         with open(out_fn, mode="wb") as tmp, urlopen(url, context=_ctx) as f:  # nosec B310
             for chunk in callback(iter(lambda: f.read(chunk_size), b""), name=url):
                 tmp.write(chunk)
@@ -168,7 +179,7 @@ def extract_qupath(file, destination, system=None):
 
     # normalize QuPath App dirname
     m = re.match(
-        r"QuPath-(?P<version>[0-9]+[.][0-9]+[.][0-9]+(-rc[0-9]+|-m[0-9]+)?)",
+        r"QuPath-v?(?P<version>[0-9]+[.][0-9]+[.][0-9]+(-rc[0-9]+|-m[0-9]+)?)",
         fn,
     )
 
