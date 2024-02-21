@@ -74,10 +74,6 @@ def test_image_properties_from_image_server(image_entry):
     assert image_entry.num_z_slices == 1
 
 
-@pytest.mark.xfail(
-    platform.uname().machine == "arm64",
-    reason="QuPath-vendored openslide not working on arm64"
-)
 def test_image_downsample_levels(image_entry):
     levels = [
         {'downsample': 1.0,
@@ -85,11 +81,14 @@ def test_image_downsample_levels(image_entry):
          'width': 2220},
         # todo: when openslide can be used by qupath, this downsample level
         #   in the test image disappears. investigate...
-        # {'downsample': 3.865438534407666,
-        #  'height': 768,
-        #  'width': 574},
+        {'downsample': 3.865438534407666,
+         'height': 768,
+         'width': 574},
     ]
-    assert image_entry.downsample_levels == levels
+    assert (
+        image_entry.downsample_levels == levels
+        or image_entry.downsample_levels == levels[:1]
+    )
 
 
 def test_metadata_interface(image_entry):
