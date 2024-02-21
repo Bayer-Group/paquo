@@ -119,7 +119,12 @@ else:
 
 PathAnnotationObject = JClass("qupath.lib.objects.PathAnnotationObject")
 PathClass = JClass('qupath.lib.objects.classes.PathClass')
-PathClassFactory = JClass('qupath.lib.objects.classes.PathClassFactory')
+
+if not compatibility.supports_newer_addobject_and_pathclass():
+    PathClassFactory = JClass('qupath.lib.objects.classes.PathClassFactory')
+else:
+    PathClassFactory = None
+
 PathDetectionObject = JClass("qupath.lib.objects.PathDetectionObject")
 PathIO = JClass("qupath.lib.io.PathIO")
 PathObjectHierarchy = JClass('qupath.lib.objects.hierarchy.PathObjectHierarchy')
