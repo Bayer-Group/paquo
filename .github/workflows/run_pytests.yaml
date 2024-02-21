@@ -8,7 +8,7 @@ on:
   pull_request: {}
 
 env:
-  QUPATH_VERSION: 0.4.3
+  QUPATH_VERSION: 0.5.0
 
 jobs:
   # RUN PYTEST ON PAQUO SOURCE
@@ -16,19 +16,21 @@ jobs:
     name: pytest ${{ matrix.os }}::py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 7
+      max-parallel: 8
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         include:
           # we'll test the python support on ubuntu
           - os: ubuntu-latest
-            python-version: '3.10'
+            python-version: '3.11'
           - os: ubuntu-latest
-            python-version: 3.9
+            python-version: '3.12'
           - os: ubuntu-latest
-            python-version: 3.8
+            python-version: '3.9'
+          - os: ubuntu-latest
+            python-version: '3.8'
     steps:
     - uses: actions/checkout@v3
       with:
