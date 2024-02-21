@@ -130,10 +130,11 @@ def download_qupath(
         version = f"v{version}"
 
     if Version(version) > Version("0.4.4"):
-        if platform.machine() == "arm64":
-            _sys = "Mac-arm64"
-        else:
-            _sys = "Mac-x64"
+        if system == "Darwin":
+            if platform.machine() == "arm64":
+                _sys = "Mac-arm64"
+            else:
+                _sys = "Mac-x64"
         name = f"QuPath-{version}-{_sys}"
     else:
         if "rc" not in version:
