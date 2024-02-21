@@ -335,13 +335,16 @@ def get_qupath(args, subparser):
         finally:
             print("")
 
-    file = download_qupath(
-        args.version,
-        path=args.download_path,
-        callback=_download_cb,
-        system=system,
-        ssl_verify=not args.no_ssl_verify
-    )
+    try:
+        file = download_qupath(
+            args.version,
+            path=args.download_path,
+            callback=_download_cb,
+            system=system,
+            ssl_verify=not args.no_ssl_verify
+        )
+    except Exception:
+        raise SystemExit(1)
     print("# extracting:", file)
     app = extract_qupath(file, args.install_path, system=system)
     print("# available at:", app)

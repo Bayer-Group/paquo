@@ -159,11 +159,11 @@ def download_qupath(
         _ctx.verify_mode = ssl.CERT_NONE
 
     try:
-        print("# requesting:", url)
         with open(out_fn, mode="wb") as tmp, urlopen(url, context=_ctx) as f:  # nosec B310
             for chunk in callback(iter(lambda: f.read(chunk_size), b""), name=url):
                 tmp.write(chunk)
     except Exception:
+        print("# error requesting:", url, file=sys.stderr)
         try:
             os.unlink(out_fn)
         except OSError:
