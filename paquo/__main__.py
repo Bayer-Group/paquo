@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import functools
 import os
@@ -8,6 +10,7 @@ from contextlib import redirect_stdout
 from itertools import repeat
 from logging.config import dictConfig
 from pathlib import Path
+from typing import Callable
 
 from paquo._cli import DirectoryType
 from paquo._cli import argument
@@ -270,14 +273,14 @@ def quickview(args, subparser):
 
     f_annotations = None
     if args.annotations:
-        def f_annotations(name):
+        def f_annotations(name):  # noqa
             if name != image.name:
                 return []
             return list(args.annotations)
 
     f_annotations_cmd = None
     if args.annotations_cmd:
-        def f_annotations_cmd(name):
+        def f_annotations_cmd(name):  # noqa
             import shlex
             _cmd = shlex.split(f"{args.annotations_cmd} {name}")
             print("annotations", _cmd)
@@ -286,7 +289,7 @@ def quickview(args, subparser):
 
     cmd = None
     if f_annotations_cmd or f_annotations:
-        def cmd(name):
+        def cmd(name):  # noqa
             names = []
             if f_annotations:
                 names.extend(f_annotations(name))
