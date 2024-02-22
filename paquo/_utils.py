@@ -126,12 +126,23 @@ def download_qupath(
     else:
         raise ValueError(f"unsupported platform.system() == {system!r}")
 
-    if "rc" not in version:
+    if not version.startswith("v"):
+        version = f"v{version}"
+
+    if Version(version) > Version("0.4.4"):
+        if system == "Darwin":
+            if platform.machine() == "arm64":
+                _sys = "Mac-arm64"
+            else:
+                _sys = "Mac-x64"
         name = f"QuPath-{version}-{_sys}"
     else:
-        name = f"QuPath-{version}"
+        if "rc" not in version:
+            name = f"QuPath-{version[1:]}-{_sys}"
+        else:
+            name = f"QuPath-{version[1:]}"
 
-    url = f"https://github.com/qupath/qupath/releases/download/v{version}/{name}.{ext}"
+    url = f"https://github.com/qupath/qupath/releases/download/{version}/{name}.{ext}"
 
     chunk_size = 10 * 1024 * 1024
 
@@ -153,6 +164,7 @@ def download_qupath(
             for chunk in callback(iter(lambda: f.read(chunk_size), b""), name=url):
                 tmp.write(chunk)
     except Exception:
+        print("# error requesting:", url, file=sys.stderr)
         try:
             os.unlink(out_fn)
         except OSError:
@@ -168,7 +180,7 @@ def extract_qupath(file, destination, system=None):
 
     # normalize QuPath App dirname
     m = re.match(
-        r"QuPath-(?P<version>[0-9]+[.][0-9]+[.][0-9]+(-rc[0-9]+|-m[0-9]+)?)",
+        r"QuPath-v?(?P<version>[0-9]+[.][0-9]+[.][0-9]+(-rc[0-9]+|-m[0-9]+)?)",
         fn,
     )
 
@@ -236,9 +248,12 @@ def extract_qupath(file, destination, system=None):
                     pth = os.path.join(tmp_dir, name)
                     if name.startswith("QuPath") and os.path.isdir(pth):
                         break
+                    if name.startswith("QuPath") and name.endswith(".exe") and os.path.isfile(pth):
+                        pth = tmp_dir
+                        break
                 else:
                     raise RuntimeError("no qupath extracted?")
-            shutil.move(os.path.join(tmp_dir, name), qp_dst)
+            shutil.move(pth, qp_dst)
         return qp_dst
 
     else:

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from paquo._utils import QuPathVersion
 from paquo.images import ImageProvider, QuPathProjectImageEntry, QuPathImageType
 from paquo.projects import QuPathProject
 
@@ -284,7 +285,7 @@ def test_project_save_image_data(new_project, svs_small):
     assert (entry.entry_path / "data.qpdata").is_file()
 
 
-def test_project_delete_image_file_when_opened(new_project, svs_small):
+def test_project_delete_image_file_when_opened(new_project, svs_small, qupath_version):
     # prepare new image to be deleted
     new_svs_small = new_project.path.parent / f"image_be_gone{svs_small.suffix}"
     shutil.copy(svs_small, new_svs_small)
@@ -314,7 +315,16 @@ def test_project_delete_image_file_when_opened(new_project, svs_small):
 
     elif qupath_uses == "OPENSLIDE":
 
-        os.unlink(new_svs_small)
+        if (
+            qupath_version >= QuPathVersion("0.5.0")
+            and platform.system() == "Windows"
+        ):
+            cm = pytest.raises(PermissionError)
+        else:
+            cm = nullcontext()
+
+        with cm:
+            os.unlink(new_svs_small)
 
     else:  # pragma: no cover
         raise ValueError('...')
@@ -389,7 +399,13 @@ def test_project_image_uri_update_try_relative(tmp_path, svs_small):
 
     # NOW move the location
     location_1 = tmp_path / "location_1"
-    shutil.move(location_0, location_1)
+    try:
+        shutil.move(location_0, location_1)
+    except PermissionError:
+        if platform.system() == "Windows":
+            pytest.xfail("Windows QuPath==0.5.0 quirk with permissions")
+        else:
+            raise
 
     with QuPathProject(location_1 / "project", mode='r') as qp:
         entry, = qp.images

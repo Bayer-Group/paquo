@@ -548,7 +548,8 @@ class QuPathProjectImageEntry:
         The available downsample levels can differ dependent
         on which image backend is used by QuPath
         """
-        md = self._image_server.getMetadata()
+        with redirect(stdout=True, stderr=True):
+            md = self._image_server.getMetadata()
         levels = []
         for level in range(int(md.nLevels())):
             resolution_level = md.getLevel(level)

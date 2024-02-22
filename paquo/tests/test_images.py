@@ -1,5 +1,6 @@
 import platform
 import shutil
+import sys
 import tempfile
 from contextlib import nullcontext
 from operator import itemgetter
@@ -23,7 +24,11 @@ def image_entry(svs_small):
 
 @pytest.fixture(scope='function')
 def removable_svs_small(svs_small):
-    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+    kw = {} if sys.version_info < (3, 10) else {"ignore_cleanup_errors": True}
+    with tempfile.TemporaryDirectory(
+        prefix='paquo-',
+        **kw
+    ) as tmpdir:
         new_path = Path(tmpdir) / svs_small.name
         shutil.copy(svs_small, new_path)
         yield new_path
@@ -32,21 +37,35 @@ def removable_svs_small(svs_small):
 @pytest.fixture(scope='function')
 def project_with_removed_image(removable_svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir, mode='x')
-        _ = qp.add_image(removable_svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
-        qp.save()
-        removable_svs_small.unlink()
-        yield qp.path
+        with QuPathProject(tmpdir, mode='x') as qp:
+            _ = qp.add_image(removable_svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
+            qp.save()
+            path = qp.path
+        try:
+            removable_svs_small.unlink()
+        except PermissionError:
+            if platform.system() == "Windows":
+                pytest.xfail("Windows QuPath==0.5.0 permission issue")
+            else:
+                raise
+        yield path
 
 
 @pytest.fixture(scope='function')
 def project_with_removed_image_without_image_data(removable_svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir, mode='x')
-        _ = qp.add_image(removable_svs_small)
-        qp.save()
-        removable_svs_small.unlink()
-        yield qp.path
+        with QuPathProject(tmpdir, mode='x') as qp:
+            _ = qp.add_image(removable_svs_small)
+            qp.save()
+            path = qp.path
+        try:
+            removable_svs_small.unlink()
+        except PermissionError:
+            if platform.system() == "Windows":
+                pytest.xfail("Windows QuPath==0.5.0 permission issue")
+            else:
+                raise
+        yield path
 
 
 def test_image_entry_return_hierarchy(image_entry):
@@ -74,10 +93,6 @@ def test_image_properties_from_image_server(image_entry):
     assert image_entry.num_z_slices == 1
 
 
-@pytest.mark.xfail(
-    platform.uname().machine == "arm64",
-    reason="QuPath-vendored openslide not working on arm64"
-)
 def test_image_downsample_levels(image_entry):
     levels = [
         {'downsample': 1.0,
@@ -85,11 +100,14 @@ def test_image_downsample_levels(image_entry):
          'width': 2220},
         # todo: when openslide can be used by qupath, this downsample level
         #   in the test image disappears. investigate...
-        # {'downsample': 3.865438534407666,
-        #  'height': 768,
-        #  'width': 574},
+        {'downsample': 3.865438534407666,
+         'height': 768,
+         'width': 574},
     ]
-    assert image_entry.downsample_levels == levels
+    assert (
+        image_entry.downsample_levels == levels
+        or image_entry.downsample_levels == levels[:1]
+    )
 
 
 def test_metadata_interface(image_entry):

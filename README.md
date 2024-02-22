@@ -21,7 +21,7 @@ unintuitive, slow or if its documentation is confusing, it's a bug in
 tracker!
 
 Development
-[happens on github](https://github.com/bayer-science-for-a-better-life/paquo)
+[happens on GitHub](https://github.com/bayer-science-for-a-better-life/paquo)
 :octocat:
 
 ## Documentation
@@ -54,18 +54,18 @@ paquo to use that version. Currently, paquo supports every version of QuPath fro
 `0.2.0` to the most recent. _(We even support older `0.2.0-mX` versions but no guarantees)._
 
 ```shell
-> paquo get_qupath --install-path "/some/path/on/your/machine" 0.4.3
-# downloading: https://github.com/qupath/qupath/releases/download/v0.4.3/QuPath-0.4.3-Linux.tar.xz
+> paquo get_qupath --install-path "/some/path/on/your/machine" 0.5.0
+# downloading: https://github.com/qupath/qupath/releases/download/v0.5.0/QuPath-0.4.3-Linux.tar.xz
 # progress ................... OK
-# extracting: [...]/QuPath-0.4.3-Linux.tar.xz
-# available at: /some/path/on/your/machine/QuPath-0.4.3
+# extracting: [...]/QuPath-0.5.0-Linux.tar.xz
+# available at: /some/path/on/your/machine/QuPath-0.5.0
 #
 # use via environment variable:
-#   $ export PAQUO_QUPATH_DIR=/some/path/on/your/machine/QuPath-0.4.3
+#   $ export PAQUO_QUPATH_DIR=/some/path/on/your/machine/QuPath-0.5.0
 #
 # use via .paquo.toml config file:
-#   qupath_dir="/some/path/on/your/machine/QuPath-0.4.3"
-/some/path/on/your/machine/QuPath-0.4.3
+#   qupath_dir="/some/path/on/your/machine/QuPath-0.5.0"
+/some/path/on/your/machine/QuPath-0.5.0
 ```
 
 
@@ -88,9 +88,9 @@ so go ahead and hack.
 - When contributing code, please try to use Pull Requests.
 - tests go hand in hand with modules on ```tests``` packages at the same level. We use ```pytest```.
 
-You can setup your IDE to help you adhering to these guidelines.
+You can set up your IDE to help you to adhere to these guidelines.
 <br>
-_([Santi](https://github.com/sdvillal) is happy to help you setting up pycharm in 5 minutes)_
+_([Santi](https://github.com/sdvillal) is happy to help you to set up pycharm in 5 minutes)_
 
 
 ## Acknowledgements
