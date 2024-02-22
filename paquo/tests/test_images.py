@@ -36,7 +36,13 @@ def project_with_removed_image(removable_svs_small):
             _ = qp.add_image(removable_svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
             qp.save()
             path = qp.path
-        removable_svs_small.unlink()
+        try:
+            removable_svs_small.unlink()
+        except PermissionError:
+            if platform.system() == "Windows":
+                pytest.xfail("Windows QuPath==0.5.0 permission issue")
+            else:
+                raise
         yield path
 
 
@@ -47,7 +53,13 @@ def project_with_removed_image_without_image_data(removable_svs_small):
             _ = qp.add_image(removable_svs_small)
             qp.save()
             path = qp.path
-        removable_svs_small.unlink()
+        try:
+            removable_svs_small.unlink()
+        except PermissionError:
+            if platform.system() == "Windows":
+                pytest.xfail("Windows QuPath==0.5.0 permission issue")
+            else:
+                raise
         yield path
 
 

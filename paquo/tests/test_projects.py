@@ -399,7 +399,13 @@ def test_project_image_uri_update_try_relative(tmp_path, svs_small):
 
     # NOW move the location
     location_1 = tmp_path / "location_1"
-    shutil.move(location_0, location_1)
+    try:
+        shutil.move(location_0, location_1)
+    except PermissionError:
+        if platform.system() == "Windows":
+            pytest.xfail("Windows QuPath==0.5.0 quirk with permissions")
+        else:
+            raise
 
     with QuPathProject(location_1 / "project", mode='r') as qp:
         entry, = qp.images
