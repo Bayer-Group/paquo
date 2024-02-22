@@ -45,8 +45,10 @@ def project_with_removed_image_without_image_data(removable_svs_small):
         qp = QuPathProject(tmpdir, mode='x')
         _ = qp.add_image(removable_svs_small)
         qp.save()
+        path = qp.path
+        del qp
         removable_svs_small.unlink()
-        yield qp.path
+        yield path
 
 
 def test_image_entry_return_hierarchy(image_entry):
