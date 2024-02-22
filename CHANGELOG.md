@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2024-02-22
+### Fixed
+- fixed QuPath=0.5.0 download via get_qupath
+
+### Changed
+- ci: test against QuPath=0.5.0
+
 ## [0.7.1] - 2023-08-05
 ### Fixed
 - prevent warning in ome conversion with pydantic>=2
@@ -146,7 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of paquo
 
 
-[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.6.0...v0.6.1
