@@ -32,21 +32,21 @@ def removable_svs_small(svs_small):
 @pytest.fixture(scope='function')
 def project_with_removed_image(removable_svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir, mode='x')
-        _ = qp.add_image(removable_svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
-        qp.save()
+        with QuPathProject(tmpdir, mode='x') as qp:
+            _ = qp.add_image(removable_svs_small, image_type=QuPathImageType.BRIGHTFIELD_H_E)
+            qp.save()
+            path = qp.path
         removable_svs_small.unlink()
-        yield qp.path
+        yield path
 
 
 @pytest.fixture(scope='function')
 def project_with_removed_image_without_image_data(removable_svs_small):
     with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
-        qp = QuPathProject(tmpdir, mode='x')
-        _ = qp.add_image(removable_svs_small)
-        qp.save()
-        path = qp.path
-        del qp
+        with QuPathProject(tmpdir, mode='x') as qp:
+            _ = qp.add_image(removable_svs_small)
+            qp.save()
+            path = qp.path
         removable_svs_small.unlink()
         yield path
 
