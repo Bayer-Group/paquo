@@ -1,5 +1,6 @@
 import platform
 import shutil
+import sys
 import tempfile
 from contextlib import nullcontext
 from operator import itemgetter
@@ -23,7 +24,11 @@ def image_entry(svs_small):
 
 @pytest.fixture(scope='function')
 def removable_svs_small(svs_small):
-    with tempfile.TemporaryDirectory(prefix='paquo-') as tmpdir:
+    kw = {} if sys.version_info < (3, 10) else {"ignore_cleanup_errors": True}
+    with tempfile.TemporaryDirectory(
+        prefix='paquo-',
+        **kw
+    ) as tmpdir:
         new_path = Path(tmpdir) / svs_small.name
         shutil.copy(svs_small, new_path)
         yield new_path
