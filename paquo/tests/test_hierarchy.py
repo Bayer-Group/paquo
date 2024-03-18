@@ -79,7 +79,10 @@ def test_add_annotation_detection_tile(empty_hierarchy):
     empty_hierarchy.add_tile(
         roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5)
     )
-
+    empty_hierarchy.add_cell(
+        roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5),
+        nucleus_roi=shapely.geometry.Polygon.from_bounds(1.25, 1.25, 3.75, 3.75)
+    )
 
 def test_attach_detections(empty_hierarchy):
     h = empty_hierarchy
