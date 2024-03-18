@@ -404,7 +404,8 @@ class QuPathPathObjectHierarchy:
             path_class_probability=path_class_probability,
             nucleus_roi=nucleus_roi
         )
-        pass
+        self._detections.add(obj)
+        return obj
 
     def to_geojson(self) -> list:
         """return all annotations as a list of geojson features"""
