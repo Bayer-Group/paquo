@@ -33,6 +33,7 @@ from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
 from paquo.pathobjects import QuPathPathDetectionObject
 from paquo.pathobjects import QuPathPathTileObject
+from paquo.pathobjects import QuPathPathCellObject
 from paquo.pathobjects import fix_geojson_geometry
 
 __all__ = ["QuPathPathObjectHierarchy"]
@@ -379,6 +380,29 @@ class QuPathPathObjectHierarchy:
         obj = QuPathPathTileObject.from_shapely(
             roi, path_class, measurements,
             path_class_probability=path_class_probability
+        )
+        self._detections.add(obj)
+        return obj
+
+    def add_cell(self,
+                 roi: BaseGeometry,
+                 path_class: Optional[QuPathPathClass] = None,
+                 measurements: Optional[dict] = None,
+                 *,
+                 path_class_probability: float = math.nan,
+                 nucleus_roi: BaseGeometry,) -> QuPathPathCellObject:
+        """convenience method for adding cell detections
+        
+        Notes
+        -----
+        these will be added to self.detections, as they are a subclass of detections
+        """
+        if self._readonly:
+            raise OSError("project in readonly mode")
+        obj = QuPathPathCellObject.from_shapely(
+            roi, path_class, measurements,
+            path_class_probability=path_class_probability,
+            nucleus_roi=nucleus_roi
         )
         self._detections.add(obj)
         return obj
