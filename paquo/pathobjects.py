@@ -163,8 +163,7 @@ class _PathROIObject:
                      path_class: Optional[QuPathPathClass] = None,
                      measurements: Optional[dict] = None,
                      *,
-                     path_class_probability: float = math.nan,
-                     nucleus_roi: Optional[BaseGeometry] = None) -> PathROIObjectType:
+                     path_class_probability: float = math.nan) -> "PathROIObjectType":
         """create a Path Object from a shapely shape
 
         Parameters
@@ -178,26 +177,14 @@ class _PathROIObject:
         path_class_probability:
             keyword only argument defining the probability of the class
             (default NaN)
-        nucleus_roi:
-            an optional roi for a nucleus
 
         """
         if not isinstance(roi, BaseGeometry):
             raise TypeError("roi needs to be an instance of shapely.geometry.base.BaseGeometry")
-
+        qupath_roi = _shapely_geometry_to_qupath_roi(roi)
         qupath_path_class = path_class.java_object if path_class is not None else None
-
-        if nucleus_roi is None:
-            qupath_roi = _shapely_geometry_to_qupath_roi(roi)
-            # fixme: should create measurements here and pass instead of None
-            java_obj = cls.java_class_factory(qupath_roi, qupath_path_class, None)
-        else:  # Two rois supplied - corresponds to CellObject constructor
-            if not isinstance(nucleus_roi, BaseGeometry):
-                raise TypeError("additional_roi needs to be an instance of shapely.geometry.base.BaseGeometry")
-            qupath_roi = _shapely_geometry_to_qupath_roi(roi)
-            qupath_additional_roi = _shapely_geometry_to_qupath_roi(nucleus_roi)
-            java_obj = cls.java_class_factory(qupath_roi, qupath_additional_roi, qupath_path_class, None)
-
+        # fixme: should create measurements here and pass instead of None
+        java_obj = cls.java_class_factory(qupath_roi, qupath_path_class, None)
         if not math.isnan(path_class_probability):
             java_obj.setPathClass(java_obj.getPathClass(), path_class_probability)
         obj = cls(java_obj)
@@ -405,3 +392,45 @@ class QuPathPathCellObject(QuPathPathDetectionObject):
         """the nucleus roi as a shapely shape"""
         roi = self.java_object.getNucleusROI()
         return _qupath_roi_to_shapely_geometry(roi)
+
+    @classmethod
+    def from_shapely(cls,
+                     roi: BaseGeometry,
+                     path_class: Optional[QuPathPathClass] = None,
+                     measurements: Optional[dict] = None,
+                     *,
+                     path_class_probability: float = math.nan,
+                     nucleus_roi: Optional[BaseGeometry] = None) -> "QuPathPathCellObject":
+        """create a Path Object from a shapely shape
+
+        Parameters
+        ----------
+        roi:
+            a shapely shape as the region of interest of the annotation
+        path_class:
+            a paquo QuPathPathClass to mark the annotation type
+        measurements:
+            dict holding static measurements for annotation object
+        path_class_probability:
+            keyword only argument defining the probability of the class
+            (default NaN)
+        nucleus_roi:
+            a roi for a nucleus
+
+        """
+        if not isinstance(roi, BaseGeometry):
+            raise TypeError("roi needs to be an instance of shapely.geometry.base.BaseGeometry")
+        if not isinstance(nucleus_roi, BaseGeometry):
+            raise TypeError("nucleus_roi needs to be an instance of shapely.geometry.base.BaseGeometry")
+
+        qupath_path_class = path_class.java_object if path_class is not None else None
+        qupath_roi = _shapely_geometry_to_qupath_roi(roi)
+        qupath_additional_roi = _shapely_geometry_to_qupath_roi(nucleus_roi)
+        java_obj = cls.java_class_factory(qupath_roi, qupath_additional_roi, qupath_path_class, None)
+
+        if not math.isnan(path_class_probability):
+            java_obj.setPathClass(java_obj.getPathClass(), path_class_probability)
+        obj = cls(java_obj)
+        if measurements is not None:
+            obj.measurements.update(measurements)
+        return obj

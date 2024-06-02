@@ -4,7 +4,7 @@ from shapely import Polygon
 
 from paquo._utils import QuPathVersion
 from paquo.classes import QuPathPathClass
-from paquo.pathobjects import QuPathPathAnnotationObject
+from paquo.pathobjects import QuPathPathAnnotationObject, QuPathPathCellObject
 from paquo.projects import QuPathProject
 
 
@@ -152,6 +152,28 @@ def test_annotation_object():
     ao.name = "abc"
     ao.update_path_class(QuPathPathClass('myclass'))
     assert repr(ao)
+
+
+def test_pathcellobject():
+
+    roi = shapely.geometry.Polygon.from_bounds(10, 20, 100, 200)
+    nucleus_roi = shapely.geometry.Polygon.from_bounds(14, 26, 90, 190)
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        QuPathPathCellObject.from_shapely(roi=123, nucleus_roi=123)
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        QuPathPathCellObject.from_shapely(roi=roi)
+
+    cell = QuPathPathCellObject.from_shapely(
+        roi,
+        path_class=QuPathPathClass('myclass'),
+        nucleus_roi=nucleus_roi,
+    )
+
+    assert shapely.equals(cell.roi, roi)
+    assert shapely.equals(cell.nucleus_roi, nucleus_roi)
 
 
 def test_measurements():
