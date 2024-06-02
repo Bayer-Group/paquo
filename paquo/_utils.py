@@ -217,7 +217,11 @@ def extract_qupath(file, destination, system=None):
                         break
                 else:
                     raise RuntimeError("no qupath extracted?")
-            shutil.move(os.path.join(tmp_dir, name), qp_dst)
+            extract_dir = os.path.join(tmp_dir, name)
+            if os.path.isdir(os.path.join(extract_dir, "QuPath")):
+                # in some cases there is a nested QuPath directory
+                extract_dir = os.path.join(extract_dir, "QuPath")
+            shutil.move(extract_dir, qp_dst)
         return qp_dst
 
     elif system == "Darwin":
