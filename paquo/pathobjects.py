@@ -20,6 +20,7 @@ from paquo.java import ROI
 from paquo.java import GeometryTools
 from paquo.java import GsonTools
 from paquo.java import PathAnnotationObject
+from paquo.java import PathCellObject
 from paquo.java import PathDetectionObject
 from paquo.java import PathObjects
 from paquo.java import PathROIObject
@@ -35,6 +36,7 @@ __all__ = [
     "QuPathPathAnnotationObject",
     "QuPathPathDetectionObject",
     "QuPathPathTileObject",
+    "QuPathPathCellObject",
 ]
 
 
@@ -161,7 +163,7 @@ class _PathROIObject:
                      path_class: Optional[QuPathPathClass] = None,
                      measurements: Optional[dict] = None,
                      *,
-                     path_class_probability: float = math.nan) -> PathROIObjectType:
+                     path_class_probability: float = math.nan) -> "PathROIObjectType":
         """create a Path Object from a shapely shape
 
         Parameters
@@ -378,3 +380,57 @@ class QuPathPathTileObject(QuPathPathDetectionObject):
 
     java_class = PathTileObject
     java_class_factory = PathObjects.createTileObject
+
+
+class QuPathPathCellObject(QuPathPathDetectionObject):
+
+    java_class = PathCellObject
+    java_class_factory = PathObjects.createCellObject
+
+    @property
+    def nucleus_roi(self) -> BaseGeometry:
+        """the nucleus roi as a shapely shape"""
+        roi = self.java_object.getNucleusROI()
+        return _qupath_roi_to_shapely_geometry(roi)
+
+    @classmethod
+    def from_shapely(cls,
+                     roi: BaseGeometry,
+                     path_class: Optional[QuPathPathClass] = None,
+                     measurements: Optional[dict] = None,
+                     *,
+                     path_class_probability: float = math.nan,
+                     nucleus_roi: Optional[BaseGeometry] = None) -> "QuPathPathCellObject":
+        """create a Path Object from a shapely shape
+
+        Parameters
+        ----------
+        roi:
+            a shapely shape as the region of interest of the annotation
+        path_class:
+            a paquo QuPathPathClass to mark the annotation type
+        measurements:
+            dict holding static measurements for annotation object
+        path_class_probability:
+            keyword only argument defining the probability of the class
+            (default NaN)
+        nucleus_roi:
+            a roi for a nucleus
+
+        """
+        if not isinstance(roi, BaseGeometry):
+            raise TypeError("roi needs to be an instance of shapely.geometry.base.BaseGeometry")
+        if not isinstance(nucleus_roi, BaseGeometry):
+            raise TypeError("nucleus_roi needs to be an instance of shapely.geometry.base.BaseGeometry")
+
+        qupath_path_class = path_class.java_object if path_class is not None else None
+        qupath_roi = _shapely_geometry_to_qupath_roi(roi)
+        qupath_additional_roi = _shapely_geometry_to_qupath_roi(nucleus_roi)
+        java_obj = cls.java_class_factory(qupath_roi, qupath_additional_roi, qupath_path_class, None)
+
+        if not math.isnan(path_class_probability):
+            java_obj.setPathClass(java_obj.getPathClass(), path_class_probability)
+        obj = cls(java_obj)
+        if measurements is not None:
+            obj.measurements.update(measurements)
+        return obj

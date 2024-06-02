@@ -79,7 +79,10 @@ def test_add_annotation_detection_tile(empty_hierarchy):
     empty_hierarchy.add_tile(
         roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5)
     )
-
+    empty_hierarchy.add_cell(
+        roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5),
+        nucleus_roi=shapely.geometry.Polygon.from_bounds(1.25, 1.25, 3.75, 3.75)
+    )
 
 def test_attach_detections(empty_hierarchy):
     h = empty_hierarchy
@@ -105,6 +108,21 @@ def test_annotations_detections_separation(empty_hierarchy):
     h.detections.update(detections)
     assert len(h.annotations) == 5
     assert len(h.detections) == 7
+
+
+def test_add_cells(empty_hierarchy):
+    h = empty_hierarchy
+    roi = shapely.geometry.Polygon.from_bounds(0, 0, 5, 5)
+    nucleus_roi = shapely.geometry.Polygon.from_bounds(1, 1, 4, 4)
+
+    h.add_cell(roi=roi, nucleus_roi=nucleus_roi)
+
+    assert len(h.detections) == 1
+    assert len(h.cells) == 1
+
+    cell = h.cells[0]
+    assert shapely.equals(cell.roi, roi)
+    assert shapely.equals(cell.nucleus_roi, nucleus_roi)
 
 
 def test_geojson_roundtrip_via_geojson(empty_hierarchy):

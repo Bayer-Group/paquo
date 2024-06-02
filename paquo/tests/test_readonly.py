@@ -226,6 +226,8 @@ def test_hierarchy(readonly_project):
         with pytest.raises(IOError):
             h.callmethod("add_tile", '--placeholder--')
         with pytest.raises(IOError):
+            h.callmethod("add_cell", '--placeholder--', nucleus_roi='--placeholder--')
+        with pytest.raises(IOError):
             h.callmethod("load_geojson", '--placeholder--')
 
         # autoflush has no influence
