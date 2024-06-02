@@ -31,9 +31,9 @@ from paquo.java import compatibility
 from paquo.pathobjects import BaseGeometry
 from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
+from paquo.pathobjects import QuPathPathCellObject
 from paquo.pathobjects import QuPathPathDetectionObject
 from paquo.pathobjects import QuPathPathTileObject
-from paquo.pathobjects import QuPathPathCellObject
 from paquo.pathobjects import fix_geojson_geometry
 
 __all__ = ["QuPathPathObjectHierarchy"]
@@ -59,6 +59,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         hierarchy: 'QuPathPathObjectHierarchy',
         paquo_cls: Type[PathROIObjectType],
         mask: Optional[Union[slice, Sequence[int]]] = None,
+        readonly: Optional[bool] = None,
     ) -> None:
         """internal: not meant to be instantiated by the user"""
         self._hierarchy = hierarchy
@@ -70,9 +71,12 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         ):
             raise TypeError(f"mask can be slice, or Sequence[int] or None. Got: {type(mask)!r}")
         self._mask: Optional[Union[slice, Sequence[int]]] = mask
+        self._init_readonly = readonly
 
     @property
     def _readonly(self) -> bool:
+        if self._init_readonly is not None:
+            return self._init_readonly
         # noinspection PyProtectedMember
         return self._hierarchy._readonly or self._mask is not None
 
@@ -274,6 +278,8 @@ class QuPathPathObjectHierarchy:
         self._readonly = bool(readonly)
         self._annotations = PathObjectProxy(self, paquo_cls=QuPathPathAnnotationObject)
         self._detections = PathObjectProxy(self, paquo_cls=QuPathPathDetectionObject)
+        self._cells = PathObjectProxy(self, paquo_cls=QuPathPathCellObject, readonly=True)
+        self._tiles = PathObjectProxy(self, paquo_cls=QuPathPathTileObject, readonly=True)
         # attrs
         self.autoflush = bool(autoflush)
 
@@ -304,6 +310,8 @@ class QuPathPathObjectHierarchy:
         if invalidate_proxy_cache:
             self._annotations._list_invalidate_cache()
             self._detections._list_invalidate_cache()
+            self._cells._list_invalidate_cache()
+            self._tiles._list_invalidate_cache()
 
     @property
     def root(self) -> QuPathPathAnnotationObject:
@@ -363,6 +371,11 @@ class QuPathPathObjectHierarchy:
         self._detections.add(obj)
         return obj
 
+    @property
+    def tiles(self) -> PathObjectProxy[QuPathPathTileObject]:
+        """all tiles provided as a flattened read-only set-like proxy"""
+        return self._tiles
+
     def add_tile(self,
                  roi: BaseGeometry,
                  path_class: Optional[QuPathPathClass] = None,
@@ -384,15 +397,20 @@ class QuPathPathObjectHierarchy:
         self._detections.add(obj)
         return obj
 
+    @property
+    def cells(self) -> PathObjectProxy[QuPathPathCellObject]:
+        """all cells provided as a flattened read-only set-like proxy"""
+        return self._cells
+
     def add_cell(self,
                  roi: BaseGeometry,
                  path_class: Optional[QuPathPathClass] = None,
                  measurements: Optional[dict] = None,
                  *,
                  path_class_probability: float = math.nan,
-                 nucleus_roi: BaseGeometry,) -> QuPathPathCellObject:
+                 nucleus_roi: BaseGeometry) -> QuPathPathCellObject:
         """convenience method for adding cell detections
-        
+
         Notes
         -----
         these will be added to self.detections, as they are a subclass of detections
@@ -692,7 +710,7 @@ class QuPathPathObjectHierarchy:
 
             # --- add the annotation to the ome structure
             ome.rois.append(roi)
-            ome.structured_annotations.append(map_annotation)
+            ome.structured_annotations.append(map_annotation)  # type: ignore[union-attr]
 
         return to_xml(ome)
 

@@ -20,8 +20,8 @@ from paquo.java import ROI
 from paquo.java import GeometryTools
 from paquo.java import GsonTools
 from paquo.java import PathAnnotationObject
-from paquo.java import PathDetectionObject
 from paquo.java import PathCellObject
+from paquo.java import PathDetectionObject
 from paquo.java import PathObjects
 from paquo.java import PathROIObject
 from paquo.java import PathTileObject
@@ -164,7 +164,7 @@ class _PathROIObject:
                      measurements: Optional[dict] = None,
                      *,
                      path_class_probability: float = math.nan,
-                     nucleus_roi: Optional[BaseGeometry] = None,) -> PathROIObjectType:
+                     nucleus_roi: Optional[BaseGeometry] = None) -> PathROIObjectType:
         """create a Path Object from a shapely shape
 
         Parameters
@@ -178,18 +178,20 @@ class _PathROIObject:
         path_class_probability:
             keyword only argument defining the probability of the class
             (default NaN)
+        nucleus_roi:
+            an optional roi for a nucleus
 
         """
         if not isinstance(roi, BaseGeometry):
             raise TypeError("roi needs to be an instance of shapely.geometry.base.BaseGeometry")
-            
+
         qupath_path_class = path_class.java_object if path_class is not None else None
 
         if nucleus_roi is None:
             qupath_roi = _shapely_geometry_to_qupath_roi(roi)
             # fixme: should create measurements here and pass instead of None
             java_obj = cls.java_class_factory(qupath_roi, qupath_path_class, None)
-        else: # Two rois supplied - corresponds to CellObject constructor
+        else:  # Two rois supplied - corresponds to CellObject constructor
             if not isinstance(nucleus_roi, BaseGeometry):
                 raise TypeError("additional_roi needs to be an instance of shapely.geometry.base.BaseGeometry")
             qupath_roi = _shapely_geometry_to_qupath_roi(roi)
@@ -392,7 +394,14 @@ class QuPathPathTileObject(QuPathPathDetectionObject):
     java_class = PathTileObject
     java_class_factory = PathObjects.createTileObject
 
+
 class QuPathPathCellObject(QuPathPathDetectionObject):
-    
+
     java_class = PathCellObject
     java_class_factory = PathObjects.createCellObject
+
+    @property
+    def nucleus_roi(self) -> BaseGeometry:
+        """the nucleus roi as a shapely shape"""
+        roi = self.java_object.getNucleusROI()
+        return _qupath_roi_to_shapely_geometry(roi)
