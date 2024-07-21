@@ -226,7 +226,7 @@ class _PathROIObject:
             pc = pc if pc is None else pc.java_object
         self.java_object.setPathClass(pc, probability)
         if self._update_callback:
-            self._update_callback(self)
+            self._update_callback(self)  # type: ignore[arg-type]
 
     @property
     def locked(self) -> bool:
@@ -237,7 +237,7 @@ class _PathROIObject:
     def locked(self: PathROIObjectType, value: bool) -> None:
         self.java_object.setLocked(value)
         if self._update_callback:
-            self._update_callback(self)
+            self._update_callback(self)  # type: ignore[arg-type]
 
     @property
     def is_editable(self) -> bool:
@@ -263,7 +263,7 @@ class _PathROIObject:
             name = String(name)
         self.java_object.setName(name)
         if self._update_callback:
-            self._update_callback(self)
+            self._update_callback(self)  # type: ignore[arg-type]
 
     @property
     def parent(self: PathROIObjectType) -> Optional[PathROIObjectType]:
@@ -285,7 +285,7 @@ class _PathROIObject:
         roi = _shapely_geometry_to_qupath_roi(geometry)
         self.java_object.setROI(roi)
         if self._update_callback:
-            self._update_callback(self)
+            self._update_callback(self)  # type: ignore[arg-type]
 
     @cached_property
     def measurements(self):
