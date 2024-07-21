@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2024-07-21
+### Fixes
+- `paquo get_qupath` now downloads the correct QuPath on Mac arm64
+
 ## [0.8.0] - 2024-06-02
 ### Added
 - added support for PathCellObjects
@@ -161,8 +165,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of paquo
 
 
-[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.8.0...HEAD
-[0.7.2]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.2...v0.8.0
+[Unreleased]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/bayer-science-for-a-better-life/paquo/compare/v0.6.1...v0.7.0
