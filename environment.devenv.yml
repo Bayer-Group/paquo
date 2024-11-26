@@ -1,26 +1,28 @@
 #
 # Conda devenv environment for paquo
 #
-# Create the environment, do not install pado in development mode:
+# Create the environment:
 #   conda devenv
-# equivalent to:
-#   PAQUO_DEVEL="" conda devenv
-# Create the environment, install pado in development mode:
-#   PAQUO_DEVEL=TRUE conda devenv
 #
-
-{% set PAQUO_DEVEL = os.environ.get('PAQUO_DEVEL', False) %}
-{% set WITH_OME = os.environ.get('WITH_OME', False) %}
 
 name: paquo
 
 channels:
   - conda-forge
+  - defaults
+
+variables:
+  PAQUO_DEVEL: $PAQUO_DEVEL
+  WITH_OME: $WITH_OME
+
+environment:
+  PAQUO_DEVEL: ${PAQUO_DEVEL:-false}
+  WITH_OME: ${WITH_OME:-false}
 
 dependencies:
   - python>=3.7
   - pip
-  - jpype1>=1.0.1
+  - jpype1>=1.0.1,!=1.5.1
   - dynaconf>=3,!=3.1.0,!=3.1.7
   - ome-types   # [ WITH_OME ]
   - shapely
