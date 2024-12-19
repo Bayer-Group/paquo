@@ -32,15 +32,16 @@ You can find `paquo`'s documentation at
 ## Installation
 
 paquo's stable releases can be installed via `pip`:
+
 ```bash
 pip install paquo
 ```
 
 or via `conda`:
+
 ```bash
 conda install -c conda-forge paquo
 ```
-
 
 ## Getting QuPath
 
@@ -68,17 +69,15 @@ paquo to use that version. Currently, paquo supports every version of QuPath fro
 /some/path/on/your/machine/QuPath-0.5.0
 ```
 
-
 ## Development Installation
 
 1. Install conda and git
 2. Clone paquo `git clone https://github.com/bayer-science-for-a-better-life/paquo.git`
-3. Run `conda env create -f environment.devenv.yaml`
+3. Run `conda env create -f environment.devenv.yml`
 4. Activate the environment `conda activate paquo`
 
 Note that in this environment `paquo` is already installed in development mode,
 so go ahead and hack.
-
 
 ## Contributing Guidelines
 
@@ -86,12 +85,11 @@ so go ahead and hack.
   - We allow 120 character long lines (try anyway to keep them short)
 - Please use [numpy docstrings](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard).
 - When contributing code, please try to use Pull Requests.
-- tests go hand in hand with modules on ```tests``` packages at the same level. We use ```pytest```.
+- tests go hand in hand with modules on `tests` packages at the same level. We use `pytest`.
 
 You can set up your IDE to help you to adhere to these guidelines.
 <br>
 _([Santi](https://github.com/sdvillal) is happy to help you to set up pycharm in 5 minutes)_
-
 
 ## Acknowledgements
 
