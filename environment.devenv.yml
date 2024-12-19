@@ -9,7 +9,6 @@ name: paquo
 
 channels:
   - conda-forge
-  - defaults
 
 variables:
   PAQUO_DEVEL: $PAQUO_DEVEL
