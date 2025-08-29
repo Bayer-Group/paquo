@@ -316,7 +316,7 @@ def test_project_delete_image_file_when_opened(new_project, svs_small, qupath_ve
     elif qupath_uses == "OPENSLIDE":
 
         if (
-            qupath_version >= QuPathVersion("0.5.0")
+            QuPathVersion("0.5.0") <= qupath_version < QuPathVersion("0.6.0")
             and platform.system() == "Windows"
         ):
             cm = pytest.raises(PermissionError)
