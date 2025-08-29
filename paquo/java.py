@@ -63,6 +63,14 @@ class _Compatibility:
             return self.version <= QuPathVersion("0.2.3")
 
     @cached_property
+    def requires_objecttype_json_fix(self) -> bool:
+        # annotations changed between QuPath "0.3.0" and "0.4.x"
+        if self.version is None:
+            return False
+        else:
+            return QuPathVersion("0.3.0") <= self.version < QuPathVersion("0.4.0")
+
+    @cached_property
     def supports_image_server_recovery(self) -> bool:
         # image_server server.json files are only guaranteed to be written since QuPath "0.2.0"
         # see: https://github.com/qupath/qupath/commit/39abee3012da9252ea988308848c5d802164e060

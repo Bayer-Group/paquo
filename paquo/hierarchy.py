@@ -450,6 +450,7 @@ class QuPathPathObjectHierarchy:
             raise TypeError("requires a geojson list")
 
         requires_annotation_json_fix = compatibility.requires_annotation_json_fix
+        requires_objecttype_json_fix = compatibility.requires_objecttype_json_fix
 
         aos = []
         skipped: "CounterType[str]" = collections.Counter()
@@ -486,6 +487,12 @@ class QuPathPathObjectHierarchy:
                         _logger.warn(f"annotation has incompatible object_type: '{object_type}'")
                         object_id = "PathAnnotationObject"
                     annotation['id'] = object_id
+
+                if (
+                    requires_objecttype_json_fix
+                    and 'object_type' not in properties
+                ):
+                    properties['object_type'] = object_type
 
                 gson = GsonTools.getInstance()
                 if object_type == "annotation":
