@@ -10,7 +10,7 @@ on:
 jobs:
   # RUN PYTEST ON PAQUO SOURCE
   tests:
-    name: pytest ${{ matrix.os }}::py${{ matrix.python-version }}
+    name: pytest ${{ matrix.os }}::qp${{ matrix.qupath-version }}::py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 8
