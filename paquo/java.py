@@ -1,4 +1,5 @@
 import warnings
+from functools import cached_property
 
 from paquo._config import settings
 from paquo._config import to_kwargs
@@ -43,6 +44,7 @@ class _Compatibility:
     def __init__(self, version: "QuPathVersion | None") -> None:
         self.version = version
 
+    @cached_property
     def requires_missing_classes_json_fix(self) -> bool:
         # older QuPaths crash on project load when classes.json is missing
         # see: https://github.com/qupath/qupath/commit/be861cea80b9a8ef300e30d7985fd69791c2432e
@@ -51,6 +53,7 @@ class _Compatibility:
         else:
             return self.version <= QuPathVersion("0.2.0")
 
+    @cached_property
     def requires_annotation_json_fix(self) -> bool:
         # annotations changed between QuPath "0.2.3" and "0.3.x"
         # see: https://github.com/qupath/qupath/commit/fef5c43ce3f67e0e062677c407b395ef3e6e27c3
@@ -59,6 +62,7 @@ class _Compatibility:
         else:
             return self.version <= QuPathVersion("0.2.3")
 
+    @cached_property
     def supports_image_server_recovery(self) -> bool:
         # image_server server.json files are only guaranteed to be written since QuPath "0.2.0"
         # see: https://github.com/qupath/qupath/commit/39abee3012da9252ea988308848c5d802164e060
@@ -67,6 +71,7 @@ class _Compatibility:
         else:
             return self.version >= QuPathVersion("0.2.0")
 
+    @cached_property
     def supports_logmanager(self) -> bool:
         # the logmanager class was only added with 0.2.0-m10
         # see: https://github.com/qupath/qupath/commit/15b844703b686f7a9a64c50194ebe22fc46924a5
@@ -75,6 +80,7 @@ class _Compatibility:
         else:
             return self.version >= QuPathVersion("0.2.0-m10")
 
+    @cached_property
     def supports_newer_addobject_and_pathclass(self) -> bool:
         # PathObjectHierarchy.addPathObject and .addPathObjectWithoutUpdate are deprecated
         # PathClassFactory is deprecated too
@@ -83,6 +89,30 @@ class _Compatibility:
             return False
         else:
             return self.version >= QuPathVersion("0.4.0")
+
+    @cached_property
+    def supports_addobjects(self) -> bool:
+        # PathObjectHierarchy.addPathObjects was removed
+        if self.version is None:
+            return False
+        else:
+            return self.version >= QuPathVersion("0.6.0")
+
+    @cached_property
+    def supports_get_uris(self) -> bool:
+        # .getServerURIs was removed
+        if self.version is None:
+            return False
+        else:
+            return self.version >= QuPathVersion("0.6.0")
+
+    @cached_property
+    def supports_newer_measurements_interface(self) -> bool:
+        # .putMeasurement is gone?
+        if self.version is None:
+            return False
+        else:
+            return self.version >= QuPathVersion("0.6.0")
 
 
 compatibility = _Compatibility(qupath_version)
@@ -112,7 +142,7 @@ ImageServer = JClass('qupath.lib.images.servers.ImageServer')
 ImageServers = JClass('qupath.lib.images.servers.ImageServers')  # NOTE: this is needed to make QuPath v0.3.0-rc1 work
 ImageServerProvider = JClass('qupath.lib.images.servers.ImageServerProvider')
 
-if compatibility.supports_logmanager():
+if compatibility.supports_logmanager:
     LogManager = JClass('qupath.lib.gui.logging.LogManager')
 else:
     LogManager = None
@@ -120,7 +150,7 @@ else:
 PathAnnotationObject = JClass("qupath.lib.objects.PathAnnotationObject")
 PathClass = JClass('qupath.lib.objects.classes.PathClass')
 
-if not compatibility.supports_newer_addobject_and_pathclass():
+if not compatibility.supports_newer_addobject_and_pathclass:
     PathClassFactory = JClass('qupath.lib.objects.classes.PathClassFactory')
 else:
     PathClassFactory = None
@@ -157,6 +187,7 @@ NegativeArraySizeException = JClass('java.lang.NegativeArraySizeException')
 IllegalArgumentException = JClass('java.lang.IllegalArgumentException')
 FileNotFoundException = JClass('java.io.FileNotFoundException')
 NoSuchFileException = JClass('java.nio.file.NoSuchFileException')
+RuntimeException = JClass('java.lang.RuntimeException')
 
 
 def __getattr__(name):

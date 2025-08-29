@@ -83,7 +83,7 @@ class QuPathPathClass:
         if color is not None:
             java_color = QuPathColor.from_any(color).to_java_rgba()  # use rgba?
 
-        if compatibility.supports_newer_addobject_and_pathclass():
+        if compatibility.supports_newer_addobject_and_pathclass:
             path_class = PathClass.getInstance(java_parent, name, java_color)
         else:
             path_class = PathClassFactory.getDerivedPathClass(java_parent, name, java_color)

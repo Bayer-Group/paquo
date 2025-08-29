@@ -109,8 +109,12 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
         if self._readonly:
             raise OSError("project in readonly mode")
         path_objects = [x.java_object for x in other]
+        if compatibility.supports_addobjects:
+            add_objects = self._java_hierarchy.addObjects
+        else:
+            add_objects = self._java_hierarchy.addPathObjects
         try:
-            self._java_hierarchy.addPathObjects(path_objects)
+            add_objects(path_objects)
         finally:
             self._list_invalidate_cache()
         return self
@@ -128,7 +132,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
             self._list_invalidate_cache()
         return self
 
-    if compatibility.supports_newer_addobject_and_pathclass():
+    if compatibility.supports_newer_addobject_and_pathclass:
         def add(self, x: PathROIObjectType) -> None:
             """adds a new path object to the proxy"""
             if self._mask:
@@ -445,7 +449,7 @@ class QuPathPathObjectHierarchy:
         if not isinstance(geojson, list):
             raise TypeError("requires a geojson list")
 
-        requires_annotation_json_fix = compatibility.requires_annotation_json_fix()
+        requires_annotation_json_fix = compatibility.requires_annotation_json_fix
 
         aos = []
         skipped: "CounterType[str]" = collections.Counter()

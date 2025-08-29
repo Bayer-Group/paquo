@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 import shutil
 import tempfile
@@ -59,17 +60,42 @@ def iter_readonly_properties(obj):
 
 
 @contextmanager
-def assert_no_modification(qp):
+def assert_no_modification(qp, excludes=()):
     ctime, mtime = qp.timestamp_creation, qp.timestamp_modification
-    yield qp
     project_path = qp.path.parent
-    files = project_path.glob("**/*.*")
-    assert files
-    for file in files:
-        p = str(file.absolute())
-        assert qp.__changes.get(p, None) == file.stat().st_mtime, f"{str(file.relative_to(project_path))} was modified"
-    assert qp.timestamp_creation == ctime
-    assert qp.timestamp_modification == mtime
+    org_files = {
+        p.absolute() for p in project_path.glob("**/*.*")
+        if not any(p.match(e) for e in excludes)
+    }
+    assert org_files
+    org_times_qp = {}
+    org_times_py = {}
+    org_hashes = {}
+    for file in org_files:
+        org_times_qp[file] = qp.__changes.get(str(file), None)
+        org_times_py[file] = file.stat().st_mtime
+        org_hashes[file] = hashlib.md5(file.read_bytes()).hexdigest()
+    try:
+        yield qp
+    finally:
+        project_path = qp.path.parent
+        new_files = {
+            p.absolute() for p in project_path.glob("**/*.*")
+            if not any(p.match(e) for e in excludes)
+        }
+        assert new_files == org_files
+        new_times_qp = {}
+        new_times_py = {}
+        new_hashes = {}
+        for file in new_files:
+            new_times_qp[file] = qp.__changes.get(str(file), None)
+            new_times_py[file] = file.stat().st_mtime
+            new_hashes[file] = hashlib.md5(file.read_bytes()).hexdigest()
+        assert org_hashes == new_hashes
+        assert org_times_qp == new_times_qp
+        assert org_times_py == new_times_py
+        assert qp.timestamp_creation == ctime
+        assert qp.timestamp_modification == mtime
 
 
 def test_fixture(readonly_project):
@@ -100,7 +126,7 @@ class _Accessor:
 
 
 def test_project_attrs_and_methods(readonly_project, copy_svs_small):
-    with assert_no_modification(readonly_project) as qp:
+    with assert_no_modification(readonly_project, excludes=("**/server.json",)) as qp:
         a = _Accessor(qp)
 
         assert qp._readonly

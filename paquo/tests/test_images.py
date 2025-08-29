@@ -175,7 +175,7 @@ def test_readonly_recovery_hierarchy(project_with_removed_image_without_image_da
 
 def test_readonly_recovery_image_server(project_with_removed_image):
     from paquo.java import compatibility
-    if not compatibility.supports_image_server_recovery():
+    if not compatibility.supports_image_server_recovery:
         pytest.skip(f"unsupported in {compatibility.version}")
 
     with QuPathProject(project_with_removed_image, mode='r') as qp:

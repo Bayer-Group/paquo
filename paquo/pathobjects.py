@@ -28,6 +28,7 @@ from paquo.java import PathTileObject
 from paquo.java import String
 from paquo.java import WKBReader
 from paquo.java import WKBWriter
+from paquo.java import compatibility
 
 __all__ = [
     "fix_geojson_geometry",
@@ -91,7 +92,10 @@ class _MeasurementList(MutableMapping):
     def __setitem__(self, k: str, v: float) -> None:
         if not isinstance(v, float):
             raise TypeError(f"value must be float, got: {type(v).__name__}")
-        self._measurement_list.putMeasurement(k, v)
+        if compatibility.supports_newer_measurements_interface:
+            self._measurement_list.put(k, v)
+        else:
+            self._measurement_list.putMeasurement(k, v)
         if self._update_callback:
             self._update_callback()
 
@@ -105,7 +109,12 @@ class _MeasurementList(MutableMapping):
     def __getitem__(self, k: Union[str, int]) -> float:
         if not isinstance(k, (int, str)):
             raise KeyError(f"unsupported key of type {type(k)}")
-        value = float(self._measurement_list.getMeasurementValue(k))
+        if compatibility.supports_newer_measurements_interface:
+            if isinstance(k, int):
+                k = str(self._measurement_list.getMeasurementNames()[k])
+            value = float(self._measurement_list.get(k))
+        else:
+            value = float(self._measurement_list.getMeasurementValue(k))
         if math.isnan(value) and k not in self:
             raise KeyError(k)
         return value
@@ -113,7 +122,10 @@ class _MeasurementList(MutableMapping):
     def __contains__(self, item: object) -> bool:
         if not isinstance(item, str):
             return False
-        return bool(self._measurement_list.containsNamedMeasurement(item))
+        if compatibility.supports_newer_measurements_interface:
+            return bool(self._measurement_list.containsKey(item))
+        else:
+            return bool(self._measurement_list.containsNamedMeasurement(item))
 
     def __len__(self) -> int:
         return int(self._measurement_list.size())
