@@ -34,6 +34,7 @@ from paquo.java import ImageType
 from paquo.java import IOException
 from paquo.java import NoSuchFileException
 from paquo.java import PathIO
+from paquo.java import RuntimeException
 from paquo.java import String
 from paquo.java import URISyntaxException
 from paquo.java import compatibility
@@ -431,7 +432,7 @@ class QuPathProjectImageEntry:
             try:
                 return self.java_object.readImageData()
             # from java land
-            except IOException:  # pragma: no cover
+            except (IOException, RuntimeException):  # pragma: no cover
                 image_data_fn = self.entry_path / "data.qpdata"
                 try:
                     image_data = PathIO.readImageData(
@@ -448,7 +449,10 @@ class QuPathProjectImageEntry:
 
     @cached_property
     def _image_server(self):
-        server = self._image_data.getServer()
+        try:
+            server = self._image_data.getServer()
+        except RuntimeException:
+            server = None
         if not server:
             _log.warning("recovering readonly from server.json")
             try:
@@ -592,7 +596,7 @@ class QuPathProjectImageEntry:
         else:
             try:
                 h = self._image_data.getHierarchy()
-            except OSError:
+            except (OSError, RuntimeError):
                 _log.warning("could not open image data. loading annotation hierarchy from project.")
                 h = self.java_object.readHierarchy()
 
@@ -676,7 +680,10 @@ class QuPathProjectImageEntry:
     @property
     def uri(self):
         """the image entry uri"""
-        uris = self.java_object.getServerURIs()
+        if compatibility.supports_get_uris:
+            uris = self.java_object.getURIs()
+        else:
+            uris = self.java_object.getServerURIs()
         if len(uris) == 0:
             raise RuntimeError("no server")  # pragma: no cover
         elif len(uris) > 1:

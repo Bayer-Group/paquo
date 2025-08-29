@@ -219,7 +219,7 @@ class QuPathProject:
 
         if _exists:
             cm: Callable[..., ContextManager[Any]]
-            if compatibility.requires_missing_classes_json_fix():
+            if compatibility.requires_missing_classes_json_fix:
                 @contextmanager
                 def cm(is_readonly):
                     classes_json = p.parent.joinpath("classifiers", "classes.json")
@@ -453,8 +453,12 @@ class QuPathProject:
                 uri2uri[URI(old_uri)] = URI(new_uri)
 
         # update uris if possible
-        for image in self.images:
-            image.java_object.updateServerURIs(uri2uri)
+        if compatibility.supports_get_uris:
+            for image in self.images:
+                image.java_object.updateURIs(uri2uri)
+        else:
+            for image in self.images:
+                image.java_object.updateServerURIs(uri2uri)
 
     @redirect(stderr=True, stdout=True)
     def remove_image(

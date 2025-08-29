@@ -7,30 +7,47 @@ on:
     tags: v[0-9]+.[0-9]+.[0-9]+
   pull_request: {}
 
-env:
-  QUPATH_VERSION: 0.5.1
-
 jobs:
   # RUN PYTEST ON PAQUO SOURCE
   tests:
-    name: pytest ${{ matrix.os }}::py${{ matrix.python-version }}
+    name: pytest ${{ matrix.os }}::qp${{ matrix.qupath-version }}::py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 8
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
+        qupath-version: ["0.6.0"]
         include:
           # we'll test the python support on ubuntu
           - os: ubuntu-latest
-            python-version: '3.11'
-          - os: ubuntu-latest
             python-version: '3.12'
+            qupath-version: '0.6.0'
+          - os: ubuntu-latest
+            python-version: '3.11'
+            qupath-version: '0.6.0'
+          - os: ubuntu-latest
+            python-version: '3.10'
+            qupath-version: '0.6.0'
           - os: ubuntu-latest
             python-version: '3.9'
+            qupath-version: '0.6.0'
           - os: ubuntu-latest
             python-version: '3.8'
+            qupath-version: '0.6.0'
+          - os: ubuntu-latest
+            python-version: '3.13'
+            qupath-version: '0.5.1'
+          - os: ubuntu-latest
+            python-version: '3.13'
+            qupath-version: '0.4.4'
+          - os: ubuntu-latest
+            python-version: '3.13'
+            qupath-version: '0.3.2'
+          - os: ubuntu-latest
+            python-version: '3.13'
+            qupath-version: '0.2.3'
     steps:
     - uses: actions/checkout@v3
       with:
@@ -49,13 +66,13 @@ jobs:
         CACHE_NUMBER: 0
       with:
         path: ./qupath/download
-        key: ${{ runner.os }}-qupath-v${{ env.CACHE_NUMBER }}
+        key: ${{ runner.os }}-qupath-v${{ matrix.qupath-version }}-c${{ env.CACHE_NUMBER }}
     - name: Install qupath and set PAQUO_QUPATH_DIR
       shell: bash
       run: |
         python -c "import os; os.makedirs('qupath/download', exist_ok=True)"
         python -c "import os; os.makedirs('qupath/apps', exist_ok=True)"
-        python -m paquo get_qupath --install-path ./qupath/apps --download-path ./qupath/download ${{ env.QUPATH_VERSION }} | grep -v "^#" | sed "s/^/PAQUO_QUPATH_DIR=/" >> $GITHUB_ENV
+        python -m paquo get_qupath --install-path ./qupath/apps --download-path ./qupath/download ${{ matrix.qupath-version }} | grep -v "^#" | sed "s/^/PAQUO_QUPATH_DIR=/" >> $GITHUB_ENV
     - name: Test with pytest
       run: |
         pytest --cov=./paquo --cov-report=xml
