@@ -600,7 +600,13 @@ class QuPathProjectImageEntry:
                 _log.warning("could not open image data. loading annotation hierarchy from project.")
                 h = self.java_object.readHierarchy()
 
-        return QuPathPathObjectHierarchy(h, readonly=self._readonly, image_name=self.image_name)
+        return QuPathPathObjectHierarchy(
+            h,
+            readonly=self._readonly,
+            image_name=self.image_name,
+            image_width=self.width,
+            image_height=self.height,
+        )
 
     def __repr__(self):
         return f"ImageEntry(image_name='{self.image_name}')"

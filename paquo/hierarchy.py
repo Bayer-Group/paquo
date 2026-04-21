@@ -10,24 +10,32 @@ from typing import Any
 from typing import Counter as CounterType
 from typing import Iterable
 from typing import Iterator
+from typing import List
 from typing import MutableSet
 from typing import Optional
 from typing import Sequence
+from typing import Tuple
 from typing import Type
 from typing import Union
 from typing import overload
 
+from numpy.typing import NDArray
 from paquo._logging import get_logger
 from paquo._utils import cached_property
 from paquo.classes import QuPathPathClass
 from paquo.java import GsonTools
 from paquo.java import IllegalArgumentException
+from paquo.java import ImagePlane
 from paquo.java import PathAnnotationObject
 from paquo.java import PathDetectionObject
 from paquo.java import PathObjectHierarchy
 from paquo.java import PathTileObject
+from paquo.java import RegionRequest
+from paquo.java import SimpleImages
+from paquo.java import ContourTracing
 from paquo.java import String
 from paquo.java import compatibility
+from paquo.jpype_backend import jpype
 from paquo.pathobjects import BaseGeometry
 from paquo.pathobjects import PathROIObjectType
 from paquo.pathobjects import QuPathPathAnnotationObject
@@ -39,6 +47,49 @@ from paquo.pathobjects import fix_geojson_geometry
 __all__ = ["QuPathPathObjectHierarchy"]
 
 _logger = get_logger(__name__)
+
+
+def _as_label_image_data(image: NDArray) -> Tuple[List[List[List[float]]], Tuple[int, int]]:
+    try:
+        array = image.tolist()
+    except AttributeError:
+        array = image
+
+    if not isinstance(array, list) or not array:
+        raise ValueError("image must have shape (classes, height, width)")
+
+    channels = []
+    height = width = None
+    for channel in array:
+        if not isinstance(channel, list) or not channel:
+            raise ValueError("image must have shape (classes, height, width)")
+        if not all(isinstance(row, list) for row in channel):
+            raise ValueError("image must have shape (classes, height, width)")
+
+        channel_height = len(channel)
+        row_lengths = {len(row) for row in channel}
+        if len(row_lengths) != 1 or 0 in row_lengths:
+            raise ValueError("image must have rectangular channel planes")
+        channel_width = row_lengths.pop()
+
+        if height is None:
+            height = channel_height
+            width = channel_width
+        elif (channel_height, channel_width) != (height, width):
+            raise ValueError("all channels must share the same height and width")
+
+        channels.append([[float(value) for value in row] for row in channel])
+
+    if height is None or width is None:
+        raise ValueError("image must have shape (classes, height, width)")
+
+    return channels, (height, width)
+
+
+def _channel_to_simple_image(channel: List[List[float]], width: int, height: int):
+    pixels = [value for row in channel for value in row]
+    java_pixels = jpype.JArray(jpype.JFloat)(pixels)
+    return SimpleImages.createFloatImage(java_pixels, width, height)
 
 
 class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]):
@@ -264,6 +315,8 @@ class QuPathPathObjectHierarchy:
         *,
         readonly: bool = False,
         image_name: str = "N/A",
+        image_width: Optional[int] = None,
+        image_height: Optional[int] = None,
         autoflush: bool = True,
     ) -> None:
         """qupath hierarchy stores all annotation objects
@@ -279,6 +332,8 @@ class QuPathPathObjectHierarchy:
         self.java_object = hierarchy
         # internals
         self._image_name = str(image_name)
+        self._image_width = image_width
+        self._image_height = image_height
         self._readonly = bool(readonly)
         self._annotations = PathObjectProxy(self, paquo_cls=QuPathPathAnnotationObject)
         self._detections = PathObjectProxy(self, paquo_cls=QuPathPathDetectionObject)
@@ -348,6 +403,116 @@ class QuPathPathObjectHierarchy:
         )
         self._annotations.add(obj)
         return obj
+
+    def add_image_annotation(
+        self,
+        image: NDArray,
+        labels: Sequence[Union[str, QuPathPathClass]],
+        *,
+        x: int = 0,
+        y: int = 0,
+        downsample: Optional[float] = None,
+        z: int = 0,
+        t: int = 0,
+    ) -> List[QuPathPathAnnotationObject]:
+        """Create annotations from a channel-first label mask.
+
+        The input is expected to have shape ``(classes, height, width)``. Each
+        channel is converted to one annotation by tracing all non-zero pixels.
+
+        If ``downsample`` is omitted, a full-image mask is assumed and the value
+        is inferred from the image dimensions when possible.
+
+        See the `QuPath docs <https://qupath.readthedocs.io/en/stable/docs/advanced/exporting_annotations.html#binary-labeled-images>`_.
+        for more information.
+
+        Parameters
+        ----------
+        image:
+            channel-first array-like mask with shape ``(classes, height, width)``.
+        labels:
+            class names or ``QuPathPathClass`` objects, one per channel.
+        x:
+            x coordinate of the mask top-left origin in full-resolution image pixels.
+        y:
+            y coordinate of the mask top-left origin in full-resolution image pixels.
+        downsample:
+            scale factor from mask pixels to full-resolution image pixels.
+        z:
+            z-slice index for the created annotations.
+        t:
+            timepoint index for the created annotations.
+        """
+        if self._readonly:
+            raise OSError("project in readonly mode")
+        if isinstance(labels, (str, bytes)) or not isinstance(labels, Sequence):
+            raise TypeError("labels must be a sequence")
+
+        channels, (mask_height, mask_width) = _as_label_image_data(image)
+        if len(channels) != len(labels):
+            raise ValueError(
+                "labels must have the same length as the first image dimension"
+            )
+
+        region_width: int
+        region_height: int
+        if downsample is None:
+            if x != 0 or y != 0:
+                raise ValueError("downsample must be provided when x or y are non-zero")
+            if self._image_width is None or self._image_height is None:
+                raise ValueError(
+                    "downsample must be provided when image dimensions are unavailable"
+                )
+            downsample_x = self._image_width / mask_width
+            downsample_y = self._image_height / mask_height
+            if not math.isclose(downsample_x, downsample_y, rel_tol=0.01, abs_tol=0.01):
+                raise ValueError(
+                    "mask aspect ratio does not match the image dimensions"
+                )
+            downsample = (downsample_x + downsample_y) / 2.0
+            region_width = self._image_width
+            region_height = self._image_height
+        else:
+            downsample = float(downsample)
+            if not math.isfinite(downsample) or downsample <= 0:
+                raise ValueError("downsample must be a finite positive number")
+            region_width = int(round(mask_width * downsample))
+            region_height = int(round(mask_height * downsample))
+
+        request = RegionRequest.createInstance(
+            self._image_name,
+            downsample,
+            int(x),
+            int(y),
+            region_width,
+            region_height,
+            ImagePlane.getPlane(int(z), int(t)),
+        )
+
+        created: List[QuPathPathAnnotationObject] = []
+        for channel, label in zip(channels, labels):
+            binary_channel = [
+                [1.0 if value != 0.0 else 0.0 for value in row] for row in channel
+            ]
+            simple_image = _channel_to_simple_image(
+                binary_channel, mask_width, mask_height
+            )
+            java_objects = ContourTracing.createAnnotations(simple_image, request, 1, 1)
+            if java_objects.isEmpty():
+                continue
+
+            path_class = (
+                label
+                if isinstance(label, QuPathPathClass)
+                else QuPathPathClass(str(label))
+            )
+            obj = QuPathPathAnnotationObject(java_objects.get(0))
+            obj.name = path_class.name
+            obj.update_path_class(path_class)
+            self._annotations.add(obj)
+            created.append(obj)
+
+        return created
 
     @property
     def detections(self) -> PathObjectProxy[QuPathPathDetectionObject]:
@@ -565,7 +730,6 @@ class QuPathPathObjectHierarchy:
         ome = OME()
 
         for ao in self.annotations:
-
             class_name: Optional[str]
             if ao.path_class:
                 class_name = ao.path_class.name

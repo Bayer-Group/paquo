@@ -145,10 +145,14 @@ GeneralTools = JClass("qupath.lib.common.GeneralTools")
 GeometryTools = JClass("qupath.lib.roi.GeometryTools")
 GsonTools = JClass('qupath.lib.io.GsonTools')
 ImageData = JClass('qupath.lib.images.ImageData')
+ImagePlane = JClass('qupath.lib.regions.ImagePlane')
 ImageType = JClass('qupath.lib.images.ImageData.ImageType')
 ImageServer = JClass('qupath.lib.images.servers.ImageServer')
 ImageServers = JClass('qupath.lib.images.servers.ImageServers')  # NOTE: this is needed to make QuPath v0.3.0-rc1 work
 ImageServerProvider = JClass('qupath.lib.images.servers.ImageServerProvider')
+RegionRequest = JClass('qupath.lib.regions.RegionRequest')
+SimpleImages = JClass('qupath.lib.analysis.images.SimpleImages')
+ContourTracing = JClass('qupath.lib.analysis.images.ContourTracing')
 
 if compatibility.supports_logmanager:
     LogManager = JClass('qupath.lib.gui.logging.LogManager')
