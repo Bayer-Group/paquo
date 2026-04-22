@@ -445,6 +445,8 @@ class QuPathPathObjectHierarchy:
         """
         if self._readonly:
             raise OSError("project in readonly mode")
+        if not compatibility.supports_contour_tracing:
+            raise NotImplementedError("add_image_annotation requires QuPath >= 0.3.2")
         if isinstance(labels, (str, bytes)) or not isinstance(labels, Sequence):
             raise TypeError("labels must be a sequence")
 
@@ -497,6 +499,7 @@ class QuPathPathObjectHierarchy:
             simple_image = _channel_to_simple_image(
                 binary_channel, mask_width, mask_height
             )
+            assert ContourTracing is not None
             java_objects = ContourTracing.createAnnotations(simple_image, request, 1, 1)
             if java_objects.isEmpty():
                 continue

@@ -80,6 +80,14 @@ class _Compatibility:
             return self.version >= QuPathVersion("0.2.0")
 
     @cached_property
+    def supports_contour_tracing(self) -> bool:
+        # ContourTracing was added after QuPath "0.3.2"
+        if self.version is None:
+            return False
+        else:
+            return self.version >= QuPathVersion("0.3.2")
+
+    @cached_property
     def supports_logmanager(self) -> bool:
         # the logmanager class was only added with 0.2.0-m10
         # see: https://github.com/qupath/qupath/commit/15b844703b686f7a9a64c50194ebe22fc46924a5
@@ -152,7 +160,10 @@ ImageServers = JClass('qupath.lib.images.servers.ImageServers')  # NOTE: this is
 ImageServerProvider = JClass('qupath.lib.images.servers.ImageServerProvider')
 RegionRequest = JClass('qupath.lib.regions.RegionRequest')
 SimpleImages = JClass('qupath.lib.analysis.images.SimpleImages')
-ContourTracing = JClass('qupath.lib.analysis.images.ContourTracing')
+if compatibility.supports_contour_tracing:
+    ContourTracing = JClass('qupath.lib.analysis.images.ContourTracing')
+else:
+    ContourTracing = None
 
 if compatibility.supports_logmanager:
     LogManager = JClass('qupath.lib.gui.logging.LogManager')

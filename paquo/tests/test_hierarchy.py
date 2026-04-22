@@ -86,7 +86,15 @@ def test_add_annotation_detection_tile(empty_hierarchy):
     )
 
 
+def _skip_if_no_contour_tracing():
+    from paquo.java import compatibility
+    if not compatibility.supports_contour_tracing:
+        pytest.skip(f"unsupported in {compatibility.version}")
+
+
 def test_add_image_annotation_empty_hierarchy_requires_downsample(empty_hierarchy):
+    _skip_if_no_contour_tracing()
+
     with pytest.raises(ValueError, match="downsample must be provided"):
         empty_hierarchy.add_image_annotation(
             [[[1, 1], [1, 1]]],
@@ -402,6 +410,8 @@ def test_hierarchy_no_autoflush_annotation_update(project_with_annotations):
 
 
 def test_add_image_annotation(empty_hierarchy):
+    _skip_if_no_contour_tracing()
+
     created = empty_hierarchy.add_image_annotation(
         [
             [
@@ -441,6 +451,8 @@ def test_add_image_annotation(empty_hierarchy):
 
 
 def test_add_image_annotation_infers_full_image_downsample():
+    _skip_if_no_contour_tracing()
+
     hierarchy = QuPathPathObjectHierarchy(image_width=4, image_height=4)
 
     created = hierarchy.add_image_annotation(
