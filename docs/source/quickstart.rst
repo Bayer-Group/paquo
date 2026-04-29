@@ -191,6 +191,21 @@ This will allow you to display extra data like this:
     :width: 400
     :alt: Tile Overlay Example 05
 
+Drawing segmentation masks
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As an alternative to tiled overlays, one-hot encoded masks can also be built from python
+and overlaid on a QuPath project using `paquo`.
+
+.. literalinclude:: ../../examples/example_06_add_image_annotation.py
+    :language: python
+    :linenos:
+
+This will allow you to display a pixel classification output like this:
+
+.. image:: _static/screenshot_example_06.png
+    :width: 338
+    :alt: Segmentation Overlay Example 06
 
 Putting Detection Measurements into a Pandas DataFrame
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
