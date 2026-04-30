@@ -6,8 +6,8 @@ from typing import Union
 from paquo.java import ColorTools
 from paquo.java import Integer
 
-ColorTypeRGB = Tuple[int, int, int]
-ColorTypeRGBA = Tuple[int, int, int, int]
+ColorTypeRGB = tuple[int, int, int]
+ColorTypeRGBA = tuple[int, int, int, int]
 ColorType = Union[ColorTypeRGB, ColorTypeRGBA, 'QuPathColor', str]
 
 
@@ -40,7 +40,7 @@ class QuPathColor(NamedTuple):
         """convert to 4 * uint8 rgba tuple"""
         return self.red, self.green, self.blue, self.alpha
 
-    def to_mpl_rgba(self) -> Tuple[float, float, float, float]:
+    def to_mpl_rgba(self) -> tuple[float, float, float, float]:
         """convert to 4 * float rgba tuple (mpl compatible)"""
         r, g, b, a = self.to_rgba()
         return r / 255.0, g / 255.0, b / 255.0, a / 255.0

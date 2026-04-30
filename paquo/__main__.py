@@ -6,11 +6,11 @@ import os
 import platform
 import sys
 import tempfile
+from collections.abc import Callable
 from contextlib import redirect_stdout
 from itertools import repeat
 from logging.config import dictConfig
 from pathlib import Path
-from typing import Callable
 
 from paquo._cli import DirectoryType
 from paquo._cli import argument
