@@ -1,5 +1,6 @@
-import sys
 import tempfile
+from importlib.resources import as_file
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 from typing import Dict
@@ -12,15 +13,9 @@ from dynaconf.base import Settings
 from dynaconf.utils import files as _files
 from dynaconf.utils.boxing import DynaBox
 
-if sys.version_info >= (3, 9):
-    from importlib.resources import as_file
-    from importlib.resources import files
 
-    def importlib_resources_path(package, resource):
-        return as_file(files(package).joinpath(resource))
-
-else:
-    from importlib.resources import path as importlib_resources_path
+def importlib_resources_path(package, resource):
+    return as_file(files(package).joinpath(resource))
 
 
 PAQUO_CONFIG_FILENAME = '.paquo.toml'
@@ -40,7 +35,7 @@ _PAQUO_FIX_CONFIG_KEYS = {
 }
 
 
-def to_kwargs(s: "Settings | DynaBox") -> Dict[str, Any]:
+def to_kwargs(s: "Settings | DynaBox") -> dict[str, Any]:
     """convert dynaconf settings to lowercase"""
     dct = s.to_dict()
     out = {}
@@ -97,10 +92,10 @@ def _get_settings() -> Dynaconf:
 settings = _get_settings()
 
 
-def get_searchtree() -> List[str]:
+def get_searchtree() -> list[str]:
     """return the current search tree for the settings"""
     if not settings.configured:
         settings.configure()  # pragma: no cover
     # note: SEARCHTREE is updated after configure
-    searchtree: List[str] = getattr(_files, 'SEARCHTREE', [])
+    searchtree: list[str] = getattr(_files, 'SEARCHTREE', [])
     return searchtree

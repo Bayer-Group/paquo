@@ -3,6 +3,7 @@ import pathlib
 import re
 import warnings
 import weakref
+from collections.abc import Iterator
 from collections.abc import MutableMapping
 from copy import deepcopy
 from enum import Enum
@@ -13,7 +14,6 @@ from pathlib import PureWindowsPath
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
-from typing import Iterator
 from typing import List
 from typing import Optional
 from typing import Union
@@ -152,7 +152,7 @@ class ImageProvider:
             raise TypeError("uri not of correct format")  # pragma: no cover
         return ImageProvider.FilenamePathId(ImageProvider.path_from_uri(uri))
 
-    def rebase(self, *uris: str, **kwargs) -> List[Optional[str]]:
+    def rebase(self, *uris: str, **kwargs) -> list[str | None]:
         uri2uri = kwargs.pop('uri2uri', {})
         return [uri2uri.get(uri, None) for uri in uris]
 
@@ -544,7 +544,7 @@ class QuPathProjectImageEntry:
         return int(self._image_server.nTimepoints())
 
     @cached_property
-    def downsample_levels(self) -> List[Dict[str, float]]:
+    def downsample_levels(self) -> list[dict[str, float]]:
         """downsample levels provided by the image
 
         Notes

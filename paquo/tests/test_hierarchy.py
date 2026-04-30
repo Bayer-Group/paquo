@@ -34,7 +34,7 @@ def test_initial_state(empty_hierarchy: QuPathPathObjectHierarchy):
 _T = TypeVar('_T', bound=_PathROIObject)
 
 
-def _make_polygons(obj_cls: Type[_T], amount: int) -> List[_T]:
+def _make_polygons(obj_cls: type[_T], amount: int) -> list[_T]:
     """returns a list of amount Path Objects"""
     path_objects = []
     for x in range(0, 10 * amount, 10):

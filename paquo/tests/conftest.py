@@ -1,20 +1,21 @@
 import hashlib
 import pathlib
 import shutil
-import sys
 import urllib.request
 
 import pytest
 
 # openslide aperio test images
 IMAGES_BASE_URL = "http://openslide.cs.cmu.edu/download/openslide-testdata/Aperio/"
+# fallback mirror (libvips test suite)
+IMAGES_FALLBACK_URL = (
+    "https://raw.githubusercontent.com/libvips/libvips/"
+    "7a1eb7171dc6930fea1400634073d74295aa256b/test/test-suite/images/"
+)
 
 
 def md5(fn):
-    if sys.version_info >= (3, 9):
-        m = hashlib.md5(usedforsecurity=False)
-    else:
-        m = hashlib.md5()  # nosec B324
+    m = hashlib.md5(usedforsecurity=False)
     with open(fn, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             m.update(chunk)
@@ -32,10 +33,19 @@ def svs_small():
     img_fn = data_dir / small_image
 
     if not img_fn.is_file():
-        # download svs from openslide test images
-        url = IMAGES_BASE_URL + small_image
-        with urllib.request.urlopen(url) as response, open(img_fn, 'wb') as out_file:  # nosec B310
-            shutil.copyfileobj(response, out_file)
+        # download svs from openslide test images, with fallback to libvips mirror
+        urls = [IMAGES_BASE_URL + small_image, IMAGES_FALLBACK_URL + small_image]
+        last_err = None
+        for url in urls:
+            try:
+                with urllib.request.urlopen(url) as response, open(img_fn, 'wb') as out_file:  # nosec B310
+                    shutil.copyfileobj(response, out_file)
+                break
+            except Exception as err:  # noqa: BLE001
+                last_err = err
+                continue
+        else:
+            pytest.fail(f"could not download {small_image}: {last_err!r}")
 
     if md5(img_fn) != small_image_md5:  # pragma: no cover
         shutil.rmtree(img_fn)

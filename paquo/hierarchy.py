@@ -4,6 +4,11 @@ import math
 import reprlib
 import struct
 import warnings
+from collections import Counter as CounterType
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import MutableSet
+from collections.abc import Sequence
 from contextlib import contextmanager
 from contextlib import suppress
 from typing import Any
@@ -108,9 +113,9 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
     def __init__(
         self,
         hierarchy: 'QuPathPathObjectHierarchy',
-        paquo_cls: Type[PathROIObjectType],
-        mask: Optional[Union[slice, Sequence[int]]] = None,
-        readonly: Optional[bool] = None,
+        paquo_cls: type[PathROIObjectType],
+        mask: slice | Sequence[int] | None = None,
+        readonly: bool | None = None,
     ) -> None:
         """internal: not meant to be instantiated by the user"""
         self._hierarchy = hierarchy
@@ -121,7 +126,7 @@ class PathObjectProxy(Sequence[PathROIObjectType], MutableSet[PathROIObjectType]
             or (all(isinstance(x, int) for x in mask) and len(mask) > 0)
         ):
             raise TypeError(f"mask can be slice, or Sequence[int] or None. Got: {type(mask)!r}")
-        self._mask: Optional[Union[slice, Sequence[int]]] = mask
+        self._mask: slice | Sequence[int] | None = mask
         self._init_readonly = readonly
 
     @property
@@ -311,7 +316,7 @@ class QuPathPathObjectHierarchy:
 
     def __init__(
         self,
-        hierarchy: Optional[PathObjectHierarchy] = None,
+        hierarchy: PathObjectHierarchy | None = None,
         *,
         readonly: bool = False,
         image_name: str = "N/A",
@@ -390,8 +395,8 @@ class QuPathPathObjectHierarchy:
 
     def add_annotation(self,
                        roi: BaseGeometry,
-                       path_class: Optional[QuPathPathClass] = None,
-                       measurements: Optional[dict] = None,
+                       path_class: QuPathPathClass | None = None,
+                       measurements: dict | None = None,
                        *,
                        path_class_probability: float = math.nan) -> QuPathPathAnnotationObject:
         """convenience method for adding annotations"""
@@ -524,8 +529,8 @@ class QuPathPathObjectHierarchy:
 
     def add_detection(self,
                       roi: BaseGeometry,
-                      path_class: Optional[QuPathPathClass] = None,
-                      measurements: Optional[dict] = None,
+                      path_class: QuPathPathClass | None = None,
+                      measurements: dict | None = None,
                       *,
                       path_class_probability: float = math.nan) -> QuPathPathDetectionObject:
         if self._readonly:
@@ -550,8 +555,8 @@ class QuPathPathObjectHierarchy:
 
     def add_tile(self,
                  roi: BaseGeometry,
-                 path_class: Optional[QuPathPathClass] = None,
-                 measurements: Optional[dict] = None,
+                 path_class: QuPathPathClass | None = None,
+                 measurements: dict | None = None,
                  *,
                  path_class_probability: float = math.nan) -> QuPathPathTileObject:
         """convenience method for adding tile detections
@@ -576,8 +581,8 @@ class QuPathPathObjectHierarchy:
 
     def add_cell(self,
                  roi: BaseGeometry,
-                 path_class: Optional[QuPathPathClass] = None,
-                 measurements: Optional[dict] = None,
+                 path_class: QuPathPathClass | None = None,
+                 measurements: dict | None = None,
                  *,
                  path_class_probability: float = math.nan,
                  nucleus_roi: BaseGeometry) -> QuPathPathCellObject:

@@ -4,16 +4,16 @@ import re
 import shlex
 import sys
 import textwrap
+from collections.abc import Callable
+from collections.abc import Iterable
 from contextlib import contextmanager
 from contextlib import nullcontext
 from itertools import chain
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
-from typing import Callable
 from typing import ContextManager
 from typing import Dict
-from typing import Iterable
 from typing import List
 from typing import NamedTuple
 from typing import Optional
@@ -36,17 +36,17 @@ class QuPathJVMInfo(NamedTuple):
     app_dir: Path
     runtime_dir: Path
     jvm_path: Path
-    jvm_options: List[str]
+    jvm_options: list[str]
 
 
 def find_qupath(*,
-                qupath_dir: Optional[PathOrStr] = None,
-                qupath_search_dirs: Optional[Union[PathOrStr, List[PathOrStr]]] = None,
-                qupath_search_dir_regex: Optional[str] = None,
-                qupath_search_conda: Optional[bool] = None,
-                qupath_prefer_conda: Optional[bool] = None,
-                java_opts: Optional[Union[List[str], str]] = None,
-                jvm_path_override: Optional[PathOrStr] = None,
+                qupath_dir: PathOrStr | None = None,
+                qupath_search_dirs: PathOrStr | list[PathOrStr] | None = None,
+                qupath_search_dir_regex: str | None = None,
+                qupath_search_conda: bool | None = None,
+                qupath_prefer_conda: bool | None = None,
+                java_opts: list[str] | str | None = None,
+                jvm_path_override: PathOrStr | None = None,
                 **_kwargs) -> QuPathJVMInfo:
     """find current qupath installation and jvm paths/options
 
@@ -111,7 +111,7 @@ def find_qupath(*,
         raise ValueError("no valid qupath installation found")
 
 
-def _scan_qupath_dirs(qupath_search_dirs: List[PathOrStr], qupath_search_dir_regex: str) -> Iterable[Path]:
+def _scan_qupath_dirs(qupath_search_dirs: list[PathOrStr], qupath_search_dir_regex: str) -> Iterable[Path]:
     """return potential paths for QuPath"""
     qp_match = re.compile(qupath_search_dir_regex).match
     for location in map(Path, qupath_search_dirs):
@@ -123,7 +123,7 @@ def _scan_qupath_dirs(qupath_search_dirs: List[PathOrStr], qupath_search_dir_reg
                     yield Path(dir_entry.path)
 
 
-def _conda_qupath_dir() -> Optional[Path]:
+def _conda_qupath_dir() -> Path | None:
     """return the conda qupath if running in a conda env"""
     prefix = os.environ.get('CONDA_PREFIX')
     if prefix:
@@ -139,7 +139,7 @@ def _conda_qupath_dir() -> Optional[Path]:
     return None
 
 
-def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) -> QuPathJVMInfo:
+def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: list[str]) -> QuPathJVMInfo:
     """convert qupath_dir to paths according to platform"""
     system = platform.system()
     if system == "Linux":
@@ -172,13 +172,13 @@ def qupath_jvm_info_from_qupath_dir(qupath_dir: Path, jvm_options: List[str]) ->
 
 
 # stores qupath version to handle consecutive calls to start_jvm
-_QUPATH_VERSION: Optional[QuPathVersion] = None
+_QUPATH_VERSION: QuPathVersion | None = None
 
 
 def start_jvm(
-    finder: Optional[Callable[..., QuPathJVMInfo]] = None,
-    finder_kwargs: Optional[Dict[str, Any]] = None,
-) -> Optional[QuPathVersion]:
+    finder: Callable[..., QuPathJVMInfo] | None = None,
+    finder_kwargs: dict[str, Any] | None = None,
+) -> QuPathVersion | None:
     """start the jvm via jpype
 
     This is automatically called at import of `paquo.java`.

@@ -375,7 +375,12 @@ def test_project_image_uri_update(tmp_path, svs_small):
         assert all(qp.is_readable().values())
 
 
-def test_project_image_uri_update_try_relative(tmp_path, svs_small):
+def test_project_image_uri_update_try_relative(tmp_path, svs_small, qupath_version):
+    if platform.system() == "Windows" and qupath_version >= QuPathVersion("0.7.0"):
+        pytest.xfail(
+            "Windows QuPath==0.7.0 quirk with try_relative path update, "
+            "see https://github.com/Bayer-Group/paquo/issues/130"
+        )
 
     # prepare initial location
     location_0 = tmp_path / "location_0"
