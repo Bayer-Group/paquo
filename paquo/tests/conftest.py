@@ -1,7 +1,6 @@
 import hashlib
 import pathlib
 import shutil
-import sys
 import urllib.request
 
 import pytest
@@ -16,10 +15,7 @@ IMAGES_FALLBACK_URL = (
 
 
 def md5(fn):
-    if sys.version_info >= (3, 9):
-        m = hashlib.md5(usedforsecurity=False)
-    else:
-        m = hashlib.md5()  # nosec B324
+    m = hashlib.md5(usedforsecurity=False)
     with open(fn, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             m.update(chunk)

@@ -36,9 +36,6 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.9'
             qupath-version: '0.7.0'
-          - os: ubuntu-latest
-            python-version: '3.8'
-            qupath-version: '0.7.0'
           # we'll test older qupath support on ubuntu too
           - os: ubuntu-latest
             python-version: '3.14'
