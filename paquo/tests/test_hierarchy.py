@@ -6,6 +6,7 @@ from typing import Type
 from typing import TypeVar
 
 import pytest
+import shapely
 import shapely.geometry
 from shapely.geometry import Polygon
 
@@ -83,6 +84,23 @@ def test_add_annotation_detection_tile(empty_hierarchy):
         roi=shapely.geometry.Polygon.from_bounds(0, 0, 5, 5),
         nucleus_roi=shapely.geometry.Polygon.from_bounds(1.25, 1.25, 3.75, 3.75)
     )
+
+
+def _skip_if_no_contour_tracing():
+    from paquo.java import compatibility
+    if not compatibility.supports_contour_tracing:
+        pytest.skip(f"unsupported in {compatibility.version}")
+
+
+def test_add_image_annotation_empty_hierarchy_requires_downsample(empty_hierarchy):
+    _skip_if_no_contour_tracing()
+
+    with pytest.raises(ValueError, match="downsample must be provided"):
+        empty_hierarchy.add_image_annotation(
+            [[[1, 1], [1, 1]]],
+            ["tumor"],
+        )
+
 
 def test_attach_detections(empty_hierarchy):
     h = empty_hierarchy
@@ -389,6 +407,72 @@ def test_hierarchy_no_autoflush_annotation_update(project_with_annotations):
 
         assert entry1.is_changed()
         assert all(a.path_class.name == "new" for a in entry1.hierarchy.annotations)
+
+
+def test_add_image_annotation(empty_hierarchy):
+    _skip_if_no_contour_tracing()
+
+    created = empty_hierarchy.add_image_annotation(
+        [
+            [
+                [1, 1, 0, 0],
+                [1, 1, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 1, 1],
+                [0, 0, 1, 1],
+            ],
+        ],
+        ["class0", QuPathPathClass("class1")],
+        x=10,
+        y=20,
+        downsample=2,
+    )
+
+    assert len(created) == 2
+    assert len(empty_hierarchy.annotations) == 2
+
+    by_class = {annotation.path_class.name: annotation for annotation in created}
+    assert set(by_class) == {"class0", "class1"}
+    assert by_class["class0"].name == "class0"
+    assert by_class["class1"].name == "class1"
+    assert shapely.equals(
+        by_class["class0"].roi,
+        Polygon.from_bounds(10, 20, 14, 24),
+    )
+    assert shapely.equals(
+        by_class["class1"].roi,
+        Polygon.from_bounds(14, 24, 18, 28),
+    )
+
+
+def test_add_image_annotation_infers_full_image_downsample():
+    _skip_if_no_contour_tracing()
+
+    hierarchy = QuPathPathObjectHierarchy(image_width=4, image_height=4)
+
+    created = hierarchy.add_image_annotation(
+        [
+            [
+                [1, 1],
+                [1, 1],
+            ],
+        ],
+        ["class0"],
+    )
+
+    assert len(created) == 1
+    annotation = created[0]
+
+    assert annotation.path_class.name == "class0"
+    assert shapely.equals(
+        annotation.roi,
+        Polygon.from_bounds(0, 0, 4, 4),
+    )
 
 
 @pytest.fixture(scope='function')

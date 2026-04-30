@@ -599,8 +599,20 @@ class QuPathProjectImageEntry:
             except (OSError, RuntimeError):
                 _log.warning("could not open image data. loading annotation hierarchy from project.")
                 h = self.java_object.readHierarchy()
+        try:
+            image_width = self.width
+            image_height = self.height
+        except (FileNotFoundError, OSError, RuntimeError):
+            image_width = None
+            image_height = None
 
-        return QuPathPathObjectHierarchy(h, readonly=self._readonly, image_name=self.image_name)
+        return QuPathPathObjectHierarchy(
+            h,
+            readonly=self._readonly,
+            image_name=self.image_name,
+            image_width=image_width,
+            image_height=image_height,
+        )
 
     def __repr__(self):
         return f"ImageEntry(image_name='{self.image_name}')"
