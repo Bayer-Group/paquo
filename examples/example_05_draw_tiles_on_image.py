@@ -3,7 +3,8 @@ import itertools
 import math
 import random
 from pathlib import Path
-from typing import Tuple, Iterator
+from typing import Tuple
+from collections.abc import Iterator
 
 from shapely.geometry import Polygon
 
@@ -21,7 +22,7 @@ def measurement(x, y, w, h, a=8) -> float:
     return min(max(0., v), 1.)
 
 
-def iterate_grid(width, height, grid_size) -> Iterator[Tuple[int, int]]:
+def iterate_grid(width, height, grid_size) -> Iterator[tuple[int, int]]:
     """return corner x,y coordinates for a grid"""
     yield from itertools.product(
         range(0, width, grid_size),

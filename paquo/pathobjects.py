@@ -1,9 +1,9 @@
 import json
 import math
+from collections.abc import Callable
+from collections.abc import Iterator
 from collections.abc import MutableMapping
 from functools import partial
-from typing import Callable
-from typing import Iterator
 from typing import Optional
 from typing import Type
 from typing import TypeVar
@@ -84,7 +84,7 @@ class _MeasurementList(MutableMapping):
         self,
         measurement_list,
         *,
-        update_callback: Optional[Callable[[], None]] = None
+        update_callback: Callable[[], None] | None = None
     ):
         self._measurement_list = measurement_list
         self._update_callback = update_callback
@@ -106,7 +106,7 @@ class _MeasurementList(MutableMapping):
         if self._update_callback:
             self._update_callback()
 
-    def __getitem__(self, k: Union[str, int]) -> float:
+    def __getitem__(self, k: str | int) -> float:
         if not isinstance(k, (int, str)):
             raise KeyError(f"unsupported key of type {type(k)}")
         if compatibility.supports_newer_measurements_interface:
@@ -156,24 +156,24 @@ class _PathROIObject:
     """internal base class for PathObjects"""
 
     # must be provided in subclass
-    java_class: Type[PathROIObject]
+    java_class: type[PathROIObject]
     java_class_factory: Callable[..., PathROIObject]
 
     def __init__(
         self,
         java_object: PathROIObject,
         *,
-        update_callback: Optional[Callable[[PathROIObjectType], None]] = None
+        update_callback: Callable[[PathROIObjectType], None] | None = None
     ) -> None:
         """instantiate using classmethods: `from_shapely`, `from_geojson`"""
         self.java_object = java_object
         self._update_callback = update_callback
 
     @classmethod
-    def from_shapely(cls: Type[PathROIObjectType],
+    def from_shapely(cls: type[PathROIObjectType],
                      roi: BaseGeometry,
-                     path_class: Optional[QuPathPathClass] = None,
-                     measurements: Optional[dict] = None,
+                     path_class: QuPathPathClass | None = None,
+                     measurements: dict | None = None,
                      *,
                      path_class_probability: float = math.nan) -> "PathROIObjectType":
         """create a Path Object from a shapely shape
@@ -205,7 +205,7 @@ class _PathROIObject:
         return obj
 
     @classmethod
-    def from_geojson(cls: Type[PathROIObjectType], geojson) -> PathROIObjectType:
+    def from_geojson(cls: type[PathROIObjectType], geojson) -> PathROIObjectType:
         """create a new Path Object from geojson"""
         gson = GsonTools.getInstance()
         java_obj = gson.fromJson(String(json.dumps(geojson)), cls.java_class)
@@ -218,7 +218,7 @@ class _PathROIObject:
         return dict(json.loads(str(geojson)))
 
     @property
-    def path_class(self) -> Optional[QuPathPathClass]:
+    def path_class(self) -> QuPathPathClass | None:
         """the annotation path class"""
         pc = self.java_object.getPathClass()
         if not pc:
@@ -230,7 +230,7 @@ class _PathROIObject:
         """the annotation path class probability"""
         return float(self.java_object.getClassProbability())
 
-    def update_path_class(self: PathROIObjectType, pc: Optional[QuPathPathClass], probability: float = math.nan) -> None:
+    def update_path_class(self: PathROIObjectType, pc: QuPathPathClass | None, probability: float = math.nan) -> None:
         """updating the class or probability has to be done via this method"""
         if not (pc is None or isinstance(pc, QuPathPathClass)):
             raise TypeError("requires QuPathPathClass")
@@ -262,7 +262,7 @@ class _PathROIObject:
         return int(self.java_object.getLevel())
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         """an optional name for the annotation"""
         name = self.java_object.getName()
         if name is None:
@@ -270,7 +270,7 @@ class _PathROIObject:
         return str(name)
 
     @name.setter
-    def name(self: PathROIObjectType, name: Union[str, None]) -> None:
+    def name(self: PathROIObjectType, name: str | None) -> None:
         if name is not None:
             name = String(name)
         self.java_object.setName(name)
@@ -278,7 +278,7 @@ class _PathROIObject:
             self._update_callback(self)  # type: ignore[arg-type]
 
     @property
-    def parent(self: PathROIObjectType) -> Optional[PathROIObjectType]:
+    def parent(self: PathROIObjectType) -> PathROIObjectType | None:
         """the annotation object's parent annotation object"""
         parent = self.java_object.getParent()
         if not parent:
@@ -370,7 +370,7 @@ class QuPathPathAnnotationObject(_PathROIObject):
     java_class_factory = PathObjects.createAnnotationObject
 
     @property
-    def description(self) -> Optional[str]:
+    def description(self) -> str | None:
         """an optional description for the annotation"""
         desc = self.java_object.getDescription()
         return str(desc) if desc is not None else None
@@ -408,11 +408,11 @@ class QuPathPathCellObject(QuPathPathDetectionObject):
     @classmethod
     def from_shapely(cls,
                      roi: BaseGeometry,
-                     path_class: Optional[QuPathPathClass] = None,
-                     measurements: Optional[dict] = None,
+                     path_class: QuPathPathClass | None = None,
+                     measurements: dict | None = None,
                      *,
                      path_class_probability: float = math.nan,
-                     nucleus_roi: Optional[BaseGeometry] = None) -> "QuPathPathCellObject":
+                     nucleus_roi: BaseGeometry | None = None) -> "QuPathPathCellObject":
         """create a Path Object from a shapely shape
 
         Parameters

@@ -1,12 +1,12 @@
 import atexit
 import logging
 import re
+from collections.abc import Iterable
 from contextlib import AbstractContextManager
 from contextlib import ContextDecorator
 from contextlib import ExitStack
 from contextlib import contextmanager
 from contextlib import suppress
-from typing import Iterable
 from typing import List
 from typing import Tuple
 
@@ -122,9 +122,9 @@ class _JavaLoggingBase(AbstractContextManager):
             else:
                 self._logger.info("[%s] [%s] - %s", origin, level, entry)
 
-    def iter_logs(self, output: str) -> Iterable[Tuple[Tuple[str, str], str]]:
+    def iter_logs(self, output: str) -> Iterable[tuple[tuple[str, str], str]]:
         """iterate the individual log messages"""
-        entry: List[str] = []
+        entry: list[str] = []
         info = ('NONE', 'NONE')
         for line in output.splitlines(keepends=True):
             if not line.strip():

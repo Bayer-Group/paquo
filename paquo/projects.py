@@ -3,18 +3,18 @@ import math
 import pathlib
 import re
 import shutil
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import Sequence
 from contextlib import contextmanager
 from contextlib import nullcontext
 from typing import Any
-from typing import Callable
 from typing import ContextManager
 from typing import Dict
-from typing import Iterable
-from typing import Iterator
 from typing import List
 from typing import Literal
 from typing import Optional
-from typing import Sequence
 from typing import Tuple
 from typing import Union
 from typing import overload
@@ -169,7 +169,7 @@ class QuPathProject:
     java_object: DefaultProject
 
     def __init__(self,
-                 path: Union[str, pathlib.Path],
+                 path: str | pathlib.Path,
                  mode: ProjectIOMode = 'r',
                  *,
                  image_provider: ImageProvider = DEFAULT_IMAGE_PROVIDER):
@@ -272,33 +272,33 @@ class QuPathProject:
     def add_image(
         self,
         image_id: SimpleFileImageId,
-        image_type: Optional[QuPathImageType] = ...,
+        image_type: QuPathImageType | None = ...,
         *,
         allow_duplicates: bool = ...,
         return_list: Literal[True],
-    ) -> List[QuPathProjectImageEntry]:
+    ) -> list[QuPathProjectImageEntry]:
         ...
 
     @overload
     def add_image(
         self,
         image_id: SimpleFileImageId,
-        image_type: Optional[QuPathImageType] = ...,
+        image_type: QuPathImageType | None = ...,
         *,
         allow_duplicates: bool = ...,
         return_list: Literal[False] = ...,
-    ) -> Union[QuPathProjectImageEntry, List[QuPathProjectImageEntry]]:
+    ) -> QuPathProjectImageEntry | list[QuPathProjectImageEntry]:
         ...
 
     @redirect(stderr=True, stdout=True)
     def add_image(
         self,
         image_id: SimpleFileImageId,
-        image_type: Optional[QuPathImageType] = None,
+        image_type: QuPathImageType | None = None,
         *,
         allow_duplicates: bool = False,
         return_list: bool = False,
-    ) -> Union[QuPathProjectImageEntry, List[QuPathProjectImageEntry]]:
+    ) -> QuPathProjectImageEntry | list[QuPathProjectImageEntry]:
         """add an image to the project
 
         Parameters
@@ -390,7 +390,7 @@ class QuPathProject:
         else:
             return entries[0]
 
-    def is_readable(self) -> Dict[str, bool]:
+    def is_readable(self) -> dict[str, bool]:
         """verify if images are reachable"""
         readability_map = {}
         for image in self.images:
@@ -463,7 +463,7 @@ class QuPathProject:
     @redirect(stderr=True, stdout=True)
     def remove_image(
         self,
-        image_entry: Union[QuPathProjectImageEntry, int],
+        image_entry: QuPathProjectImageEntry | int,
     ) -> None:
         """
         Delete an image from the QuPath project.
@@ -501,7 +501,7 @@ class QuPathProject:
     #     return str(uri.toString())
 
     @property
-    def path_classes(self) -> Tuple[QuPathPathClass, ...]:
+    def path_classes(self) -> tuple[QuPathPathClass, ...]:
         """return path_classes stored in the project"""
         return tuple(map(QuPathPathClass.from_java, self.java_object.getPathClasses()))
 
@@ -578,7 +578,7 @@ class QuPathProject:
         return int(self.java_object.getModificationTimestamp())
 
     @property
-    def version(self) -> Optional[str]:
+    def version(self) -> str | None:
         """the project version. should be identical to the qupath version"""
         # for older projects this returns null.
         # for newer projects this will be set to DefaultProject.LATEST_VERSION
